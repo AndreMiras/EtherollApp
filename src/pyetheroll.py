@@ -65,20 +65,22 @@ class Etheroll:
             abi=self.abi, address=self.CONTRACT_ADDRESS,
             ContractFactoryClass=contract_factory_class)
 
-    def events_abi(self):
+    def events_abi(self, contract_abi=None):
         """
         Returns only ABI definition of type "event".
         """
-        return [a for a in self.abi if a['type'] == 'event']
+        if contract_abi is None:
+            contract_abi = self.abi
+        return [a for a in contract_abi if a['type'] == 'event']
 
-    def events_definitions(self):
+    def events_definitions(self, contract_abi=None):
         """
         Returns all events definitions (built from ABI definition).
         e.g.
         >>> {"LogRefund": "LogRefund(bytes32,address,uint256)"}
         """
         events_definitions = {}
-        events_abi = self.events_abi()
+        events_abi = self.events_abi(contract_abi)
         for event_abi in events_abi:
             event_name = event_abi['name']
             types = ','.join([x['type'] for x in event_abi['inputs']])
@@ -87,26 +89,26 @@ class Etheroll:
         return events_definitions
 
 
-    def events_signatures(self):
+    def events_signatures(self, contract_abi=None):
         """
         Returns sha3 signature of all events.
         e.g.
         >>> {'LogResult': '0x6883...5c88', 'LogBet': '0x1cb5...75c4'}
         """
         events_signatures = {}
-        events_definitions = self.events_definitions()
+        events_definitions = self.events_definitions(contract_abi)
         for event in events_definitions:
             event_definition = events_definitions[event]
             event_signature = Web3.sha3(text=event_definition)
             events_signatures.update({event: event_signature})
         return events_signatures
 
-    def events_infos(self):
+    def events_infos(self, contract_abi):
         """
         List of infos for each events.
         """
         events_infos = {}
-        events_abi = self.events_abi()
+        events_abi = self.events_abi(contract_abi)
         for event_abi in events_abi:
             event_name = event_abi['name']
             types = ','.join([x['type'] for x in event_abi['inputs']])
@@ -124,7 +126,8 @@ class Etheroll:
         """
         Returns the logs of the given events.
         """
-        events_signatures = self.events_signatures()
+        contract_abi = self.contract_abi
+        events_signatures = self.events_signatures(contract_abi)
         topics = []
         for event in event_list:
             topics.append(events_signatures[event])
@@ -138,14 +141,14 @@ class Etheroll:
         return events_logs
 
     # TODO: this is not yet working as expected
-    def decode_event(self, topic, log_data):
+    def decode_event(self, contract_abi, topic, log_data):
         """
         Given a topic and log data, decode the event.
         TODO:
         This is not yet working as expected. The `log_data` part is not
         decoded properly.
         """
-        events_infos = self.events_infos()
+        events_infos = self.events_infos(contract_abi)
         event_info = None
         for event, info in events_infos.iteritems():
             if info['sha3'].lower() == topic.lower():
@@ -162,7 +165,7 @@ class Etheroll:
 def play_with_contract():
     etheroll = Etheroll()
     contract_abi = etheroll.abi
-    contract_abi = etheroll.oraclize_contract_abi
+    # contract_abi = etheroll.oraclize_contract_abi
     call_data_list = [
         # '0xdc6dd152000000000000000000000000000000000000000000000000000000000000001c',
     ]
@@ -180,6 +183,7 @@ def play_with_contract():
     # print(events_signatures)
     # pending = etheroll.contract.call().playerWithdrawPendingTransactions()
     # print("pending:", pending)
+    # topic = "0xb76d0edd90c6a07aa3ff7a222d7f5933e29c6acc660c059c97837f05c4ca1a84"
     topic = "0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4"
     log_data = [
             "b4fd1bd4b0a330a00f1d809c9a29c9aa2bba49e7af45dee70852e1e7e2eed543",
@@ -190,7 +194,7 @@ def play_with_contract():
             "0000000000000000000000000000000000000000000000000000000000000033",
     ]
     log_data = "".join(log_data)
-    etheroll.decode_event(topic, log_data)
+    etheroll.decode_event(contract_abi, topic, log_data)
 
 
 def main():

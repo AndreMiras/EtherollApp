@@ -8,7 +8,6 @@ from __future__ import print_function
 from etherscan.contracts import Contract as EtherscanContract
 import json
 import os
-import json
 from eth_abi import decode_abi
 from eth_tester import EthereumTester
 from web3 import Web3, HTTPProvider
@@ -38,8 +37,81 @@ def get_contract_abi(contract_address):
     with open(api_key_path, mode='r') as key_file:
         key = json.loads(key_file.read())['key']
     api = RopstenContract(address=contract_address, api_key=key)
-    abi = api.get_abi()
+    json_abi = api.get_abi()
+    abi = json.loads(json_abi)
     return abi
+
+
+def get_methods_infos(contract_abi):
+    """
+    List of infos for each events.
+    """
+    methods_infos = {}
+    # only retrieves functions and events
+    types = ['function', 'event']
+    methods = [a for a in contract_abi if a['type'] in types]
+    for description in methods:
+        method_name = description['name']
+        types = ','.join([x['type'] for x in description['inputs']])
+        event_definition = "%s(%s)" % (method_name, types)
+        event_sha3 = Web3.sha3(text=event_definition)
+        method_info = {
+            'definition': event_definition,
+            'sha3': event_sha3,
+            'abi': description,
+        }
+        methods_infos.update({method_name: method_info})
+    return methods_infos
+
+
+# TODO: this is not yet working as expected
+# TODO: give a try to https://github.com/ethereum/eth-abi
+def decode_method(contract_abi, topic, log_data):
+    """
+    Given a topic and log data, decode the event.
+    TODO:
+    This is not yet working as expected. The `log_data` part is not
+    decoded properly.
+    """
+    methods_infos = get_methods_infos(contract_abi)
+    method_info = None
+    for event, info in methods_infos.iteritems():
+        if info['sha3'].lower() == topic.lower():
+            method_info = info
+    event_inputs = method_info['abi']['inputs']
+    types = [e_input['type'] for e_input in event_inputs]
+    names = [e_input['name'] for e_input in event_inputs]
+    print(method_info['definition'])
+    values = decode_abi(types, log_data)
+    call = {name: value for name, value in zip(names, values)}
+    # print(call)
+    return call
+
+
+def decode_transaction_log(eth, transaction_hash):
+    """
+    Given a transaction hash, reads and decode the event log.
+    1) For each log entry
+        1.1) downloads the ABI associated to the recipient address
+        1.2) uses it to decode methods calls
+
+    Params:
+    eth: web3.eth.Eth instance
+    """
+    # TODO
+    transaction_receipt = eth.getTransactionReceipt(transaction_hash)
+    logs = transaction_receipt.logs
+    # TODO: currently only handles the first log
+    log = logs[0]
+    contract_address = log.address
+    contract_abi = get_contract_abi(contract_address)
+    topics = log.topics
+    # TODO: currently only handles the first topic
+    topic = topics[0]
+    log_data = log.data
+    call = decode_method(contract_abi, topic, log_data)
+    print("call:")
+    print(call)
 
 
 # def decode_contract_call(contract_abi: list, call_data: str):
@@ -130,25 +202,6 @@ class Etheroll:
             events_signatures.update({event: event_signature})
         return events_signatures
 
-    def events_infos(self, contract_abi):
-        """
-        List of infos for each events.
-        """
-        events_infos = {}
-        events_abi = self.events_abi(contract_abi)
-        for event_abi in events_abi:
-            event_name = event_abi['name']
-            types = ','.join([x['type'] for x in event_abi['inputs']])
-            event_definition = "%s(%s)" % (event_name, types)
-            event_sha3 = Web3.sha3(text=event_definition)
-            event_info = {
-                'definition': event_definition,
-                'sha3': event_sha3,
-                'abi': event_abi,
-            }
-            events_infos.update({event_name: event_info})
-        return events_infos
-
     def events_logs(self, event_list):
         """
         Returns the logs of the given events.
@@ -167,38 +220,17 @@ class Etheroll:
         events_logs = event_filter.get(False)
         return events_logs
 
-    # TODO: this is not yet working as expected
-    def decode_event(self, contract_abi, topic, log_data):
-        """
-        Given a topic and log data, decode the event.
-        TODO:
-        This is not yet working as expected. The `log_data` part is not
-        decoded properly.
-        """
-        events_infos = self.events_infos(contract_abi)
-        event_info = None
-        for event, info in events_infos.iteritems():
-            if info['sha3'].lower() == topic.lower():
-                event_info = info
-        event_inputs = event_info['abi']['inputs']
-        types = [e_input['type'] for e_input in event_inputs]
-        names = [e_input['name'] for e_input in event_inputs]
-        print(event_info['definition'])
-        values = decode_abi(types, log_data)
-        call = {name: value for name, value in zip(names, values)}
-        # print(call)
-
 
 def play_with_contract():
     etheroll = Etheroll()
     contract_abi = etheroll.abi
     contract_abi = etheroll.oraclize_contract_abi
     contract_abi = etheroll.oraclize2_contract_abi
-    contract_address = "0xcbf1735aad8c4b337903cd44b419efe6538aab40"
-    contract_abi = get_contract_abi(contract_address)
+    transaction_hash = "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be"
+    decode_transaction_log(etheroll.web3.eth, transaction_hash)
+    return
     print("contract_abi:")
     print(contract_abi)
-    return
     call_data_list = [
         # '0xdc6dd152000000000000000000000000000000000000000000000000000000000000001c',
         # '0x2ef3accc000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000395f800000000000000000000000000000000000000000000000000000000000000066e65737465640000000000000000000000000000000000000000000000000000',
@@ -229,7 +261,7 @@ def play_with_contract():
             "0000000000000000000000000000000000000000000000000000000000000033",
     ]
     log_data = "".join(log_data)
-    # etheroll.decode_event(contract_abi, topic, log_data)
+    # decode_method(contract_abi, topic, log_data)
 
 
 def main():

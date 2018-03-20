@@ -5,6 +5,8 @@ Python Etheroll library.
 """
 from __future__ import print_function
 
+from etherscan.contracts import Contract as EtherscanContract
+import json
 import os
 import json
 from eth_abi import decode_abi
@@ -17,6 +19,28 @@ from ethereum.abi import (
     normalize_name as normalize_abi_method_name,
     method_id as get_abi_method_id)
 from ethereum.utils import encode_int, zpad, decode_hex
+
+
+class RopstenContract(EtherscanContract):
+    """
+    https://github.com/corpetty/py-etherscan-api/issues/24
+    """
+    PREFIX = 'https://api-ropsten.etherscan.io/api?'
+
+
+# TODO: handle both mainnet and testnet
+def get_contract_abi(contract_address):
+    """
+    Given a contract address returns the contract ABI from Etherscan, refs #2.
+    """
+    location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    api_key_path = str(os.path.join(location, 'api_key.json'))
+    with open(api_key_path, mode='r') as key_file:
+        key = json.loads(key_file.read())['key']
+    api = RopstenContract(address=contract_address, api_key=key)
+    abi = api.get_abi()
+    return abi
+
 
 # def decode_contract_call(contract_abi: list, call_data: str):
 def decode_contract_call(contract_abi, call_data):
@@ -170,6 +194,11 @@ def play_with_contract():
     contract_abi = etheroll.abi
     contract_abi = etheroll.oraclize_contract_abi
     contract_abi = etheroll.oraclize2_contract_abi
+    contract_address = "0xcbf1735aad8c4b337903cd44b419efe6538aab40"
+    contract_abi = get_contract_abi(contract_address)
+    print("contract_abi:")
+    print(contract_abi)
+    return
     call_data_list = [
         # '0xdc6dd152000000000000000000000000000000000000000000000000000000000000001c',
         # '0x2ef3accc000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000395f800000000000000000000000000000000000000000000000000000000000000066e65737465640000000000000000000000000000000000000000000000000000',

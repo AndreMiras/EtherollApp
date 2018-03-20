@@ -5,10 +5,11 @@ Python Etheroll library.
 """
 from __future__ import print_function
 
+from pprint import pprint
 from etherscan.contracts import Contract as EtherscanContract
 import json
 import os
-from eth_abi import decode_abi
+import eth_abi
 from eth_tester import EthereumTester
 from web3 import Web3, HTTPProvider
 from web3.contract import ConciseContract, Contract
@@ -64,14 +65,9 @@ def get_methods_infos(contract_abi):
     return methods_infos
 
 
-# TODO: this is not yet working as expected
-# TODO: give a try to https://github.com/ethereum/eth-abi
 def decode_method(contract_abi, topic, log_data):
     """
     Given a topic and log data, decode the event.
-    TODO:
-    This is not yet working as expected. The `log_data` part is not
-    decoded properly.
     """
     methods_infos = get_methods_infos(contract_abi)
     method_info = None
@@ -81,11 +77,13 @@ def decode_method(contract_abi, topic, log_data):
     event_inputs = method_info['abi']['inputs']
     types = [e_input['type'] for e_input in event_inputs]
     names = [e_input['name'] for e_input in event_inputs]
-    print(method_info['definition'])
-    values = decode_abi(types, log_data)
+    values = eth_abi.decode_abi(types, log_data)
     call = {name: value for name, value in zip(names, values)}
-    # print(call)
-    return call
+    decoded_method = {
+        'method_info': method_info,
+        'call': call,
+    }
+    return decoded_method
 
 
 def decode_transaction_log(eth, transaction_hash):
@@ -98,7 +96,6 @@ def decode_transaction_log(eth, transaction_hash):
     Params:
     eth: web3.eth.Eth instance
     """
-    # TODO
     transaction_receipt = eth.getTransactionReceipt(transaction_hash)
     logs = transaction_receipt.logs
     # TODO: currently only handles the first log
@@ -109,9 +106,8 @@ def decode_transaction_log(eth, transaction_hash):
     # TODO: currently only handles the first topic
     topic = topics[0]
     log_data = log.data
-    call = decode_method(contract_abi, topic, log_data)
-    print("call:")
-    print(call)
+    decoded_method = decode_method(contract_abi, topic, log_data)
+    pprint(decoded_method)
 
 
 # def decode_contract_call(contract_abi: list, call_data: str):
@@ -127,6 +123,7 @@ def decode_contract_call(contract_abi, call_data):
         method_id = get_abi_method_id(method_name, arg_types)
         if zpad(encode_int(method_id), 4) == method_signature:
             try:
+                # TODO: ethereum.abi.decode_abi vs eth_abi.decode_abi
                 args = decode_abi(arg_types, call_data_bin[4:])
             except AssertionError:
                 # Invalid args
@@ -231,14 +228,9 @@ def play_with_contract():
     return
     print("contract_abi:")
     print(contract_abi)
-    call_data_list = [
-        # '0xdc6dd152000000000000000000000000000000000000000000000000000000000000001c',
-        # '0x2ef3accc000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000395f800000000000000000000000000000000000000000000000000000000000000066e65737465640000000000000000000000000000000000000000000000000000',
-        '0xc51be90f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000395f800000000000000000000000000000000000000000000000000000000000000066e6573746564000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001b45b55524c5d205b276a736f6e2868747470733a2f2f6170692e72616e646f6d2e6f72672f6a736f6e2d7270632f312f696e766f6b65292e726573756c742e72616e646f6d5b2273657269616c4e756d626572222c2264617461225d272c20275c6e7b226a736f6e727063223a22322e30222c226d6574686f64223a2267656e65726174655369676e6564496e746567657273222c22706172616d73223a7b226170694b6579223a247b5b646563727970745d20424b6733544373376c6b7a4e72316b523670786a50434d32534f656a63466f6a55504d544f73426b432f343748485066317350326f78564c546a4e42752b736c523953675a797144746a564f5635597a67313269556b62756270304470636a434564654a54486e4777433667443732394755566f47766f393668757877526f5a6c436a594f3830725771325747596f522f4c433357616d704475767632426f3d7d2c226e223a312c226d696e223a312c226d6178223a3130302c227265706c6163656d656e74223a747275652c2262617365223a3130247b5b6964656e746974795d20227d227d2c226964223a31247b5b6964656e746974795d20227d227d275d000000000000000000000000',
-    ]
-    for call_data in call_data_list:
-        method_name, args = decode_contract_call(contract_abi, call_data)
-        print(method_name, args)
+    # method_name, args = decode_contract_call(contract_abi, call_data)
+    # print(method_name, args)
+
     # min_bet = etheroll.contract.call().minBet()
     # print("min_bet:", min_bet)
     # log_bet_events = etheroll.contract.pastEvents('LogBet').get(only_changes=False)
@@ -250,18 +242,6 @@ def play_with_contract():
     # print(events_signatures)
     # pending = etheroll.contract.call().playerWithdrawPendingTransactions()
     # print("pending:", pending)
-    # topic = "0xb76d0edd90c6a07aa3ff7a222d7f5933e29c6acc660c059c97837f05c4ca1a84"
-    topic = "0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4"
-    log_data = [
-            "b4fd1bd4b0a330a00f1d809c9a29c9aa2bba49e7af45dee70852e1e7e2eed543",
-            "000000000000000000000000070ba449dba610303f928e35fd6c16c54b25d37a",
-            "0000000000000000000000000000000000000000000000004fafae93dc4b0000",
-            "0000000000000000000000000000000000000000000000002770cff143a90000",
-            "000000000000000000000000000000000000000000000000283edea298a20000",
-            "0000000000000000000000000000000000000000000000000000000000000033",
-    ]
-    log_data = "".join(log_data)
-    # decode_method(contract_abi, topic, log_data)
 
 
 def main():

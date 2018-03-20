@@ -48,7 +48,8 @@ def get_methods_infos(contract_abi):
     List of infos for each events.
     """
     methods_infos = {}
-    # only retrieves functions and events
+    # only retrieves functions and events, other existing types are:
+    # "fallback" and "constructor"
     types = ['function', 'event']
     methods = [a for a in contract_abi if a['type'] in types]
     for description in methods:
@@ -65,10 +66,14 @@ def get_methods_infos(contract_abi):
     return methods_infos
 
 
-def decode_method(contract_abi, topic, log_data):
+def decode_method(contract_abi, topics, log_data):
     """
     Given a topic and log data, decode the event.
     """
+    topic = topics[0]
+    # for some reason topics[1:] should be considered as data
+    topics_log_data = "0x" + "".join(topics[1:]).lower().replace("0x", "")
+    topics_log_data += log_data.lower().replace("0x", "")
     methods_infos = get_methods_infos(contract_abi)
     method_info = None
     for event, info in methods_infos.iteritems():
@@ -77,7 +82,7 @@ def decode_method(contract_abi, topic, log_data):
     event_inputs = method_info['abi']['inputs']
     types = [e_input['type'] for e_input in event_inputs]
     names = [e_input['name'] for e_input in event_inputs]
-    values = eth_abi.decode_abi(types, log_data)
+    values = eth_abi.decode_abi(types, topics_log_data)
     call = {name: value for name, value in zip(names, values)}
     decoded_method = {
         'method_info': method_info,
@@ -86,28 +91,31 @@ def decode_method(contract_abi, topic, log_data):
     return decoded_method
 
 
-def decode_transaction_log(eth, transaction_hash):
+def decode_transaction_log(log):
+    """
+    Given a transaction event log.
+    1) downloads the ABI associated to the recipient address
+    2) uses it to decode methods calls
+    """
+    contract_address = log.address
+    contract_abi = get_contract_abi(contract_address)
+    topics = log.topics
+    log_data = log.data
+    decoded_method = decode_method(contract_abi, topics, log_data)
+    pprint(decoded_method)
+
+
+def decode_transaction_logs(eth, transaction_hash):
     """
     Given a transaction hash, reads and decode the event log.
-    1) For each log entry
-        1.1) downloads the ABI associated to the recipient address
-        1.2) uses it to decode methods calls
-
     Params:
     eth: web3.eth.Eth instance
     """
     transaction_receipt = eth.getTransactionReceipt(transaction_hash)
     logs = transaction_receipt.logs
     # TODO: currently only handles the first log
-    log = logs[0]
-    contract_address = log.address
-    contract_abi = get_contract_abi(contract_address)
-    topics = log.topics
-    # TODO: currently only handles the first topic
-    topic = topics[0]
-    log_data = log.data
-    decoded_method = decode_method(contract_abi, topic, log_data)
-    pprint(decoded_method)
+    for log in logs:
+        decode_transaction_log(log)
 
 
 # def decode_contract_call(contract_abi: list, call_data: str):
@@ -224,7 +232,7 @@ def play_with_contract():
     contract_abi = etheroll.oraclize_contract_abi
     contract_abi = etheroll.oraclize2_contract_abi
     transaction_hash = "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be"
-    decode_transaction_log(etheroll.web3.eth, transaction_hash)
+    decode_transaction_logs(etheroll.web3.eth, transaction_hash)
     return
     print("contract_abi:")
     print(contract_abi)

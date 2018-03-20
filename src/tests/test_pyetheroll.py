@@ -4,7 +4,10 @@ import pyetheroll
 
 class TestUtils(unittest.TestCase):
 
-    def test_decode_method(self):
+    def test_decode_method_log1(self):
+        """
+        Trying to decode a `Log1()` event call.
+        """
         # simplified contract ABI for tests
         contract_abi = [
             {u'inputs': [], u'type': u'constructor', u'payable': False},
@@ -96,3 +99,69 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(
             decoded_method['method_info']['sha3'],
             '0xb76d0edd90c6a07aa3ff7a222d7f5933e29c6acc660c059c97837f05c4ca1a84')
+
+    def test_decode_method_log_bet(self):
+        """
+        Trying to decode a `LogBet()` event call.
+        """
+        # simplified contract ABI
+        contract_abi = [
+                {
+                    u'inputs': [{u'type': u'uint256', u'name': u'newMaxProfitAsPercent'}],
+                    u'constant': False, u'name': u'ownerSetMaxProfitAsPercentOfHouse',
+                    u'outputs': [], u'stateMutability': u'nonpayable',
+                    u'payable': False, u'type': u'function'},
+                {
+                    u'inputs': [], u'constant': True, u'name': u'treasury',
+                    u'outputs': [{u'type': u'address', u'name': u''}],
+                    u'stateMutability': u'view', u'payable': False, u'type': u'function'},
+                {
+                    u'inputs': [], u'constant': True, u'name': u'totalWeiWagered',
+                    u'outputs': [{u'type': u'uint256', u'name': u''}],
+                    u'stateMutability': u'view', u'payable': False, u'type': u'function'},
+                {u'inputs': [{u'type': u'uint256', u'name': u'newMinimumBet'}],
+                    u'constant': False, u'name': u'ownerSetMinBet',
+                    u'outputs': [], u'stateMutability': u'nonpayable', u'payable': False, u'type': u'function'},
+                {u'stateMutability': u'nonpayable', u'inputs': [], u'type': u'constructor', u'payable': False},
+                {u'stateMutability': u'payable', u'payable': True, u'type': u'fallback'},
+                {
+                    u'inputs': [
+                        {u'indexed': True, u'type': u'bytes32', u'name': u'BetID'},
+                        {u'indexed': True, u'type': u'address', u'name': u'PlayerAddress'},
+                        {u'indexed': True, u'type': u'uint256', u'name': u'RewardValue'},
+                        {u'indexed': False, u'type': u'uint256', u'name': u'ProfitValue'},
+                        {u'indexed': False, u'type': u'uint256', u'name': u'BetValue'},
+                        {u'indexed': False, u'type': u'uint256', u'name': u'PlayerNumber'}],
+                    u'type': u'event', u'name': u'LogBet', u'anonymous': False},
+                {
+                    u'inputs': [
+                        {u'indexed': True, u'type': u'address', u'name': u'SentToAddress'},
+                        {u'indexed': True, u'type': u'uint256', u'name': u'AmountTransferred'}],
+                    u'type': u'event', u'name': u'LogOwnerTransfer', u'anonymous': False}]
+        topics = [
+            '0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4',
+            '0xb0230ab70b78e47050766089ea333f2ff7ad41c6f31e8bed8c2acfcb8e911841',
+            '0x00000000000000000000000066d4bacfe61df23be813089a7a6d1a749a5c936a',
+            '0x000000000000000000000000000000000000000000000000016a98b78c556c34',
+        ]
+        log_data = ('0x'
+            '0000000000000000000000000000000000000000000000000007533f2ecb6c34'
+            '000000000000000000000000000000000000000000000000016345785d8a0000'
+            '0000000000000000000000000000000000000000000000000000000000000062')
+        decoded_method = pyetheroll.decode_method(contract_abi, topics, log_data)
+        self.assertEqual(
+            decoded_method['call'],
+            {u'BetID': (
+                '\xb0#\n\xb7\x0bx\xe4pPv`\x89\xea3?/\xf7\xadA\xc6\xf3\x1e\x8b'
+                '\xed\x8c*\xcf\xcb\x8e\x91\x18A'),
+            u'BetValue': 100000000000000000,
+            u'PlayerAddress': u'0x66d4bacfe61df23be813089a7a6d1a749a5c936a',
+            u'PlayerNumber': 98,
+            u'ProfitValue': 2061855670103092,
+            u'RewardValue': 102061855670103092})
+        self.assertEqual(
+            decoded_method['method_info']['definition'],
+            'LogBet(bytes32,address,uint256,uint256,uint256,uint256)')
+        self.assertEqual(
+            decoded_method['method_info']['sha3'],
+            '0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4')

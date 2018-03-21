@@ -1,6 +1,8 @@
 import unittest
+
 # from .. import pyetheroll
 import pyetheroll
+
 
 class TestUtils(unittest.TestCase):
 
@@ -10,41 +12,43 @@ class TestUtils(unittest.TestCase):
         """
         # simplified contract ABI for tests
         contract_abi = [
-            {u'inputs': [], u'type': u'constructor', u'payable': False},
-            {u'payable': False, u'type': u'fallback'},
-            {u'inputs': [
-                {u'indexed': False, u'type': u'address', u'name': u'sender'},
-                {u'indexed': False, u'type': u'bytes32', u'name': u'cid'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'timestamp'},
-                {u'indexed': False, u'type': u'string', u'name': u'datasource'},
-                {u'indexed': False, u'type': u'string', u'name': u'arg'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'gaslimit'},
-                {u'indexed': False, u'type': u'bytes1', u'name': u'proofType'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'gasPrice'}],
-                u'type': u'event', u'name': u'Log1', u'anonymous': False},
-            {u'inputs': [
-                {u'indexed': False, u'type': u'address', u'name': u'sender'},
-                {u'indexed': False, u'type': u'bytes32', u'name': u'cid'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'timestamp'},
-                {u'indexed': False, u'type': u'string', u'name': u'datasource'},
-                {u'indexed': False, u'type': u'string', u'name': u'arg1'},
-                {u'indexed': False, u'type': u'string', u'name': u'arg2'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'gaslimit'},
-                {u'indexed': False, u'type': u'bytes1', u'name': u'proofType'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'gasPrice'}],
-                u'type': u'event', u'name': u'Log2', u'anonymous': False},
-            {u'inputs': [
-                {u'indexed': False, u'type': u'address', u'name': u'sender'},
-                {u'indexed': False, u'type': u'bytes32', u'name': u'cid'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'timestamp'},
-                {u'indexed': False, u'type': u'string', u'name': u'datasource'},
-                {u'indexed': False, u'type': u'bytes', u'name': u'args'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'gaslimit'},
-                {u'indexed': False, u'type': u'bytes1', u'name': u'proofType'},
-                {u'indexed': False, u'type': u'uint256', u'name': u'gasPrice'}],
-                u'type': u'event', u'name': u'LogN',u'anonymous': False}]
-        topics = ['0xb76d0edd90c6a07aa3ff7a222d7f5933e29c6acc660c059c97837f05c4ca1a84']
-        log_data = ("0x"
+            {'inputs': [], 'type': 'constructor', 'payable': False},
+            {'payable': False, 'type': 'fallback'},
+            {'inputs': [
+                {'indexed': False, 'type': 'address', 'name': 'sender'},
+                {'indexed': False, 'type': 'bytes32', 'name': 'cid'},
+                {'indexed': False, 'type': 'uint256', 'name': 'timestamp'},
+                {'indexed': False, 'type': 'string', 'name': 'datasource'},
+                {'indexed': False, 'type': 'string', 'name': 'arg'},
+                {'indexed': False, 'type': 'uint256', 'name': 'gaslimit'},
+                {'indexed': False, 'type': 'bytes1', 'name': 'proofType'},
+                {'indexed': False, 'type': 'uint256', 'name': 'gasPrice'}],
+                'type': 'event', 'name': 'Log1', 'anonymous': False},
+            {'inputs': [
+                {'indexed': False, 'type': 'address', 'name': 'sender'},
+                {'indexed': False, 'type': 'bytes32', 'name': 'cid'},
+                {'indexed': False, 'type': 'uint256', 'name': 'timestamp'},
+                {'indexed': False, 'type': 'string', 'name': 'datasource'},
+                {'indexed': False, 'type': 'string', 'name': 'arg1'},
+                {'indexed': False, 'type': 'string', 'name': 'arg2'},
+                {'indexed': False, 'type': 'uint256', 'name': 'gaslimit'},
+                {'indexed': False, 'type': 'bytes1', 'name': 'proofType'},
+                {'indexed': False, 'type': 'uint256', 'name': 'gasPrice'}],
+                'type': 'event', 'name': 'Log2', 'anonymous': False},
+            {'inputs': [
+                {'indexed': False, 'type': 'address', 'name': 'sender'},
+                {'indexed': False, 'type': 'bytes32', 'name': 'cid'},
+                {'indexed': False, 'type': 'uint256', 'name': 'timestamp'},
+                {'indexed': False, 'type': 'string', 'name': 'datasource'},
+                {'indexed': False, 'type': 'bytes', 'name': 'args'},
+                {'indexed': False, 'type': 'uint256', 'name': 'gaslimit'},
+                {'indexed': False, 'type': 'bytes1', 'name': 'proofType'},
+                {'indexed': False, 'type': 'uint256', 'name': 'gasPrice'}],
+                'type': 'event', 'name': 'LogN', 'anonymous': False}]
+        topics = [
+          '0xb76d0edd90c6a07aa3ff7a222d7f5933e29c6acc660c059c97837f05c4ca1a84']
+        log_data = (
+            "0x"
             "000000000000000000000000fe8a5f3a7bb446e1cb4566717691cd3139289ed4"
             "b0230ab70b78e47050766089ea333f2ff7ad41c6f31e8bed8c2acfcb8e911841"
             "0000000000000000000000000000000000000000000000000000000000000000"
@@ -70,11 +74,12 @@ class TestUtils(unittest.TestCase):
             "3a312c226d6178223a3130302c227265706c6163656d656e74223a747275652c"
             "2262617365223a3130247b5b6964656e746974795d20227d227d2c226964223a"
             "31247b5b6964656e746974795d20227d227d275d000000000000000000000000")
-        decoded_method = pyetheroll.decode_method(contract_abi, topics, log_data)
+        decoded_method = pyetheroll.decode_method(
+            contract_abi, topics, log_data)
         # TODO: simplify that arg call for unit testing
         self.assertEqual(
             decoded_method['call'],
-            {u'arg': (
+            {'arg': (
                 '[URL] [\'json(https://api.random.org/json-rpc/1/invoke).resul'
                 't.random["serialNumber","data"]\', \'\\n{"jsonrpc":"2.0","met'
                 'hod":"generateSignedIntegers","params":{"apiKey":${[decrypt] '
@@ -83,22 +88,22 @@ class TestUtils(unittest.TestCase):
                 'uxwRoZlCjYO80rWq2WGYoR/LC3WampDuvv2Bo=},"n":1,"min":1,"max":1'
                 '00,"replacement":true,"base":10${[identity] "}"},"id":1${[ide'
                 'ntity] "}"}\']'),
-                u'cid': (
+                'cid': (
                     '\xb0#\n\xb7\x0bx\xe4pPv`\x89\xea3?/\xf7\xadA\xc6\xf3\x1e'
                     '\x8b\xed\x8c*\xcf\xcb\x8e\x91\x18A'),
-                u'datasource': 'nested',
-                u'gasPrice': 20000000000,
-                u'gaslimit': 235000,
-                u'proofType': '\x11',
-                u'sender': u'0xfe8a5f3a7bb446e1cb4566717691cd3139289ed4',
-                u'timestamp': 0}
+                'datasource': 'nested',
+                'gasPrice': 20000000000,
+                'gaslimit': 235000,
+                'proofType': '\x11',
+                'sender': '0xfe8a5f3a7bb446e1cb4566717691cd3139289ed4',
+                'timestamp': 0}
         )
         self.assertEqual(
-            decoded_method['method_info']['definition'],
-            'Log1(address,bytes32,uint256,string,string,uint256,bytes1,uint256)')
+          decoded_method['method_info']['definition'],
+          'Log1(address,bytes32,uint256,string,string,uint256,bytes1,uint256)')
         self.assertEqual(
-            decoded_method['method_info']['sha3'],
-            '0xb76d0edd90c6a07aa3ff7a222d7f5933e29c6acc660c059c97837f05c4ca1a84')
+          decoded_method['method_info']['sha3'],
+          '0xb76d0edd90c6a07aa3ff7a222d7f5933e29c6acc660c059c97837f05c4ca1a84')
 
     def test_decode_method_log_bet(self):
         """
@@ -106,62 +111,69 @@ class TestUtils(unittest.TestCase):
         """
         # simplified contract ABI
         contract_abi = [
-                {
-                    u'inputs': [{u'type': u'uint256', u'name': u'newMaxProfitAsPercent'}],
-                    u'constant': False, u'name': u'ownerSetMaxProfitAsPercentOfHouse',
-                    u'outputs': [], u'stateMutability': u'nonpayable',
-                    u'payable': False, u'type': u'function'},
-                {
-                    u'inputs': [], u'constant': True, u'name': u'treasury',
-                    u'outputs': [{u'type': u'address', u'name': u''}],
-                    u'stateMutability': u'view', u'payable': False, u'type': u'function'},
-                {
-                    u'inputs': [], u'constant': True, u'name': u'totalWeiWagered',
-                    u'outputs': [{u'type': u'uint256', u'name': u''}],
-                    u'stateMutability': u'view', u'payable': False, u'type': u'function'},
-                {u'inputs': [{u'type': u'uint256', u'name': u'newMinimumBet'}],
-                    u'constant': False, u'name': u'ownerSetMinBet',
-                    u'outputs': [], u'stateMutability': u'nonpayable', u'payable': False, u'type': u'function'},
-                {u'stateMutability': u'nonpayable', u'inputs': [], u'type': u'constructor', u'payable': False},
-                {u'stateMutability': u'payable', u'payable': True, u'type': u'fallback'},
-                {
-                    u'inputs': [
-                        {u'indexed': True, u'type': u'bytes32', u'name': u'BetID'},
-                        {u'indexed': True, u'type': u'address', u'name': u'PlayerAddress'},
-                        {u'indexed': True, u'type': u'uint256', u'name': u'RewardValue'},
-                        {u'indexed': False, u'type': u'uint256', u'name': u'ProfitValue'},
-                        {u'indexed': False, u'type': u'uint256', u'name': u'BetValue'},
-                        {u'indexed': False, u'type': u'uint256', u'name': u'PlayerNumber'}],
-                    u'type': u'event', u'name': u'LogBet', u'anonymous': False},
-                {
-                    u'inputs': [
-                        {u'indexed': True, u'type': u'address', u'name': u'SentToAddress'},
-                        {u'indexed': True, u'type': u'uint256', u'name': u'AmountTransferred'}],
-                    u'type': u'event', u'name': u'LogOwnerTransfer', u'anonymous': False}]
-        topics = [
-            '0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4',
-            '0xb0230ab70b78e47050766089ea333f2ff7ad41c6f31e8bed8c2acfcb8e911841',
-            '0x00000000000000000000000066d4bacfe61df23be813089a7a6d1a749a5c936a',
-            '0x000000000000000000000000000000000000000000000000016a98b78c556c34',
+          {
+            'inputs': [{'type': 'uint256', 'name': 'newMaxProfitAsPercent'}],
+            'constant': False, 'name': 'ownerSetMaxProfitAsPercentOfHouse',
+            'outputs': [], 'stateMutability': 'nonpayable',
+            'payable': False, 'type': 'function'},
+          {
+            'inputs': [], 'constant': True, 'name': 'treasury',
+            'outputs': [{'type': 'address', 'name': ''}],
+            'stateMutability': 'view', 'payable': False, 'type': 'function'},
+          {
+            'inputs': [], 'constant': True, 'name': 'totalWeiWagered',
+            'outputs': [{'type': 'uint256', 'name': ''}],
+            'stateMutability': 'view', 'payable': False, 'type': 'function'},
+          {
+            'inputs': [{'type': 'uint256', 'name': 'newMinimumBet'}],
+            'constant': False, 'name': 'ownerSetMinBet',
+            'outputs': [], 'stateMutability': 'nonpayable',
+            'payable': False, 'type': 'function'
+          },
+          {
+            'stateMutability': 'nonpayable',
+            'inputs': [],
+            'type': 'constructor',
+            'payable': False
+          },
+          {'stateMutability': 'payable', 'payable': True, 'type': 'fallback'},
+          {
+            'inputs': [
+               {'indexed': True, 'type': 'bytes32', 'name': 'BetID'},
+               {'indexed': True, 'type': 'address', 'name': 'PlayerAddress'},
+               {'indexed': True, 'type': 'uint256', 'name': 'RewardValue'},
+               {'indexed': False, 'type': 'uint256', 'name': 'ProfitValue'},
+               {'indexed': False, 'type': 'uint256', 'name': 'BetValue'},
+               {'indexed': False, 'type': 'uint256', 'name': 'PlayerNumber'}],
+            'type': 'event', 'name': 'LogBet', 'anonymous': False},
         ]
-        log_data = ('0x'
+        topics = [
+          '0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4',
+          '0xb0230ab70b78e47050766089ea333f2ff7ad41c6f31e8bed8c2acfcb8e911841',
+          '0x00000000000000000000000066d4bacfe61df23be813089a7a6d1a749a5c936a',
+          '0x000000000000000000000000000000000000000000000000016a98b78c556c34',
+        ]
+        log_data = (
+            '0x'
             '0000000000000000000000000000000000000000000000000007533f2ecb6c34'
             '000000000000000000000000000000000000000000000000016345785d8a0000'
             '0000000000000000000000000000000000000000000000000000000000000062')
-        decoded_method = pyetheroll.decode_method(contract_abi, topics, log_data)
+        decoded_method = pyetheroll.decode_method(
+            contract_abi, topics, log_data)
         self.assertEqual(
             decoded_method['call'],
-            {u'BetID': (
+            {'BetID': (
                 '\xb0#\n\xb7\x0bx\xe4pPv`\x89\xea3?/\xf7\xadA\xc6\xf3\x1e\x8b'
                 '\xed\x8c*\xcf\xcb\x8e\x91\x18A'),
-            u'BetValue': 100000000000000000,
-            u'PlayerAddress': u'0x66d4bacfe61df23be813089a7a6d1a749a5c936a',
-            u'PlayerNumber': 98,
-            u'ProfitValue': 2061855670103092,
-            u'RewardValue': 102061855670103092})
+                'BetValue': 100000000000000000,
+                'PlayerAddress':
+                    '0x66d4bacfe61df23be813089a7a6d1a749a5c936a',
+                'PlayerNumber': 98,
+                'ProfitValue': 2061855670103092,
+                'RewardValue': 102061855670103092})
         self.assertEqual(
             decoded_method['method_info']['definition'],
             'LogBet(bytes32,address,uint256,uint256,uint256,uint256)')
         self.assertEqual(
-            decoded_method['method_info']['sha3'],
-            '0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4')
+          decoded_method['method_info']['sha3'],
+          '0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4')

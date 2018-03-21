@@ -5,20 +5,20 @@ Python Etheroll library.
 """
 from __future__ import print_function
 
-from pprint import pprint
-from etherscan.contracts import Contract as EtherscanContract
 import json
 import os
+from pprint import pprint
+
 import eth_abi
 from eth_tester import EthereumTester
-from web3 import Web3, HTTPProvider
+from ethereum.abi import decode_abi
+from ethereum.abi import method_id as get_abi_method_id
+from ethereum.abi import normalize_name as normalize_abi_method_name
+from ethereum.utils import decode_hex, encode_int, zpad
+from etherscan.contracts import Contract as EtherscanContract
+from web3 import HTTPProvider, Web3
 from web3.contract import ConciseContract, Contract
 from web3.providers.eth_tester import EthereumTesterProvider
-from ethereum.abi import (
-    decode_abi,
-    normalize_name as normalize_abi_method_name,
-    method_id as get_abi_method_id)
-from ethereum.utils import encode_int, zpad, decode_hex
 
 
 class RopstenContract(EtherscanContract):

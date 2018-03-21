@@ -1,6 +1,8 @@
 import unittest
+
 # from .. import pyetheroll
 import pyetheroll
+
 
 class TestUtils(unittest.TestCase):
 

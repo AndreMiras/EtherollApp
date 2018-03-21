@@ -10,15 +10,13 @@ import os
 from pprint import pprint
 
 import eth_abi
-from eth_tester import EthereumTester
 from ethereum.abi import decode_abi
 from ethereum.abi import method_id as get_abi_method_id
 from ethereum.abi import normalize_name as normalize_abi_method_name
 from ethereum.utils import decode_hex, encode_int, zpad
 from etherscan.contracts import Contract as EtherscanContract
 from web3 import HTTPProvider, Web3
-from web3.contract import ConciseContract, Contract
-from web3.providers.eth_tester import EthereumTesterProvider
+from web3.contract import Contract
 
 
 class RopstenContract(EtherscanContract):
@@ -33,7 +31,8 @@ def get_contract_abi(contract_address):
     """
     Given a contract address returns the contract ABI from Etherscan, refs #2.
     """
-    location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    location = os.path.realpath(
+        os.path.join(os.getcwd(), os.path.dirname(__file__)))
     api_key_path = str(os.path.join(location, 'api_key.json'))
     with open(api_key_path, mode='r') as key_file:
         key = json.loads(key_file.read())['key']
@@ -141,6 +140,7 @@ def decode_contract_call(contract_abi, call_data):
                 continue
             return method_name, args
 
+
 class Etheroll:
 
     # Main network
@@ -149,23 +149,26 @@ class Etheroll:
     CONTRACT_ADDRESS = '0xFE8a5f3a7Bb446e1cB4566717691cD3139289ED4'
 
     def __init__(self):
-        ethereum_tester = EthereumTester()
+        # ethereum_tester = EthereumTester()
         # self.provider = EthereumTesterProvider(ethereum_tester)
         self.provider = HTTPProvider('https://ropsten.infura.io')
         # self.provider = HTTPProvider('https://api.myetherapi.com/rop')
         # self.provider = HTTPProvider('https://api.myetherapi.com/eth')
         self.web3 = Web3(self.provider)
         # print("blockNumber:", self.web3.eth.blockNumber)
-        location = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        location = os.path.realpath(
+            os.path.join(os.getcwd(), os.path.dirname(__file__)))
         contract_abi_path = str(os.path.join(location, 'contract_abi.json'))
         with open(contract_abi_path, 'r') as abi_definition:
-          self.abi = json.load(abi_definition)
-        contract_abi_path = str(os.path.join(location, 'oraclize_contract_abi.json'))
+            self.abi = json.load(abi_definition)
+        contract_abi_path = str(
+            os.path.join(location, 'oraclize_contract_abi.json'))
         with open(contract_abi_path, 'r') as abi_definition:
-          self.oraclize_contract_abi = json.load(abi_definition)
-        contract_abi_path = str(os.path.join(location, 'oraclize2_contract_abi.json'))
+            self.oraclize_contract_abi = json.load(abi_definition)
+        contract_abi_path = str(
+            os.path.join(location, 'oraclize2_contract_abi.json'))
         with open(contract_abi_path, 'r') as abi_definition:
-          self.oraclize2_contract_abi = json.load(abi_definition)
+            self.oraclize2_contract_abi = json.load(abi_definition)
         # contract_factory_class = ConciseContract
         contract_factory_class = Contract
         self.contract = self.web3.eth.contract(
@@ -194,7 +197,6 @@ class Etheroll:
             event_definition = "%s(%s)" % (event_name, types)
             events_definitions.update({event_name: event_definition})
         return events_definitions
-
 
     def events_signatures(self, contract_abi=None):
         """
@@ -234,7 +236,8 @@ def play_with_contract():
     contract_abi = etheroll.abi
     contract_abi = etheroll.oraclize_contract_abi
     contract_abi = etheroll.oraclize2_contract_abi
-    transaction_hash = "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be"
+    transaction_hash = (
+        "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
     decode_transaction_logs(etheroll.web3.eth, transaction_hash)
     return
     print("contract_abi:")
@@ -244,8 +247,6 @@ def play_with_contract():
 
     # min_bet = etheroll.contract.call().minBet()
     # print("min_bet:", min_bet)
-    # log_bet_events = etheroll.contract.pastEvents('LogBet').get(only_changes=False)
-    # etheroll.web3.eth.filter({'address': Etheroll.CONTRACT_ADDRESS, 'topics': topics})
     # events_definitions = etheroll.events_definitions()
     # print(events_definitions)
     # events_signatures = etheroll.events_signatures()
@@ -257,6 +258,7 @@ def play_with_contract():
 
 def main():
     play_with_contract()
+
 
 if __name__ == "__main__":
     main()

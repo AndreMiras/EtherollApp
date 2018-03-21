@@ -71,7 +71,10 @@ def decode_method(contract_abi, topics, log_data):
     Given a topic and log data, decode the event.
     """
     topic = topics[0]
-    # for some reason topics[1:] should be considered as data
+    # each indexed field generates a new topics and is excluded from data
+    # hence we consider topics[1:] like data, assuming indexed fields
+    # always come first
+    # see https://codeburst.io/deep-dive-into-ethereum-logs-a8d2047c7371
     topics_log_data = "0x" + "".join(topics[1:]).lower().replace("0x", "")
     topics_log_data += log_data.lower().replace("0x", "")
     methods_infos = get_methods_infos(contract_abi)

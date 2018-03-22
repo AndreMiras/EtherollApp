@@ -16,6 +16,7 @@ from ethereum.abi import normalize_name as normalize_abi_method_name
 from ethereum.utils import decode_hex, encode_int, zpad
 from etherscan.contracts import Contract as EtherscanContract
 from web3 import HTTPProvider, Web3
+from web3.auto import w3
 from web3.contract import Contract
 
 
@@ -235,20 +236,11 @@ class Etheroll:
 
 def play_with_contract():
     etheroll = Etheroll()
-    contract_abi = etheroll.abi
-    contract_abi = etheroll.oraclize_contract_abi
-    contract_abi = etheroll.oraclize2_contract_abi
-    transaction_hash = (
-        "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
-    decode_transaction_logs(etheroll.web3.eth, transaction_hash)
-    return
-    print("contract_abi:")
-    print(contract_abi)
-    # method_name, args = decode_contract_call(contract_abi, call_data)
-    # print(method_name, args)
-
-    # min_bet = etheroll.contract.call().minBet()
-    # print("min_bet:", min_bet)
+    # transaction_hash = (
+    #     "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
+    # decode_transaction_logs(etheroll.web3.eth, transaction_hash)
+    min_bet = etheroll.contract.call().minBet()
+    print("min_bet:", min_bet)
     # events_definitions = etheroll.events_definitions()
     # print(events_definitions)
     # events_signatures = etheroll.events_signatures()
@@ -258,8 +250,37 @@ def play_with_contract():
     # print("pending:", pending)
 
 
+def player_roll_dice():
+    """
+    Work in progress:
+    https://github.com/AndreMiras/EtherollApp/issues/1
+    """
+    etheroll = Etheroll()
+    roll_under = 98
+    amount_eth = 0.1
+    amount_gwei = amount_eth * pow(10, 9)
+    from_address = '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+    nonce = w3.eth.getTransactionCount(from_address)
+    transaction = {
+        # 'chainId': 1,
+        'gas': 70000,
+        'gasPrice': w3.toWei('1', 'gwei'),
+        'nonce': nonce,
+        'value': amount_gwei,
+    }
+    transaction = etheroll.contract.functions.playerRollDice(
+        roll_under).buildTransaction(transaction)
+    password = ""
+    wallet_path = '~/.ethereum/keystore/%s.json' % (from_address.lower())
+    encrypted_key = open(wallet_path).read()
+    private_key = w3.eth.account.decrypt(encrypted_key, password)
+    signed_tx = w3.eth.account.signTransaction(transaction, private_key)
+    w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+
+
 def main():
-    play_with_contract()
+    # play_with_contract()
+    player_roll_dice()
 
 
 if __name__ == "__main__":

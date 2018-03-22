@@ -74,11 +74,13 @@ def decode_method(contract_abi, topics, log_data):
     # hence we consider topics[1:] like data, assuming indexed fields
     # always come first
     # see https://codeburst.io/deep-dive-into-ethereum-logs-a8d2047c7371
-    topics_log_data = "0x" + "".join(topics[1:]).lower().replace("0x", "")
-    topics_log_data += log_data.lower().replace("0x", "")
+    topics_log_data = b"".join(topics[1:])
+    log_data = log_data.lower().replace("0x", "")
+    log_data = bytes.fromhex(log_data)
+    topics_log_data += log_data
     methods_infos = get_methods_infos(contract_abi)
     method_info = None
-    for event, info in methods_infos.iteritems():
+    for event, info in methods_infos.items():
         if info['sha3'].lower() == topic.lower():
             method_info = info
     event_inputs = method_info['abi']['inputs']

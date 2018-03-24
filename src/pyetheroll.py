@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import json
 import os
+from enum import Enum
 from pprint import pprint
 
 import eth_abi
@@ -16,7 +17,14 @@ from ethereum.abi import normalize_name as normalize_abi_method_name
 from ethereum.utils import decode_hex, encode_int, zpad
 from etherscan.contracts import Contract as EtherscanContract
 from web3 import HTTPProvider, Web3
+from web3.auto import w3
 from web3.contract import Contract
+
+
+class ChainID(Enum):
+    MAINNET = 1
+    MORDEN = 2
+    ROPSTEN = 3
 
 
 class RopstenContract(EtherscanContract):
@@ -235,20 +243,11 @@ class Etheroll:
 
 def play_with_contract():
     etheroll = Etheroll()
-    contract_abi = etheroll.abi
-    contract_abi = etheroll.oraclize_contract_abi
-    contract_abi = etheroll.oraclize2_contract_abi
-    transaction_hash = (
-        "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
-    decode_transaction_logs(etheroll.web3.eth, transaction_hash)
-    return
-    print("contract_abi:")
-    print(contract_abi)
-    # method_name, args = decode_contract_call(contract_abi, call_data)
-    # print(method_name, args)
-
-    # min_bet = etheroll.contract.call().minBet()
-    # print("min_bet:", min_bet)
+    # transaction_hash = (
+    #     "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
+    # decode_transaction_logs(etheroll.web3.eth, transaction_hash)
+    min_bet = etheroll.contract.call().minBet()
+    print("min_bet:", min_bet)
     # events_definitions = etheroll.events_definitions()
     # print(events_definitions)
     # events_signatures = etheroll.events_signatures()
@@ -258,8 +257,40 @@ def play_with_contract():
     # print("pending:", pending)
 
 
+def player_roll_dice():
+    """
+    Work in progress:
+    https://github.com/AndreMiras/EtherollApp/issues/1
+    """
+    etheroll = Etheroll()
+    roll_under = 98
+    value_wei = w3.toWei(0.1, 'ether')
+    gas = 310000
+    gas_price = w3.toWei(20, 'gwei')
+    from_address_normalized = ""
+    from_address = from_address_normalized.lower()
+    nonce = etheroll.web3.eth.getTransactionCount(from_address_normalized)
+    transaction = {
+        # 'chainId': ChainID.ROPSTEN.value,
+        'chainId': int(etheroll.web3.net.version),
+        'gas': gas,
+        'gasPrice': gas_price,
+        'nonce': nonce,
+        'value': value_wei,
+    }
+    transaction = etheroll.contract.functions.playerRollDice(
+        roll_under).buildTransaction(transaction)
+    password = ""
+    wallet_path = '/home/andre/.ethereum/keystore/%s.json' % (from_address.lower())
+    encrypted_key = open(wallet_path).read()
+    private_key = w3.eth.account.decrypt(encrypted_key, password)
+    signed_tx = etheroll.web3.eth.account.signTransaction(transaction, private_key)
+    etheroll.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+
+
 def main():
-    play_with_contract()
+    # play_with_contract()
+    player_roll_dice()
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import json
 import os
+from enum import Enum
 from pprint import pprint
 
 import eth_abi
@@ -18,6 +19,12 @@ from etherscan.contracts import Contract as EtherscanContract
 from web3 import HTTPProvider, Web3
 from web3.auto import w3
 from web3.contract import Contract
+
+
+class ChainID(Enum):
+    MAINNET = 1
+    MORDEN = 2
+    ROPSTEN = 3
 
 
 class RopstenContract(EtherscanContract):
@@ -264,7 +271,8 @@ def player_roll_dice():
     from_address = from_address_normalized.lower()
     nonce = etheroll.web3.eth.getTransactionCount(from_address_normalized)
     transaction = {
-        # 'chainId': 1,
+        # 'chainId': ChainID.ROPSTEN.value,
+        'chainId': int(etheroll.web3.net.version),
         'gas': gas,
         'gasPrice': gas_price,
         'nonce': nonce,

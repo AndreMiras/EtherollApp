@@ -257,25 +257,27 @@ def player_roll_dice():
     """
     etheroll = Etheroll()
     roll_under = 98
-    amount_eth = 0.1
-    amount_gwei = amount_eth * pow(10, 9)
-    from_address = '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
-    nonce = w3.eth.getTransactionCount(from_address)
+    value_wei = w3.toWei(0.1, 'ether')
+    gas = 310000
+    gas_price = w3.toWei(20, 'gwei')
+    from_address_normalized = ""
+    from_address = from_address_normalized.lower()
+    nonce = etheroll.web3.eth.getTransactionCount(from_address_normalized)
     transaction = {
         # 'chainId': 1,
-        'gas': 70000,
-        'gasPrice': w3.toWei('1', 'gwei'),
+        'gas': gas,
+        'gasPrice': gas_price,
         'nonce': nonce,
-        'value': amount_gwei,
+        'value': value_wei,
     }
     transaction = etheroll.contract.functions.playerRollDice(
         roll_under).buildTransaction(transaction)
     password = ""
-    wallet_path = '~/.ethereum/keystore/%s.json' % (from_address.lower())
+    wallet_path = '/home/andre/.ethereum/keystore/%s.json' % (from_address.lower())
     encrypted_key = open(wallet_path).read()
     private_key = w3.eth.account.decrypt(encrypted_key, password)
-    signed_tx = w3.eth.account.signTransaction(transaction, private_key)
-    w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    signed_tx = etheroll.web3.eth.account.signTransaction(transaction, private_key)
+    etheroll.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
 
 def main():

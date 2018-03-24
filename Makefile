@@ -1,6 +1,7 @@
 PIP=`. venv/bin/activate; which pip`
 TOX=`. venv/bin/activate; which tox`
 SYSTEM_DEPENDENCIES="python3-dev"
+OS=$(shell lsb_release -si)
 
 
 all: system_dependencies virtualenv
@@ -10,9 +11,13 @@ virtualenv:
 	. venv/bin/activate
 	$(PIP) install -r requirements.txt
 
-# Ubuntu 16.04
 system_dependencies:
+ifeq ($(OS), Ubuntu)
 	sudo apt install -y $(SYSTEM_DEPENDENCIES)
+endif
+
+clean:
+	rm -rf venv
 
 test:
 	$(TOX)

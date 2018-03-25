@@ -17,7 +17,7 @@ ifeq ($(OS), Ubuntu)
 endif
 
 clean:
-	rm -rf venv
+	rm -rf venv/ .tox/
 
 test: virtualenv
 	$(TOX)

@@ -9,6 +9,9 @@ all: system_dependencies virtualenv
 virtualenv:
 	test -d venv || virtualenv -p python3 venv
 	. venv/bin/activate
+	# downgrade to setuptools 37, see:
+	# https://github.com/ethereum/pyethereum/pull/831
+	$(PIP) install setuptools==37.0.0
 	$(PIP) install -r requirements.txt
 
 system_dependencies:

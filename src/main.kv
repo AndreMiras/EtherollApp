@@ -18,6 +18,20 @@
             theme_text_color: "Primary"
             on_ref_press: webbrowser.open(root.project_page_property)
 
+
+<WalletConfigScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        MDTextField:
+            id: path_id
+            hint_text: "Wallet path"
+        MDTextField:
+            id: password_id
+            hint_text: "Wallet password"
+            password: True
+        PushUp:
+
+
 <BetSize@BoxLayout>:
     orientation: "vertical"
     MDLabel:
@@ -52,7 +66,7 @@
         text: "For a profit of 2"
 
 
-<RollingScreen>:
+<RollScreen>:
     BoxLayout:
         orientation: "vertical"
         BetSize:
@@ -90,7 +104,13 @@
             text: "Home"
             on_release:
                 app.root.ids.screen_manager_id.transition.direction = "left"
-                app.root.ids.screen_manager_id.current = "lending_screen"
+                app.root.ids.screen_manager_id.current = "roll_screen"
+        NavigationDrawerIconButton:
+            icon: "key"
+            text: "Wallet"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "right"
+                app.root.ids.screen_manager_id.current = "wallet_config_screen"
         NavigationDrawerIconButton:
             icon: "help"
             text: "About"
@@ -98,20 +118,24 @@
                 app.root.ids.screen_manager_id.transition.direction = "right"
                 app.root.ids.screen_manager_id.current = "about_screen"
 
-Navigation:
-    id: navigation_id
-    BoxLayout:
-        orientation: "vertical"
-        CustomToolbar:
-            id: toolbar_id
-        ScreenManager:
-            id: screen_manager_id
-            RollingScreen:
-                id: rolling_screen_id
-                name: "lending_screen"
-            RollResultsScreen:
-                id: roll_results_screen_id
-                name: "roll_results_screen"
-            AboutScreen:
-                id: about_screen_id
-                name: "about_screen"
+Controller:
+    Navigation:
+        id: navigation_id
+        BoxLayout:
+            orientation: "vertical"
+            CustomToolbar:
+                id: toolbar_id
+            ScreenManager:
+                id: screen_manager_id
+                RollScreen:
+                    id: roll_screen_id
+                    name: "roll_screen"
+                RollResultsScreen:
+                    id: roll_results_screen_id
+                    name: "roll_results_screen"
+                WalletConfigScreen:
+                    id: wallet_config_screen_id
+                    name: "wallet_config_screen"
+                AboutScreen:
+                    id: about_screen_id
+                    name: "about_screen"

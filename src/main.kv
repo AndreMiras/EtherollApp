@@ -25,6 +25,7 @@
     BoxLayout:
         orientation: "horizontal"
         MDTextField:
+            id: bet_size_input_id
             text: "2"
         # TODO: will probably not be a slider but buttons for 0.1, 0.5, 1, 2, 5
         MDSlider:
@@ -36,7 +37,8 @@
     BoxLayout:
         orientation: "horizontal"
         MDTextField:
-            text: "50%"
+            id: chances_input_id
+            text: "50"
         MDSlider:
 
 
@@ -50,13 +52,16 @@
         text: "For a profit of 2"
 
 
-<LendingScreen>:
+<RollingScreen>:
     BoxLayout:
         orientation: "vertical"
         BetSize:
+            id: bet_size_id
         ChanceOfWinning:
+            id: chance_of_winning_id
         RollUnderRecap:
         MDRaisedButton:
+            id: roll_button_id
             text: "Roll"
 
 
@@ -101,8 +106,8 @@ Navigation:
             id: toolbar_id
         ScreenManager:
             id: screen_manager_id
-            LendingScreen:
-                id: lending_screen_id
+            RollingScreen:
+                id: rolling_screen_id
                 name: "lending_screen"
             RollResultsScreen:
                 id: roll_results_screen_id

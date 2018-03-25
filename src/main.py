@@ -78,17 +78,40 @@ class RollResultsScreen(SubScreen):
     pass
 
 
-class LendingScreen(Screen):
+class RollingScreen(Screen):
 
     def __init__(self, **kwargs):
-        super(LendingScreen, self).__init__(**kwargs)
+        super(RollingScreen, self).__init__(**kwargs)
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):
         """
         Binds events.
         """
-        pass
+        roll_button = self.ids.roll_button_id
+        roll_button.bind(on_release=lambda instance: self.roll())
+
+    def get_roll_input(self):
+        """
+        Returns bet size and chance of winning user input values.
+        """
+        # bet size
+        bet_size = self.ids.bet_size_id
+        bet_size_input = bet_size.ids.bet_size_input_id
+        bet_size_value = int(bet_size_input.text)
+        # chance of winning
+        chance_of_winning = self.ids.chance_of_winning_id
+        chances_input = chance_of_winning.ids.chances_input_id
+        chances_value = int(chances_input.text)
+        roll_input = {
+            "bet_size": bet_size_value,
+            "chances": chances_value,
+        }
+        return roll_input
+
+    def roll(self):
+        roll_input = self.get_roll_input()
+        print("roll_input:", roll_input)
 
 
 class MainApp(App):

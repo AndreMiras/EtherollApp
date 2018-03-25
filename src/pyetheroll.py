@@ -14,8 +14,9 @@ import eth_abi
 from ethereum.abi import decode_abi
 from ethereum.abi import method_id as get_abi_method_id
 from ethereum.abi import normalize_name as normalize_abi_method_name
-from ethereum.utils import decode_hex, encode_int, zpad
+from ethereum.utils import checksum_encode, decode_hex, encode_int, zpad
 from etherscan.contracts import Contract as EtherscanContract
+from pyethapp.accounts import Account
 from web3 import HTTPProvider, Web3
 from web3.auto import w3
 from web3.contract import Contract
@@ -125,7 +126,6 @@ def decode_transaction_logs(eth, transaction_hash):
     """
     transaction_receipt = eth.getTransactionReceipt(transaction_hash)
     logs = transaction_receipt.logs
-    # TODO: currently only handles the first log
     for log in logs:
         decode_transaction_log(log)
 
@@ -257,18 +257,20 @@ def play_with_contract():
     # print("pending:", pending)
 
 
-def player_roll_dice():
+def player_roll_dice(bet_size_ether, chances, wallet_path, wallet_password):
     """
     Work in progress:
     https://github.com/AndreMiras/EtherollApp/issues/1
     """
     etheroll = Etheroll()
-    roll_under = 98
-    value_wei = w3.toWei(0.1, 'ether')
+    roll_under = chances
+    value_wei = w3.toWei(bet_size_ether, 'ether')
     gas = 310000
     gas_price = w3.toWei(20, 'gwei')
-    from_address_normalized = ""
-    from_address = from_address_normalized.lower()
+    # since Account.load is hanging while decrypting the password
+    # we set password to None and use `w3.eth.account.decrypt` instead
+    account = Account.load(wallet_path, password=None)
+    from_address_normalized = checksum_encode(account.address)
     nonce = etheroll.web3.eth.getTransactionCount(from_address_normalized)
     transaction = {
         # 'chainId': ChainID.ROPSTEN.value,
@@ -280,15 +282,12 @@ def player_roll_dice():
     }
     transaction = etheroll.contract.functions.playerRollDice(
         roll_under).buildTransaction(transaction)
-    password = ""
-    wallet_path = (
-        '/home/andre/.ethereum/keystore/%s.json'
-        % (from_address.lower()))
     encrypted_key = open(wallet_path).read()
-    private_key = w3.eth.account.decrypt(encrypted_key, password)
+    private_key = w3.eth.account.decrypt(encrypted_key, wallet_password)
     signed_tx = etheroll.web3.eth.account.signTransaction(
         transaction, private_key)
-    etheroll.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    tx_hash = etheroll.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    print("tx_hash:", tx_hash)
 
 
 def main():

@@ -9,6 +9,7 @@ from kivy.uix.screenmanager import Screen
 from kivymd.theming import ThemeManager
 from kivymd.toolbar import Toolbar
 
+import pyetheroll
 from version import __version__
 
 
@@ -65,7 +66,7 @@ class WalletConfigScreen(SubScreen):
         """
         return {
             "path": self.ids.path_id.text,
-            "chances": self.ids.password_id.text,
+            "password": self.ids.password_id.text,
         }
 
 
@@ -101,7 +102,7 @@ class RollScreen(Screen):
         # bet size
         bet_size = self.ids.bet_size_id
         bet_size_input = bet_size.ids.bet_size_input_id
-        bet_size_value = int(bet_size_input.text)
+        bet_size_value = float(bet_size_input.text)
         # chance of winning
         chance_of_winning = self.ids.chance_of_winning_id
         chances_input = chance_of_winning.ids.chances_input_id
@@ -140,8 +141,14 @@ class Controller(FloatLayout):
     def roll(self):
         roll_input = self.roll_screen.get_roll_input()
         wallet_config = self.wallet_config_screen.get_config()
+        bet_size = roll_input['bet_size']
+        chances = roll_input['chances']
+        wallet_path = wallet_config['path']
+        wallet_password = wallet_config['password']
         print("roll_input:", roll_input)
         print("wallet_config:", wallet_config)
+        pyetheroll.player_roll_dice(
+            bet_size, chances, wallet_path, wallet_password)
 
 
 class MainApp(App):

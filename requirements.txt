@@ -10,3 +10,8 @@ Cython==0.26
 # https://github.com/kivy/kivy/archive/27e3b90eae2a0155b22a435f1b6f65c913519db6.zip
 Kivy==1.10.0
 https://gitlab.com/kivymd/KivyMD/repository/archive.zip?ref=19e587e6
+# 2017/10/30 develop
+https://github.com/ethereum/pyethapp/archive/8406f32.zip
+# downgrade to setuptool 37, see:
+# https://github.com/ethereum/pyethereum/pull/831
+setuptool==37.0.0

@@ -19,5 +19,5 @@ endif
 clean:
 	rm -rf venv
 
-test:
+test: virtualenv
 	$(TOX)

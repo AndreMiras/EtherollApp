@@ -1,5 +1,6 @@
 #:import webbrowser webbrowser
 #:import Toolbar kivymd.toolbar.Toolbar
+#:import MDSlider kivymd.slider.MDSlider
 #:import MDTextField kivymd.textfields.MDTextField
 #:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
 
@@ -17,14 +18,46 @@
             theme_text_color: "Primary"
             on_ref_press: webbrowser.open(root.project_page_property)
 
+<BetSize@BoxLayout>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Bet size"
+    BoxLayout:
+        orientation: "horizontal"
+        MDTextField:
+            text: "2"
+        # TODO: will probably not be a slider but buttons for 0.1, 0.5, 1, 2, 5
+        MDSlider:
+
+<ChanceOfWinning@BoxLayout>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Chance of winning"
+    BoxLayout:
+        orientation: "horizontal"
+        MDTextField:
+            text: "50%"
+        MDSlider:
+
+
+<RollUnderRecap@BoxLayout>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Roll under 50"
+    MDLabel:
+        text: "With a wager of 2"
+    MDLabel:
+        text: "For a profit of 2"
+
 
 <LendingScreen>:
     BoxLayout:
         orientation: "vertical"
-        MDLabel:
-            text: "TODO 1"
-        MDLabel:
-            text: "TODO 2"
+        BetSize:
+        ChanceOfWinning:
+        RollUnderRecap:
+        MDRaisedButton:
+            text: "Roll"
 
 
 <RollResultsScreen>:

@@ -281,10 +281,13 @@ def player_roll_dice():
     transaction = etheroll.contract.functions.playerRollDice(
         roll_under).buildTransaction(transaction)
     password = ""
-    wallet_path = '/home/andre/.ethereum/keystore/%s.json' % (from_address.lower())
+    wallet_path = (
+        '/home/andre/.ethereum/keystore/%s.json'
+        % (from_address.lower()))
     encrypted_key = open(wallet_path).read()
     private_key = w3.eth.account.decrypt(encrypted_key, password)
-    signed_tx = etheroll.web3.eth.account.signTransaction(transaction, private_key)
+    signed_tx = etheroll.web3.eth.account.signTransaction(
+        transaction, private_key)
     etheroll.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
 

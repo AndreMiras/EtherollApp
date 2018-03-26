@@ -1,8 +1,9 @@
 #:import webbrowser webbrowser
-#:import Toolbar kivymd.toolbar.Toolbar
-#:import MDSlider kivymd.slider.MDSlider
-#:import MDTextField kivymd.textfields.MDTextField
+#:import MDSeparator kivymd.card.MDSeparator
 #:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
+#:import MDTextField kivymd.textfields.MDTextField
+#:import MDSlider kivymd.slider.MDSlider
+#:import Toolbar kivymd.toolbar.Toolbar
 
 
 # need this hack to push widgets up
@@ -90,6 +91,9 @@
             id: bet_size_id
         ChanceOfWinning:
             id: chance_of_winning_id
+        MDSeparator:
+            height: dp(1)
+        PushUp:
         RollUnderRecap:
             id: roll_under_recap_id
         PushUp:

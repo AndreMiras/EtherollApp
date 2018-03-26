@@ -223,6 +223,7 @@ class Controller(FloatLayout):
         roll_under_recap = self.roll_screen.ids.roll_under_recap_id
         bet_size = self.roll_screen.ids.bet_size_id
         bet_size_input = bet_size.ids.bet_size_input_id
+        # TODO: input validation, if `bet_size.text == ''`
         bet_size_input.bind(text=roll_under_recap.setter('wager_property'))
         # synchro once now
         roll_under_recap.wager_property = bet_size_input.text
@@ -236,6 +237,7 @@ class Controller(FloatLayout):
         roll_under_property = roll_under_recap.roll_under_property
         chance_of_winning = self.roll_screen.ids.chance_of_winning_id
         chances_input = chance_of_winning.ids.chances_input_id
+        # TODO: input validation, if `chances_input.text == ''`
         chances_input.bind(text=roll_under_recap.setter('roll_under_property'))
         # synchronises it now
         roll_under_recap.roll_under_property = chances_input.text

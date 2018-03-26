@@ -4,6 +4,7 @@ from __future__ import print_function, unicode_literals
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import StringProperty
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
 from kivymd.theming import ThemeManager
@@ -91,6 +92,35 @@ class AboutScreen(SubScreen):
 
 class RollResultsScreen(SubScreen):
     pass
+
+
+class ChanceOfWinning(BoxLayout):
+
+    def __init__(self, **kwargs):
+        super(ChanceOfWinning, self).__init__(**kwargs)
+        Clock.schedule_once(self._after_init)
+
+    def _after_init(self, dt):
+        """
+        Binds slider <-> input both ways.
+        """
+        # slider -> input
+        chances_slider = self.ids.chances_slider_id
+        chances_input = self.ids.chances_input_id
+        chances_slider.bind(
+            value=lambda instance, value:
+            setattr(chances_input, 'text', str(int(value))))
+        # input -> slider
+        chances_input.bind(
+            on_text_validate=lambda instance:
+            setattr(chances_slider, 'value', int(chances_input.text)))
+        # also when unfocused
+        chances_input.bind(
+            focus=lambda instance, focused:
+            chances_input.dispatch('on_text_validate')
+                if not focused else False)
+        # synchronises values slider <-> input once
+        chances_input.dispatch('on_text_validate')
 
 
 class RollScreen(Screen):

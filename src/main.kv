@@ -44,10 +44,10 @@
             text: "0.1"
             width: dp(50)
             size_hint_x: None
-        # TODO: will probably not be a slider but buttons for 0.1, 0.5, 1, 2, 5
         MDSlider:
+            id: bet_size_slider_id
 
-<ChanceOfWinning@BoxLayout>:
+<ChanceOfWinning>:
     orientation: "vertical"
     MDLabel:
         text: "Chance of winning"
@@ -60,6 +60,9 @@
             width: dp(50)
             size_hint_x: None
         MDSlider:
+            id: chances_slider_id
+            range: 0, 100
+            step: 1
 
 
 <RollUnderRecap@BoxLayout>:

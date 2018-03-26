@@ -1,17 +1,77 @@
 #!/usr/bin/env python
 from __future__ import print_function, unicode_literals
 
+import os
+from os.path import expanduser
+
+from devp2p.app import BaseApp
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.properties import NumericProperty, StringProperty
+from kivy.properties import (NumericProperty, ObjectProperty,
+                             StringProperty)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
+from kivymd.list import OneLineListItem
 from kivymd.theming import ThemeManager
 from kivymd.toolbar import Toolbar
+from pyethapp.accounts import AccountsService
 
 import pyetheroll
+from utils import Dialog
 from version import __version__
+
+KEYSTORE_DIR_PREFIX = expanduser("~")
+# default pyethapp keystore path
+KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
+
+
+class SwitchAccount(BoxLayout):
+
+    def on_release(self, list_item):
+        """
+        Sets current_account and switches to previous screen.
+        """
+        # sets current_account
+        self.selected_list_item = list_item
+        self.parent.current_account = list_item.account
+        # switches to previous screen
+        self.parent.on_back()
+
+    def create_item(self, account):
+        """
+        Creates an account list item from given account.
+        """
+        address = "0x" + account.address.hex()
+        list_item = OneLineListItem(text=address)
+        # makes sure the address doesn't overlap on small screen
+        list_item.ids._lbl_primary.shorten = True
+        list_item.account = account
+        list_item.bind(on_release=lambda x: self.on_release(x))
+        return list_item
+
+    def load_account_list(self):
+        """
+        Fills account list widget from library account list.
+        """
+        self.controller = App.get_running_app().root
+        account_list_id = self.ids.account_list_id
+        account_list_id.clear_widgets()
+        accounts = self.controller.pyethapp.services.accounts
+        if len(accounts) == 0:
+            self.on_empty_account_list()
+        for account in accounts:
+            list_item = self.create_item(account)
+            account_list_id.add_widget(list_item)
+
+    @staticmethod
+    def on_empty_account_list():
+        controller = App.get_running_app().root
+        keystore_dir = controller.pyethapp.services.accounts.keystore_dir
+        title = "No account found"
+        body = "No account found in:\n%s" % keystore_dir
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
 
 
 class CustomToolbar(Toolbar):
@@ -59,14 +119,17 @@ class SubScreen(Screen):
         app.root.ids.toolbar_id.load_default_buttons()
 
 
-class WalletConfigScreen(SubScreen):
+class SwitchAccountScreen(SubScreen):
+
+    current_account = ObjectProperty()
 
     def get_config(self):
         """
         Returns wallet path and encryption password user input values.
         """
         return {
-            "path": self.ids.path_id.text,
+            "path": self.current_account.path,
+            # TODO
             "password": self.ids.password_id.text,
         }
 
@@ -206,6 +269,7 @@ class Controller(FloatLayout):
     def __init__(self, **kwargs):
         super(Controller, self).__init__(**kwargs)
         Clock.schedule_once(self._after_init)
+        self._init_pyethapp()
 
     def _after_init(self, dt):
         """
@@ -215,6 +279,22 @@ class Controller(FloatLayout):
         self.bind_chances_roll_under()
         self.bind_wager_property()
         self.bind_profit_property()
+
+    def _init_pyethapp(self, keystore_dir=None):
+        if keystore_dir is None:
+            keystore_dir = self.get_default_keystore_path()
+        self.pyethapp = BaseApp(
+            config=dict(accounts=dict(keystore_dir=keystore_dir)))
+        AccountsService.register_with_app(self.pyethapp)
+
+    @staticmethod
+    def get_default_keystore_path():
+        """
+        Returns the keystore path, which is the same as the default pyethapp
+        one.
+        """
+        keystore_dir = os.path.join(KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
+        return keystore_dir
 
     def bind_wager_property(self):
         """
@@ -234,7 +314,6 @@ class Controller(FloatLayout):
         """
         roll_under_recap = self.roll_screen.ids.roll_under_recap_id
         # roll under recap label
-        roll_under_property = roll_under_recap.roll_under_property
         chance_of_winning = self.roll_screen.ids.chance_of_winning_id
         chances_input = chance_of_winning.ids.chances_input_id
         # TODO: input validation, if `chances_input.text == ''`
@@ -256,11 +335,13 @@ class Controller(FloatLayout):
         # chances -> profit
         chance_of_winning = self.roll_screen.ids.chance_of_winning_id
         chances_input = chance_of_winning.ids.chances_input_id
-        chances_input.bind(text=lambda instance, value: self.update_profit_property())
+        chances_input.bind(
+            text=lambda instance, value: self.update_profit_property())
         # bet value -> profit
         bet_size = self.roll_screen.ids.bet_size_id
         bet_size_input = bet_size.ids.bet_size_input_id
-        bet_size_input.bind(text=lambda instance, value: self.update_profit_property())
+        bet_size_input.bind(
+            text=lambda instance, value: self.update_profit_property())
         # synchro once now
         self.update_profit_property()
 
@@ -285,12 +366,13 @@ class Controller(FloatLayout):
         return self.ids.roll_screen_id
 
     @property
-    def wallet_config_screen(self):
-        return self.ids.wallet_config_screen_id
+    def switch_account_screen(self):
+        return self.ids.switch_account_screen_id
 
     def roll(self):
         roll_input = self.roll_screen.get_roll_input()
-        wallet_config = self.wallet_config_screen.get_config()
+        # TODO:
+        wallet_config = self.switch_account_screen.get_config()
         bet_size = roll_input['bet_size']
         chances = roll_input['chances']
         wallet_path = wallet_config['path']

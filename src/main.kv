@@ -67,10 +67,10 @@
             step: 1
 
 
-<RollUnderRecap@BoxLayout>:
+<RollUnderRecap>:
     orientation: "vertical"
     MDLabel:
-        text: "Roll under 50"
+        text: "Roll under %s" % (root.roll_under_property)
         font_style: 'Headline'
     MDLabel:
         text: "With a wager of 2"

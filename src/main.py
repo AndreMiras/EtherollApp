@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals
 
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.properties import StringProperty
+from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
@@ -92,6 +92,11 @@ class AboutScreen(SubScreen):
 
 class RollResultsScreen(SubScreen):
     pass
+
+
+class RollUnderRecap(BoxLayout):
+
+    roll_under_property = NumericProperty()
 
 
 class BetSize(BoxLayout):

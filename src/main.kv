@@ -36,11 +36,14 @@
     orientation: "vertical"
     MDLabel:
         text: "Bet size"
+        font_style: 'Title'
     BoxLayout:
         orientation: "horizontal"
         MDTextField:
             id: bet_size_input_id
             text: "0.1"
+            width: dp(50)
+            size_hint_x: None
         # TODO: will probably not be a slider but buttons for 0.1, 0.5, 1, 2, 5
         MDSlider:
 
@@ -48,11 +51,14 @@
     orientation: "vertical"
     MDLabel:
         text: "Chance of winning"
+        font_style: 'Title'
     BoxLayout:
         orientation: "horizontal"
         MDTextField:
             id: chances_input_id
             text: "50"
+            width: dp(50)
+            size_hint_x: None
         MDSlider:
 
 
@@ -60,6 +66,7 @@
     orientation: "vertical"
     MDLabel:
         text: "Roll under 50"
+        font_style: 'Headline'
     MDLabel:
         text: "With a wager of 2"
     MDLabel:
@@ -69,14 +76,19 @@
 <RollScreen>:
     BoxLayout:
         orientation: "vertical"
+        MDLabel:
+            text: "Place your bet"
+            font_style: 'Headline'
         BetSize:
             id: bet_size_id
         ChanceOfWinning:
             id: chance_of_winning_id
         RollUnderRecap:
-        MDRaisedButton:
-            id: roll_button_id
-            text: "Roll"
+        PushUp:
+        AnchorLayout:
+            MDRaisedButton:
+                id: roll_button_id
+                text: "Roll"
 
 
 <RollResultsScreen>:

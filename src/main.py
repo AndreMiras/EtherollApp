@@ -94,6 +94,44 @@ class RollResultsScreen(SubScreen):
     pass
 
 
+class BetSize(BoxLayout):
+
+    def __init__(self, **kwargs):
+        super(BetSize, self).__init__(**kwargs)
+        Clock.schedule_once(self._after_init)
+
+    def _after_init(self, dt):
+        """
+        Binds events.
+        """
+        slider = self.ids.bet_size_slider_id
+        inpt = self.ids.bet_size_input_id
+
+        def cast_to(value): return round(float(value), 1)
+        BetSize.bind_slider_input(slider, inpt, cast_to)
+
+    @staticmethod
+    def bind_slider_input(slider, inpt, cast_to=float):
+        """
+        Binds slider <-> input both ways.
+        """
+        # slider -> input
+        slider.bind(
+            value=lambda instance, value:
+            setattr(inpt, 'text', str(cast_to(value))))
+        # input -> slider
+        inpt.bind(
+            on_text_validate=lambda instance:
+            setattr(slider, 'value', cast_to(inpt.text)))
+        # also when unfocused
+        inpt.bind(
+            focus=lambda instance, focused:
+            inpt.dispatch('on_text_validate')
+                if not focused else False)
+        # synchronises values slider <-> input once
+        inpt.dispatch('on_text_validate')
+
+
 class ChanceOfWinning(BoxLayout):
 
     def __init__(self, **kwargs):
@@ -102,25 +140,12 @@ class ChanceOfWinning(BoxLayout):
 
     def _after_init(self, dt):
         """
-        Binds slider <-> input both ways.
+        Binds events.
         """
-        # slider -> input
-        chances_slider = self.ids.chances_slider_id
-        chances_input = self.ids.chances_input_id
-        chances_slider.bind(
-            value=lambda instance, value:
-            setattr(chances_input, 'text', str(int(value))))
-        # input -> slider
-        chances_input.bind(
-            on_text_validate=lambda instance:
-            setattr(chances_slider, 'value', int(chances_input.text)))
-        # also when unfocused
-        chances_input.bind(
-            focus=lambda instance, focused:
-            chances_input.dispatch('on_text_validate')
-                if not focused else False)
-        # synchronises values slider <-> input once
-        chances_input.dispatch('on_text_validate')
+        slider = self.ids.chances_slider_id
+        inpt = self.ids.chances_input_id
+        cast_to = int
+        BetSize.bind_slider_input(slider, inpt, cast_to)
 
 
 class RollScreen(Screen):

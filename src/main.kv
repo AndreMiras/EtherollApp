@@ -70,7 +70,7 @@
 <RollUnderRecap>:
     orientation: "vertical"
     MDLabel:
-        text: "Roll under %s" % (root.roll_under_property)
+        text: "Roll under %s" % int(root.roll_under_property)
         font_style: 'Headline'
     MDLabel:
         text: "With a wager of 2"
@@ -89,6 +89,7 @@
         ChanceOfWinning:
             id: chance_of_winning_id
         RollUnderRecap:
+            id: roll_under_recap_id
         PushUp:
         AnchorLayout:
             MDRaisedButton:

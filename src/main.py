@@ -183,8 +183,17 @@ class Controller(FloatLayout):
         """
         Binds events.
         """
+        # binds roll screen "Roll" button to controller roll()
         roll_button = self.roll_screen.ids.roll_button_id
         roll_button.bind(on_release=lambda instance: self.roll())
+        # binds chances of winning recap label
+        roll_under_recap = self.roll_screen.ids.roll_under_recap_id
+        roll_under_property = roll_under_recap.roll_under_property
+        chance_of_winning = self.roll_screen.ids.chance_of_winning_id
+        chances_input = chance_of_winning.ids.chances_input_id
+        chances_input.bind(text=roll_under_recap.setter('roll_under_property'))
+        # synchronises it now
+        roll_under_recap.roll_under_property = chances_input.text
 
     @property
     def navigation(self):

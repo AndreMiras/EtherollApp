@@ -7,8 +7,7 @@ from os.path import expanduser
 from devp2p.app import BaseApp
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.properties import (NumericProperty, ObjectProperty,
-                             StringProperty)
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
@@ -24,6 +23,10 @@ from version import __version__
 KEYSTORE_DIR_PREFIX = expanduser("~")
 # default pyethapp keystore path
 KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
+
+
+class PasswordForm(BoxLayout):
+    password = StringProperty()
 
 
 class SwitchAccount(BoxLayout):
@@ -125,7 +128,6 @@ class SwitchAccountScreen(SubScreen):
 
 
 class AboutScreen(SubScreen):
-
     project_page_property = StringProperty(
         "https://github.com/AndreMiras/EtherollApp")
     about_text_property = StringProperty()
@@ -148,7 +150,6 @@ class RollResultsScreen(SubScreen):
 
 
 class RollUnderRecap(BoxLayout):
-
     roll_under_property = NumericProperty()
     profit_property = NumericProperty()
     wager_property = NumericProperty()
@@ -260,6 +261,7 @@ class Controller(FloatLayout):
         super(Controller, self).__init__(**kwargs)
         Clock.schedule_once(self._after_init)
         self._init_pyethapp()
+        self.account_passwords = {}
 
     def _after_init(self, dt):
         """
@@ -359,6 +361,45 @@ class Controller(FloatLayout):
     def switch_account_screen(self):
         return self.ids.switch_account_screen_id
 
+    def on_unlock_clicked(self, dialog, account, password):
+        self.account_passwords[account.address.hex()] = password
+        dialog.dismiss()
+
+    def prompt_password_dialog(self, account):
+        """
+        Prompt the password dialog.
+        """
+        title = "Enter your password"
+        content = PasswordForm()
+        content.ids.account_id.text = "0x" + account.address.hex()
+        dialog = Dialog.create_dialog_content_helper(
+                    title=title,
+                    content=content)
+        # workaround for MDDialog container size (too small by default)
+        dialog.ids.container.size_hint_y = 1
+        dialog.add_action_button(
+            "Unlock",
+            action=lambda *x: self.on_unlock_clicked(
+                dialog, account, content.password))
+        return dialog
+
+    def get_account_password(self, account, callback):
+        """
+        Retrieve cached account password or prompt dialog.
+        """
+        address = account.address.hex()
+
+        try:
+            password = self.account_passwords[address]
+            callback(account, password)
+        except KeyError:
+            dialog = self.prompt_password_dialog(account)
+            dialog.open()
+            # TODO: the dialog my get dismissed with no password update
+            dialog.bind(
+                on_dismiss=lambda instance: callback(
+                    account, dialog.content.password))
+
     @staticmethod
     def on_account_none():
         """
@@ -378,9 +419,10 @@ class Controller(FloatLayout):
             self.on_account_none()
             return
         wallet_path = account.path
-        wallet_password = "TODO"
-        pyetheroll.player_roll_dice(
-            bet_size, chances, wallet_path, wallet_password)
+        # TODO: also handle when password is wrong, make it possible to update
+        self.get_account_password(
+            account, lambda account, password: pyetheroll.player_roll_dice(
+                bet_size, chances, wallet_path, password))
 
 
 class MainApp(App):

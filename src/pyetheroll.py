@@ -287,7 +287,7 @@ def player_roll_dice(bet_size_ether, chances, wallet_path, wallet_password):
     signed_tx = etheroll.web3.eth.account.signTransaction(
         transaction, private_key)
     tx_hash = etheroll.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print("tx_hash:", tx_hash)
+    print("tx_hash:", tx_hash.hex())
 
 
 def main():

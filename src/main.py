@@ -123,16 +123,6 @@ class SwitchAccountScreen(SubScreen):
 
     current_account = ObjectProperty()
 
-    def get_config(self):
-        """
-        Returns wallet path and encryption password user input values.
-        """
-        return {
-            "path": self.current_account.path,
-            # TODO
-            "password": self.ids.password_id.text,
-        }
-
 
 class AboutScreen(SubScreen):
 
@@ -369,16 +359,26 @@ class Controller(FloatLayout):
     def switch_account_screen(self):
         return self.ids.switch_account_screen_id
 
+    @staticmethod
+    def on_account_none():
+        """
+        Error dialog on no account selected.
+        """
+        title = "No account selected"
+        body = "Please select an account before rolling"
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
     def roll(self):
         roll_input = self.roll_screen.get_roll_input()
-        # TODO:
-        wallet_config = self.switch_account_screen.get_config()
         bet_size = roll_input['bet_size']
         chances = roll_input['chances']
-        wallet_path = wallet_config['path']
-        wallet_password = wallet_config['password']
-        print("roll_input:", roll_input)
-        print("wallet_config:", wallet_config)
+        account = self.switch_account_screen.current_account
+        if account is None:
+            self.on_account_none()
+            return
+        wallet_path = account.path
+        wallet_password = "TODO"
         pyetheroll.player_roll_dice(
             bet_size, chances, wallet_path, wallet_password)
 

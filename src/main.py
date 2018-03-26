@@ -218,7 +218,7 @@ class Controller(FloatLayout):
 
     def bind_wager_property(self):
         """
-        Binds chances of winning recap label.
+        Binds wager recap label.
         """
         roll_under_recap = self.roll_screen.ids.roll_under_recap_id
         bet_size = self.roll_screen.ids.bet_size_id

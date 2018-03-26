@@ -97,6 +97,8 @@ class RollResultsScreen(SubScreen):
 class RollUnderRecap(BoxLayout):
 
     roll_under_property = NumericProperty()
+    profit_property = NumericProperty()
+    wager_property = NumericProperty()
 
 
 class BetSize(BoxLayout):
@@ -112,8 +114,7 @@ class BetSize(BoxLayout):
         slider = self.ids.bet_size_slider_id
         inpt = self.ids.bet_size_input_id
 
-        def cast_to(value): return round(float(value), 1)
-        BetSize.bind_slider_input(slider, inpt, cast_to)
+        BetSize.bind_slider_input(slider, inpt, self.cast_to)
 
     @staticmethod
     def bind_slider_input(slider, inpt, cast_to=float):
@@ -136,6 +137,23 @@ class BetSize(BoxLayout):
         # synchronises values slider <-> input once
         inpt.dispatch('on_text_validate')
 
+    @staticmethod
+    def cast_to(value):
+        try:
+            return round(float(value), 1)
+        except ValueError:
+            return 0
+
+    @property
+    def value(self):
+        """
+        Returns normalized bet size value.
+        """
+        try:
+            return self.cast_to(self.ids.bet_size_input_id.text)
+        except ValueError:
+            return 0
+
 
 class ChanceOfWinning(BoxLayout):
 
@@ -151,6 +169,16 @@ class ChanceOfWinning(BoxLayout):
         inpt = self.ids.chances_input_id
         cast_to = int
         BetSize.bind_slider_input(slider, inpt, cast_to)
+
+    @property
+    def value(self):
+        """
+        Returns normalized chances value.
+        """
+        try:
+            return int(self.ids.chances_input_id.text)
+        except ValueError:
+            return 0
 
 
 class RollScreen(Screen):
@@ -183,17 +211,68 @@ class Controller(FloatLayout):
         """
         Binds events.
         """
-        # binds roll screen "Roll" button to controller roll()
-        roll_button = self.roll_screen.ids.roll_button_id
-        roll_button.bind(on_release=lambda instance: self.roll())
-        # binds chances of winning recap label
+        self.bind_roll_button()
+        self.bind_chances_roll_under()
+        self.bind_wager_property()
+        self.bind_profit_property()
+
+    def bind_wager_property(self):
+        """
+        Binds chances of winning recap label.
+        """
         roll_under_recap = self.roll_screen.ids.roll_under_recap_id
+        bet_size = self.roll_screen.ids.bet_size_id
+        bet_size_input = bet_size.ids.bet_size_input_id
+        bet_size_input.bind(text=roll_under_recap.setter('wager_property'))
+        # synchro once now
+        roll_under_recap.wager_property = bet_size_input.text
+
+    def bind_chances_roll_under(self):
+        """
+        Binds chances of winning recap label.
+        """
+        roll_under_recap = self.roll_screen.ids.roll_under_recap_id
+        # roll under recap label
         roll_under_property = roll_under_recap.roll_under_property
         chance_of_winning = self.roll_screen.ids.chance_of_winning_id
         chances_input = chance_of_winning.ids.chances_input_id
         chances_input.bind(text=roll_under_recap.setter('roll_under_property'))
         # synchronises it now
         roll_under_recap.roll_under_property = chances_input.text
+
+    def bind_roll_button(self):
+        """
+        binds roll screen "Roll" button to controller roll()
+        """
+        roll_button = self.roll_screen.ids.roll_button_id
+        roll_button.bind(on_release=lambda instance: self.roll())
+
+    def bind_profit_property(self):
+        """
+        Binds profit property with bet value and chances changes.
+        """
+        # chances -> profit
+        chance_of_winning = self.roll_screen.ids.chance_of_winning_id
+        chances_input = chance_of_winning.ids.chances_input_id
+        chances_input.bind(text=lambda instance, value: self.update_profit_property())
+        # bet value -> profit
+        bet_size = self.roll_screen.ids.bet_size_id
+        bet_size_input = bet_size.ids.bet_size_input_id
+        bet_size_input.bind(text=lambda instance, value: self.update_profit_property())
+        # synchro once now
+        self.update_profit_property()
+
+    def update_profit_property(self):
+        house_edge = 1.0 / 100
+        bet_size = self.roll_screen.ids.bet_size_id.value
+        chances_win = self.roll_screen.ids.chance_of_winning_id.value
+        chances_loss = 100 - chances_win
+        roll_under_recap = self.roll_screen.ids.roll_under_recap_id
+        roll_under_recap.profit_property = 0
+        if chances_win != 0 and chances_loss != 0:
+            payout = ((chances_loss / chances_win) * bet_size) + bet_size
+            payout *= (1 - house_edge)
+            roll_under_recap.profit_property = payout - bet_size
 
     @property
     def navigation(self):

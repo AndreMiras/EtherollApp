@@ -73,9 +73,9 @@
         text: "Roll under %s" % int(root.roll_under_property)
         font_style: 'Headline'
     MDLabel:
-        text: "With a wager of 2"
+        text: "With a wager of %s ETH" % round(root.wager_property, 2)
     MDLabel:
-        text: "For a profit of 2"
+        text: "For a profit of %s ETH" % round(root.profit_property, 2)
 
 
 <RollScreen>:

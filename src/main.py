@@ -362,8 +362,13 @@ class Controller(FloatLayout):
         return self.ids.switch_account_screen_id
 
     def on_unlock_clicked(self, dialog, account, password):
+        """
+        Caches the password and call roll method again.
+        """
         self.account_passwords[account.address.hex()] = password
         dialog.dismiss()
+        # calling roll again since the password is now cached
+        self.roll()
 
     def prompt_password_dialog(self, account):
         """
@@ -381,24 +386,18 @@ class Controller(FloatLayout):
             "Unlock",
             action=lambda *x: self.on_unlock_clicked(
                 dialog, account, content.password))
+        dialog.open()
         return dialog
 
-    def get_account_password(self, account, callback):
+    def get_account_password(self, account):
         """
         Retrieve cached account password or prompt dialog.
         """
         address = account.address.hex()
-
         try:
-            password = self.account_passwords[address]
-            callback(account, password)
+            return self.account_passwords[address]
         except KeyError:
-            dialog = self.prompt_password_dialog(account)
-            dialog.open()
-            # TODO: the dialog my get dismissed with no password update
-            dialog.bind(
-                on_dismiss=lambda instance: callback(
-                    account, dialog.content.password))
+            self.prompt_password_dialog(account)
 
     @staticmethod
     def on_account_none():
@@ -419,10 +418,10 @@ class Controller(FloatLayout):
             self.on_account_none()
             return
         wallet_path = account.path
-        # TODO: also handle when password is wrong, make it possible to update
-        self.get_account_password(
-            account, lambda account, password: pyetheroll.player_roll_dice(
-                bet_size, chances, wallet_path, password))
+        password = self.get_account_password(account)
+        if password is not None:
+            pyetheroll.player_roll_dice(
+                bet_size, chances, wallet_path, password)
 
 
 class MainApp(App):

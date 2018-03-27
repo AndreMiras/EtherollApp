@@ -38,15 +38,8 @@ version.filename = %(source.dir)s/version.py
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
 requirements =
-    kivy,
-    setuptools,
-    gevent,
-    https://gitlab.com/kivymd/KivyMD/repository/archive.zip?ref=19e587e6,
-    devp2p==0.9.3,
-    https://github.com/ethereum/pyethapp/archive/8406f32.zip,
-    web3==4.0.0b11,
-    https://github.com/corpetty/py-etherscan-api/archive/a783f720a6175b227cdfe8dc3040ebad3022d79f.zip,
-    eth-testrpc==1.3.3
+    python3crystax,
+    kivy
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -111,12 +104,14 @@ android.permissions = INTERNET
 
 # (str) Android NDK version to use
 #android.ndk = 9c
+# android.ndk = 10
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
 #android.ndk_path =
+android.ndk_path = ~/.buildozer/crystax-ndk
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =

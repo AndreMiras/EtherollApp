@@ -6,7 +6,8 @@ It's a copy of the [official contract](https://etherscan.io/address/0xddf0d0b991
 
 ## Mine on the Testnet
 This is not "proper" mining, but will get you coins on the testnet:
-<https://ethereum.stackexchange.com/a/21307/34898>
+Infos: <https://ethereum.stackexchange.com/a/21307/34898>
+Mining: <https://faucet.metamask.io>
 
 ## Deploy a contract on the Testnet
 ### Deploy

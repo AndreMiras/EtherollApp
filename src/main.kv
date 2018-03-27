@@ -1,0 +1,211 @@
+#:import webbrowser webbrowser
+#:import MDSeparator kivymd.card.MDSeparator
+#:import MDList kivymd.list.MDList
+#:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
+#:import MDBottomNavigation kivymd.tabs.MDBottomNavigation
+#:import MDBottomNavigationItem kivymd.tabs.MDBottomNavigationItem
+#:import MDTextField kivymd.textfields.MDTextField
+#:import MDSlider kivymd.slider.MDSlider
+#:import Toolbar kivymd.toolbar.Toolbar
+
+
+# need this hack to push widgets up
+<PushUp@BoxLayout>:
+
+
+<PasswordForm>:
+    orientation: 'vertical'
+    MDLabel:
+        id: account_id
+    MDTextField:
+        id: password_id
+        hint_text: "Password"
+        helper_text: "Enter the password to unlock your account"
+        helper_text_mode: "on_focus"
+        text: root.password
+        password: True
+        on_text: root.password = args[1]
+
+
+<SwitchAccount>:
+    orientation: 'vertical'
+    ScrollView:
+        MDList:
+            id: account_list_id
+
+
+<ImportKeystore>:
+    orientation: 'vertical'
+    MDLabel:
+        halign: 'center'
+        text: 'Copy it in to the keystore directory.\n%s' % root.keystore_path
+    PushUp:
+
+
+<SwitchAccountScreen>:
+    name: 'switch_account'
+    on_pre_enter:
+        switch_account_id.load_account_list()
+        # workaround for broken MDBottomNavigation, refs
+        # https://github.com/AndreMiras/PyWallet/issues/38
+        Window.dispatch('on_resize', *Window.size)
+    MDBottomNavigation:
+        MDBottomNavigationItem:
+            name: "select"
+            text: "Select"
+            icon: "format-list-bulleted"
+            SwitchAccount:
+                id: switch_account_id
+        MDBottomNavigationItem:
+            name: "create"
+            text: "Create"
+            icon: "plus"
+            MDLabel:
+                text: "Not implemented"
+        MDBottomNavigationItem:
+            name: "import"
+            text: "Import"
+            icon: "download"
+            ImportKeystore:
+
+
+<AboutScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        MDLabel:
+            markup: True
+            text: root.about_text_property
+            theme_text_color: "Primary"
+            on_ref_press: webbrowser.open(root.project_page_property)
+
+
+<BetSize>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Bet size"
+        font_style: 'Title'
+    BoxLayout:
+        orientation: "horizontal"
+        MDTextField:
+            id: bet_size_input_id
+            text: "0.1"
+            input_filter: 'float'
+            width: dp(50)
+            size_hint_x: None
+        MDSlider:
+            id: bet_size_slider_id
+            range: 0, 10
+            step: 0.1
+
+<ChanceOfWinning>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Chance of winning"
+        font_style: 'Title'
+    BoxLayout:
+        orientation: "horizontal"
+        MDTextField:
+            id: chances_input_id
+            text: "50"
+            input_filter: 'int'
+            width: dp(50)
+            size_hint_x: None
+        MDSlider:
+            id: chances_slider_id
+            range: 0, 100
+            step: 1
+
+
+<RollUnderRecap>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Roll under %s" % int(root.roll_under_property)
+        font_style: 'Headline'
+    MDLabel:
+        text: "With a wager of %s ETH" % round(root.wager_property, 2)
+    MDLabel:
+        text: "For a profit of %s ETH" % round(root.profit_property, 2)
+
+
+<RollScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        MDLabel:
+            text: "Place your bet"
+            font_style: 'Headline'
+        BetSize:
+            id: bet_size_id
+        ChanceOfWinning:
+            id: chance_of_winning_id
+        MDSeparator:
+            height: dp(1)
+        PushUp:
+        RollUnderRecap:
+            id: roll_under_recap_id
+        PushUp:
+        AnchorLayout:
+            MDRaisedButton:
+                id: roll_button_id
+                text: "Roll"
+
+
+<RollResultsScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        MDLabel:
+            text: "TODO 1"
+        MDLabel:
+            text: "TODO 2"
+
+
+<CustomToolbar>:
+    title: "Etheroll"
+    md_bg_color: app.theme_cls.primary_color
+    background_palette: "Primary"
+    background_hue: "500"
+
+<Navigation@NavigationLayout>:
+    MDNavigationDrawer:
+        id: navigation_drawer_id
+        NavigationDrawerToolbar:
+            title: "Etheroll"
+        NavigationDrawerIconButton:
+            icon: "home"
+            text: "Home"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "left"
+                app.root.ids.screen_manager_id.current = "roll_screen"
+        NavigationDrawerIconButton:
+            icon: "key"
+            text: "Wallet"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "right"
+                app.root.ids.screen_manager_id.current = "switch_account_screen"
+        NavigationDrawerIconButton:
+            icon: "help"
+            text: "About"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "right"
+                app.root.ids.screen_manager_id.current = "about_screen"
+
+Controller:
+    Navigation:
+        id: navigation_id
+        BoxLayout:
+            orientation: "vertical"
+            CustomToolbar:
+                id: toolbar_id
+            ScreenManager:
+                id: screen_manager_id
+                RollScreen:
+                    id: roll_screen_id
+                    name: "roll_screen"
+                RollResultsScreen:
+                    id: roll_results_screen_id
+                    name: "roll_results_screen"
+                SwitchAccountScreen:
+                    id: switch_account_screen_id
+                    name: "switch_account_screen"
+                AboutScreen:
+                    id: about_screen_id
+                    name: "about_screen"

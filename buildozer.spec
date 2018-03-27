@@ -39,7 +39,14 @@ version.filename = %(source.dir)s/version.py
 # comma seperated e.g. requirements = sqlite3,kivy
 requirements =
     python3crystax,
-    kivy
+    kivy,
+    gevent,
+    https://gitlab.com/kivymd/KivyMD/repository/archive.zip?ref=19e587e6,
+    devp2p==0.9.3,
+    https://github.com/ethereum/pyethapp/archive/8406f32.zip,
+    web3==4.0.0b11,
+    https://github.com/corpetty/py-etherscan-api/archive/a783f720a6175b227cdfe8dc3040ebad3022d79f.zip,
+    eth-testrpc==1.3.3
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

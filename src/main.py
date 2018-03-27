@@ -122,8 +122,22 @@ class SubScreen(Screen):
         app.root.ids.toolbar_id.load_default_buttons()
 
 
-class SwitchAccountScreen(SubScreen):
+class ImportKeystore(BoxLayout):
+    keystore_path = StringProperty()
 
+    def __init__(self, **kwargs):
+        super(ImportKeystore, self).__init__(**kwargs)
+        Clock.schedule_once(self._after_init)
+
+    def _after_init(self, dt):
+        """
+        Sets keystore_path.
+        """
+        controller = App.get_running_app().root
+        self.keystore_path = controller.get_keystore_path()
+
+
+class SwitchAccountScreen(SubScreen):
     current_account = ObjectProperty()
 
 
@@ -274,10 +288,20 @@ class Controller(FloatLayout):
 
     def _init_pyethapp(self, keystore_dir=None):
         if keystore_dir is None:
-            keystore_dir = self.get_default_keystore_path()
+            keystore_dir = self.get_keystore_path()
         self.pyethapp = BaseApp(
             config=dict(accounts=dict(keystore_dir=keystore_dir)))
         AccountsService.register_with_app(self.pyethapp)
+
+    @classmethod
+    def get_keystore_path(cls):
+        """
+        This is the Kivy default keystore path.
+        """
+        keystore_path = os.environ.get('KEYSTORE_PATH')
+        if keystore_path is None:
+            keystore_path = cls.get_default_keystore_path()
+        return keystore_path
 
     @staticmethod
     def get_default_keystore_path():

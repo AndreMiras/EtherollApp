@@ -2,6 +2,8 @@
 #:import MDSeparator kivymd.card.MDSeparator
 #:import MDList kivymd.list.MDList
 #:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
+#:import MDBottomNavigation kivymd.tabs.MDBottomNavigation
+#:import MDBottomNavigationItem kivymd.tabs.MDBottomNavigationItem
 #:import MDTextField kivymd.textfields.MDTextField
 #:import MDSlider kivymd.slider.MDSlider
 #:import Toolbar kivymd.toolbar.Toolbar
@@ -32,12 +34,39 @@
             id: account_list_id
 
 
+<ImportKeystore>:
+    orientation: 'vertical'
+    MDLabel:
+        halign: 'center'
+        text: 'Copy it in to the keystore directory.\n%s' % root.keystore_path
+    PushUp:
+
+
 <SwitchAccountScreen>:
     name: 'switch_account'
     on_pre_enter:
         switch_account_id.load_account_list()
-    SwitchAccount:
-        id: switch_account_id
+        # workaround for broken MDBottomNavigation, refs
+        # https://github.com/AndreMiras/PyWallet/issues/38
+        Window.dispatch('on_resize', *Window.size)
+    MDBottomNavigation:
+        MDBottomNavigationItem:
+            name: "select"
+            text: "Select"
+            icon: "format-list-bulleted"
+            SwitchAccount:
+                id: switch_account_id
+        MDBottomNavigationItem:
+            name: "create"
+            text: "Create"
+            icon: "plus"
+            MDLabel:
+                text: "Not implemented"
+        MDBottomNavigationItem:
+            name: "import"
+            text: "Import"
+            icon: "download"
+            ImportKeystore:
 
 
 <AboutScreen>:

@@ -1,19 +1,19 @@
 [app]
 
 # (str) Title of your application
-title = My Application
+title = Etheroll
 
 # (str) Package name
-package.name = myapp
+package.name = etheroll
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.test
+package.domain = com.github.andremiras
 
 # (str) Source code where the main.py live
-source.dir = .
+source.dir = src/
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py,png,jpg,kv,atlas,md
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -23,16 +23,17 @@ source.include_exts = py,png,jpg,kv,atlas
 
 # (list) List of directory to exclude (let empty to not exclude anything)
 #source.exclude_dirs = tests, bin
+source.exclude_dirs = bin, venv, src/python-for-android
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1
+# version = 0.1
 
 # (str) Application versioning (method 2)
-# version.regex = __version__ = ['"](.*)['"]
-# version.filename = %(source.dir)s/main.py
+version.regex = __version__ = ['"](.*)['"]
+version.filename = %(source.dir)s/version.py
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
@@ -47,9 +48,11 @@ requirements = kivy
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
+# presplash.filename = docs/images/icon.png
 
 # (str) Icon of the application
 #icon.filename = %(source.dir)s/data/icon.png
+# icon.filename = docs/images/icon.png
 
 # (str) Supported orientation (one of landscape, portrait or all)
 orientation = portrait
@@ -86,6 +89,7 @@ fullscreen = 0
 
 # (list) Permissions
 #android.permissions = INTERNET
+android.permissions = INTERNET
 
 # (int) Android API to use
 #android.api = 19
@@ -124,9 +128,11 @@ fullscreen = 0
 
 # (str) Path to a custom whitelist file
 #android.whitelist_src =
+# android.whitelist_src = whitelist.txt
 
 # (str) Path to a custom blacklist file
 #android.blacklist_src =
+# android.blacklist_src = blacklist.txt
 
 # (list) List of Java .jar files to add to the libs so that pyjnius can access
 # their classes. Don't add jars that you do not need, since extra jars can slow
@@ -194,6 +200,7 @@ android.arch = armeabi-v7a
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
 #p4a.local_recipes =
+p4a.local_recipes = ./src/python-for-android/recipes/
 
 # (str) Filename to the hook for p4a
 #p4a.hook =

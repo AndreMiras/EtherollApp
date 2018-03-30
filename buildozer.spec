@@ -38,10 +38,15 @@ version.filename = %(source.dir)s/version.py
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
 requirements =
+    hostpython3crystax,
     python3crystax,
+    setuptools,
     kivy,
     gevent,
     https://gitlab.com/kivymd/KivyMD/repository/archive.zip?ref=19e587e6,
+    openssl,
+    pyelliptic==1.5.7,
+    rlp,
     devp2p==0.9.3,
     https://github.com/ethereum/pyethapp/archive/8406f32.zip,
     web3==4.0.0b11,

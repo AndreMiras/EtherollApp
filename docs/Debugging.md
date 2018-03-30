@@ -1,8 +1,9 @@
 # Debugging
 
-Some debugging notes
+Some debugging notes.
 
-## Events
+## Blockchain
+### Events
 Events are identified by their definition sha3 signature:
 ```
 >>> events = [
@@ -41,5 +42,10 @@ Data (Hex)
 0000000000000000000000000000000000000000000000000000000000000033 <- `PlayerNumber`
 ```
 
-## Online tool
+### Online tool
 https://lab.miguelmota.com/ethereum-input-data-decoder/example/
+
+## Android
+```
+buildozer android adb -- logcat
+```

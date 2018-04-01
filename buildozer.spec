@@ -170,6 +170,7 @@ android.ndk_path = ~/.buildozer/crystax-ndk
 
 # (str) python-for-android branch to use, defaults to master
 #p4a.branch = stable
+p4a.branch = master
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled

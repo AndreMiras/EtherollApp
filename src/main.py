@@ -4,7 +4,6 @@ from __future__ import print_function, unicode_literals
 import os
 from os.path import expanduser
 
-from devp2p.app import BaseApp
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
@@ -17,8 +16,10 @@ from kivymd.toolbar import Toolbar
 from pyethapp.accounts import AccountsService
 
 import pyetheroll
-from utils import Dialog
+from utils import Dialog, patch_find_library_android
 from version import __version__
+
+patch_find_library_android()
 
 KEYSTORE_DIR_PREFIX = expanduser("~")
 # default pyethapp keystore path
@@ -289,6 +290,8 @@ class Controller(FloatLayout):
     def _init_pyethapp(self, keystore_dir=None):
         if keystore_dir is None:
             keystore_dir = self.get_keystore_path()
+        # must be imported after `patch_find_library_android()`
+        from devp2p.app import BaseApp
         self.pyethapp = BaseApp(
             config=dict(accounts=dict(keystore_dir=keystore_dir)))
         AccountsService.register_with_app(self.pyethapp)

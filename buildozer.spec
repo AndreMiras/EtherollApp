@@ -55,6 +55,10 @@ requirements =
     pysha3==1.0.2,
     pyyaml==3.12,
     ethereum==2.1.1,
+    ptyprocess==0.5.2,
+    pexpect==4.4.0,
+    Pygments==2.2.0,
+    decorator==4.2.1,
     ipython-genutils==0.2.0,
     traitlets==4.3.2,
     ipython==5.5.0,
@@ -152,10 +156,11 @@ android.ndk_path = ~/.buildozer/crystax-ndk
 
 # (list) Pattern to whitelist for the whole project
 #android.whitelist =
+android.whitelist = lib-dynload/resource.so
 
 # (str) Path to a custom whitelist file
 #android.whitelist_src =
-# android.whitelist_src = whitelist.txt
+android.whitelist_src = whitelist.txt
 
 # (str) Path to a custom blacklist file
 #android.blacklist_src =

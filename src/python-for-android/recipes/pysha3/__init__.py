@@ -12,6 +12,7 @@ class Pysha3Recipe(PythonRecipe):
         env = super(Pysha3Recipe, self).get_recipe_env(arch, with_flags_in_cc)
         # sets linker to use the correct gcc (cross compiler)
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
+        """
         # CFLAGS may only be used to specify C compiler flags, for macro definitions use CPPFLAGS
         env['CPPFLAGS'] = env['CFLAGS'] + ' -I{}/sources/python/3.5/include/python/'.format(self.ctx.ndk_dir)
         env['CFLAGS'] = ''
@@ -22,6 +23,7 @@ class Pysha3Recipe(PythonRecipe):
         if self.ctx.ndk == 'crystax':
             env['LIBS'] += ' -lcrystax -lpython{}m'.format(self.ctx.python_recipe.version[0:3])
         env['LDSHARED'] += env['LIBS']
+        """
         return env
 
 

@@ -42,6 +42,7 @@ requirements =
     python3crystax,
     setuptools,
     kivy,
+    android,
     gevent,
     cffi,
     https://gitlab.com/kivymd/KivyMD/repository/archive.zip?ref=19e587e6,

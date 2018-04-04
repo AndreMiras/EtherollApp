@@ -101,3 +101,7 @@ ENV/
 
 # vim
 *.swp
+
+# buildozer
+bin/
+.buildozer/

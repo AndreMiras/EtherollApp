@@ -32,15 +32,21 @@ class PasswordForm(BoxLayout):
 
 class SwitchAccount(BoxLayout):
 
+    def __init__(self, **kwargs):
+        super(SwitchAccount, self).__init__(**kwargs)
+        self.register_event_type('on_account_selected')
+
     def on_release(self, list_item):
         """
-        Sets current_account and switches to previous screen.
+        Fires on_account_selected() event.
         """
-        # sets current_account
-        self.selected_list_item = list_item
-        self.parent.current_account = list_item.account
-        # switches to previous screen
-        self.parent.on_back()
+        self.dispatch('on_account_selected', list_item.account)
+
+    def on_account_selected(self, *args):
+        """
+        Default handler.
+        """
+        pass
 
     def create_item(self, account):
         """
@@ -140,6 +146,26 @@ class ImportKeystore(BoxLayout):
 
 class SwitchAccountScreen(SubScreen):
     current_account = ObjectProperty()
+
+    def __init__(self, **kwargs):
+        super(SwitchAccountScreen, self).__init__(**kwargs)
+        Clock.schedule_once(self._after_init)
+
+    def _after_init(self, dt):
+        """
+        Binds SwitchAccount.on_account_selected() event.
+        """
+        switch_account = self.ids.switch_account_id
+        switch_account.bind(
+            on_account_selected=lambda
+            instance, account: self.on_account_selected(account))
+
+    def on_account_selected(self, account):
+        """
+        Sets current account and loads previous screen.
+        """
+        self.current_account = account
+        self.on_back()
 
 
 class AboutScreen(SubScreen):

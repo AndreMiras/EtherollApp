@@ -464,7 +464,7 @@ class Controller(FloatLayout):
             self.dialog_roll_success(tx_hash)
 
 
-class MainApp(App):
+class EtherollApp(App):
 
     theme_cls = ThemeManager()
 
@@ -473,4 +473,4 @@ class MainApp(App):
 
 
 if __name__ == '__main__':
-    MainApp().run()
+    EtherollApp().run()

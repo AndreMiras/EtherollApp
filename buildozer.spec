@@ -48,7 +48,7 @@ requirements =
     openssl,
     pyelliptic==1.5.7,
     rlp,
-    secp256k1,
+    asn1crypto==0.24.0,
     coincurve==7.1.0,
     bitcoin==1.1.42,
     devp2p==0.9.3,

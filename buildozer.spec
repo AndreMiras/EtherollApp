@@ -48,6 +48,9 @@ requirements =
     openssl,
     pyelliptic==1.5.7,
     rlp,
+    secp256k1,
+    coincurve==7.1.0,
+    bitcoin==1.1.42,
     devp2p==0.9.3,
     pycryptodome==3.4.6,
     pbkdf2==1.3,
@@ -63,10 +66,34 @@ requirements =
     traitlets==4.3.2,
     ipython==5.5.0,
     click==6.7,
+    pickleshare==0.7.4,
+    simplegeneric==0.8.1,
+    wcwidth==0.1.7,
+    prompt-toolkit==1.0.15,
     https://github.com/ethereum/pyethapp/archive/8406f32.zip,
+    idna==2.6,
+    typing==3.6.4,
+    eth-keys==0.2.0b3,
+    eth-keyfile==0.5.1,
+    rlp==0.6.0,
+    eth-rlp==0.1.0,
+    attrdict==2.0.0,
+    eth-account==0.1.0a2,
+    hexbytes==0.1.0,
+    lru-dict==1.1.5,
     web3==4.0.0b11,
+    certifi==2018.1.18,
+    chardet==3.0.4,
+    urllib3==1.22,
+    requests==2.18.4,
     https://github.com/corpetty/py-etherscan-api/archive/a783f720a6175b227cdfe8dc3040ebad3022d79f.zip,
-    eth-testrpc==1.3.3
+    eth-testrpc==1.3.3,
+    eth-hash==0.1.1,
+    pyethash==0.1.27,
+    cytoolz==0.9.0,
+    toolz==0.9.0,
+    eth-abi==1.0.0,
+    eth-utils==1.0.1
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -156,11 +183,10 @@ android.ndk_path = ~/.buildozer/crystax-ndk
 
 # (list) Pattern to whitelist for the whole project
 #android.whitelist =
-android.whitelist = lib-dynload/resource.so
 
 # (str) Path to a custom whitelist file
 #android.whitelist_src =
-android.whitelist_src = whitelist.txt
+# android.whitelist_src = whitelist.txt
 
 # (str) Path to a custom blacklist file
 #android.blacklist_src =

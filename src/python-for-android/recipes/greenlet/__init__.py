@@ -21,8 +21,6 @@ class GreenletRecipe(PythonRecipe):
             # until `pythonforandroid/archs.py` gets merged upstream:
             # https://github.com/kivy/python-for-android/pull/1250/files#diff-569e13021e33ced8b54385f55b49cbe6
             env['CFLAGS'] += ' -I{}/include/python/'.format(ndk_dir_python)
-            print("self.ctx.ndk_dir:", self.ctx.ndk_dir)
-            print("ndk_dir_python:", ndk_dir_python)
         return env
 
 

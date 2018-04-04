@@ -474,6 +474,13 @@ class Controller(FloatLayout):
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 
+    @staticmethod
+    def dialog_roll_error(exception):
+        title = "Error rolling"
+        body = str(exception)
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
     def roll(self):
         roll_input = self.roll_screen.get_roll_input()
         bet_size = roll_input['bet_size']
@@ -485,8 +492,12 @@ class Controller(FloatLayout):
         wallet_path = account.path
         password = self.get_account_password(account)
         if password is not None:
-            tx_hash = pyetheroll.player_roll_dice(
-                bet_size, chances, wallet_path, password)
+            try:
+                tx_hash = pyetheroll.player_roll_dice(
+                    bet_size, chances, wallet_path, password)
+            except ValueError as exception:
+                self.dialog_roll_error(exception)
+                return
             self.dialog_roll_success(tx_hash)
 
 

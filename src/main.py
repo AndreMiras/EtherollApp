@@ -10,18 +10,18 @@ from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
+from kivy.utils import platform
 from kivymd.list import OneLineListItem
 from kivymd.theming import ThemeManager
 from kivymd.toolbar import Toolbar
-from pyethapp.accounts import AccountsService
 
-import pyetheroll
-from utils import Dialog, patch_find_library_android
+from utils import Dialog, patch_find_library_android, patch_typing_python351
 from version import __version__
 
 patch_find_library_android()
+patch_typing_python351()
+import pyetheroll  # noqa: E402, needs to be imported after patching
 
-KEYSTORE_DIR_PREFIX = expanduser("~")
 # default pyethapp keystore path
 KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
 
@@ -292,6 +292,7 @@ class Controller(FloatLayout):
             keystore_dir = self.get_keystore_path()
         # must be imported after `patch_find_library_android()`
         from devp2p.app import BaseApp
+        from pyethapp.accounts import AccountsService
         self.pyethapp = BaseApp(
             config=dict(accounts=dict(keystore_dir=keystore_dir)))
         AccountsService.register_with_app(self.pyethapp)
@@ -312,6 +313,10 @@ class Controller(FloatLayout):
         Returns the keystore path, which is the same as the default pyethapp
         one.
         """
+        KEYSTORE_DIR_PREFIX = expanduser("~")
+        # uses kivy user_data_dir (/sdcard/<app_name>)
+        if platform == "android":
+            KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
         keystore_dir = os.path.join(KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
         return keystore_dir
 

@@ -24,6 +24,7 @@ import pyetheroll  # noqa: E402, isort:skip, must be imported after patching
 
 # default pyethapp keystore path
 KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
+ROUND_DIGITS = 1
 
 
 class PasswordForm(BoxLayout):
@@ -208,8 +209,7 @@ class BetSize(BoxLayout):
         """
         slider = self.ids.bet_size_slider_id
         inpt = self.ids.bet_size_input_id
-
-        BetSize.bind_slider_input(slider, inpt, self.cast_to)
+        BetSize.bind_slider_input(slider, inpt)
 
     @staticmethod
     def bind_slider_input(slider, inpt, cast_to=float):
@@ -219,7 +219,8 @@ class BetSize(BoxLayout):
         # slider -> input
         slider.bind(
             value=lambda instance, value:
-            setattr(inpt, 'text', str(cast_to(value))))
+            setattr(inpt, 'text', "{0:.{1}f}".format(
+                cast_to(value), ROUND_DIGITS)))
         # input -> slider
         inpt.bind(
             on_text_validate=lambda instance:
@@ -231,13 +232,6 @@ class BetSize(BoxLayout):
                 if not focused else False)
         # synchronises values slider <-> input once
         inpt.dispatch('on_text_validate')
-
-    @staticmethod
-    def cast_to(value):
-        try:
-            return round(float(value), 1)
-        except ValueError:
-            return 0
 
     @property
     def value(self):

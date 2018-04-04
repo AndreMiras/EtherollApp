@@ -7,6 +7,7 @@
 #:import MDTextField kivymd.textfields.MDTextField
 #:import MDSlider kivymd.slider.MDSlider
 #:import Toolbar kivymd.toolbar.Toolbar
+#:import ROUND_DIGITS etheroll.ROUND_DIGITS
 
 
 # need this hack to push widgets up
@@ -122,9 +123,10 @@
         text: "Roll under %s" % int(root.roll_under_property)
         font_style: 'Headline'
     MDLabel:
-        text: "With a wager of %s ETH" % round(root.wager_property, 2)
+        text: "With a wager of {0:.{1}f} ETH".format(root.wager_property, ROUND_DIGITS)
     MDLabel:
-        text: "For a profit of %s ETH" % round(root.profit_property, 2)
+    MDLabel:
+        text: "For a profit of {0:.{1}f} ETH".format(root.profit_property, ROUND_DIGITS)
 
 
 <RollScreen>:

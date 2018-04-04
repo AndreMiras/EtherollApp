@@ -20,7 +20,7 @@ from version import __version__
 
 patch_find_library_android()
 patch_typing_python351()
-import pyetheroll  # noqa: E402, needs to be imported after patching
+import pyetheroll  # noqa: E402, isort:skip, must be imported after patching
 
 # default pyethapp keystore path
 KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"

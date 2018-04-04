@@ -4,23 +4,24 @@ from __future__ import print_function, unicode_literals
 import os
 from os.path import expanduser
 
-from devp2p.app import BaseApp
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
+from kivy.utils import platform
 from kivymd.list import OneLineListItem
 from kivymd.theming import ThemeManager
 from kivymd.toolbar import Toolbar
-from pyethapp.accounts import AccountsService
 
-import pyetheroll
-from utils import Dialog
+from utils import Dialog, patch_find_library_android, patch_typing_python351
 from version import __version__
 
-KEYSTORE_DIR_PREFIX = expanduser("~")
+patch_find_library_android()
+patch_typing_python351()
+import pyetheroll  # noqa: E402, isort:skip, must be imported after patching
+
 # default pyethapp keystore path
 KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
 
@@ -31,15 +32,21 @@ class PasswordForm(BoxLayout):
 
 class SwitchAccount(BoxLayout):
 
+    def __init__(self, **kwargs):
+        super(SwitchAccount, self).__init__(**kwargs)
+        self.register_event_type('on_account_selected')
+
     def on_release(self, list_item):
         """
-        Sets current_account and switches to previous screen.
+        Fires on_account_selected() event.
         """
-        # sets current_account
-        self.selected_list_item = list_item
-        self.parent.current_account = list_item.account
-        # switches to previous screen
-        self.parent.on_back()
+        self.dispatch('on_account_selected', list_item.account)
+
+    def on_account_selected(self, *args):
+        """
+        Default handler.
+        """
+        pass
 
     def create_item(self, account):
         """
@@ -139,6 +146,26 @@ class ImportKeystore(BoxLayout):
 
 class SwitchAccountScreen(SubScreen):
     current_account = ObjectProperty()
+
+    def __init__(self, **kwargs):
+        super(SwitchAccountScreen, self).__init__(**kwargs)
+        Clock.schedule_once(self._after_init)
+
+    def _after_init(self, dt):
+        """
+        Binds SwitchAccount.on_account_selected() event.
+        """
+        switch_account = self.ids.switch_account_id
+        switch_account.bind(
+            on_account_selected=lambda
+            instance, account: self.on_account_selected(account))
+
+    def on_account_selected(self, account):
+        """
+        Sets current account and loads previous screen.
+        """
+        self.current_account = account
+        self.on_back()
 
 
 class AboutScreen(SubScreen):
@@ -289,6 +316,9 @@ class Controller(FloatLayout):
     def _init_pyethapp(self, keystore_dir=None):
         if keystore_dir is None:
             keystore_dir = self.get_keystore_path()
+        # must be imported after `patch_find_library_android()`
+        from devp2p.app import BaseApp
+        from pyethapp.accounts import AccountsService
         self.pyethapp = BaseApp(
             config=dict(accounts=dict(keystore_dir=keystore_dir)))
         AccountsService.register_with_app(self.pyethapp)
@@ -309,6 +339,10 @@ class Controller(FloatLayout):
         Returns the keystore path, which is the same as the default pyethapp
         one.
         """
+        KEYSTORE_DIR_PREFIX = expanduser("~")
+        # uses kivy user_data_dir (/sdcard/<app_name>)
+        if platform == "android":
+            KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
         keystore_dir = os.path.join(KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
         return keystore_dir
 
@@ -440,6 +474,13 @@ class Controller(FloatLayout):
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 
+    @staticmethod
+    def dialog_roll_error(exception):
+        title = "Error rolling"
+        body = str(exception)
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
     def roll(self):
         roll_input = self.roll_screen.get_roll_input()
         bet_size = roll_input['bet_size']
@@ -451,12 +492,16 @@ class Controller(FloatLayout):
         wallet_path = account.path
         password = self.get_account_password(account)
         if password is not None:
-            tx_hash = pyetheroll.player_roll_dice(
-                bet_size, chances, wallet_path, password)
+            try:
+                tx_hash = pyetheroll.player_roll_dice(
+                    bet_size, chances, wallet_path, password)
+            except ValueError as exception:
+                self.dialog_roll_error(exception)
+                return
             self.dialog_roll_success(tx_hash)
 
 
-class MainApp(App):
+class EtherollApp(App):
 
     theme_cls = ThemeManager()
 
@@ -465,4 +510,4 @@ class MainApp(App):
 
 
 if __name__ == '__main__':
-    MainApp().run()
+    EtherollApp().run()

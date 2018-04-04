@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [v20180404]
 
   - Simple account managment refs, #6, #7, #14
   - Porting to Android, refs #12

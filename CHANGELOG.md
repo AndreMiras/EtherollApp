@@ -8,6 +8,7 @@
   - Gevent compilation issues, refs #29
   - FileNotFoundError lib crypto on Android, refs #30
   - PyYAML ImportError: No module named 'error', refs #31
+  - Android OpenSSL support, refs #32
 
 
 ## [v20180327]

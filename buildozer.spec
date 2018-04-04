@@ -13,7 +13,7 @@ package.domain = com.github.andremiras
 source.dir = src/
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,md
+source.include_exts = py,png,jpg,kv,atlas,md,json
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png

@@ -28,27 +28,70 @@ class ChainID(Enum):
     ROPSTEN = 3
 
 
-class RopstenContract(EtherscanContract):
+class RopstenEtherscanContract(EtherscanContract):
     """
     https://github.com/corpetty/py-etherscan-api/issues/24
     """
     PREFIX = 'https://api-ropsten.etherscan.io/api?'
 
 
-# TODO: handle both mainnet and testnet
-def get_contract_abi(contract_address):
-    """
-    Given a contract address returns the contract ABI from Etherscan, refs #2.
-    """
-    location = os.path.realpath(
-        os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    api_key_path = str(os.path.join(location, 'api_key.json'))
-    with open(api_key_path, mode='r') as key_file:
-        key = json.loads(key_file.read())['key']
-    api = RopstenContract(address=contract_address, api_key=key)
-    json_abi = api.get_abi()
-    abi = json.loads(json_abi)
-    return abi
+class ChainEtherscanContractFactory:
+
+    @staticmethod
+    def create(chain_id=ChainID.MAINNET):
+        if chain_id == ChainID.MAINNET:
+            return EtherscanContract
+        elif chain_id == ChainID.MORDEN:
+            raise NotImplemented('MORDEN not yet supported')
+        elif chain_id == ChainID.ROPSTEN:
+            return RopstenEtherscanContract
+        else:
+            raise ValueError('Unknown chain_id {}'.format(chain_id))
+
+
+class TransactionDebugger:
+
+    def __init__(self, chain_id=ChainID.MAINNET):
+        self.chain_id = chain_id
+
+    def get_contract_abi(self, contract_address):
+        """
+        Given a contract address returns the contract ABI from Etherscan, refs #2.
+        """
+        location = os.path.realpath(
+            os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        api_key_path = str(os.path.join(location, 'api_key.json'))
+        with open(api_key_path, mode='r') as key_file:
+            key = json.loads(key_file.read())['key']
+        ChainEtherscanContract = ChainEtherscanContractFactory.create(self.chain_id)
+        api = ChainEtherscanContract(address=contract_address, api_key=key)
+        json_abi = api.get_abi()
+        abi = json.loads(json_abi)
+        return abi
+
+    def decode_transaction_log(self, log):
+        """
+        Given a transaction event log.
+        1) downloads the ABI associated to the recipient address
+        2) uses it to decode methods calls
+        """
+        contract_address = log.address
+        contract_abi = self.get_contract_abi(contract_address)
+        topics = log.topics
+        log_data = log.data
+        decoded_method = decode_method(contract_abi, topics, log_data)
+        pprint(decoded_method)
+
+    def decode_transaction_logs(self, eth, transaction_hash):
+        """
+        Given a transaction hash, reads and decode the event log.
+        Params:
+        eth: web3.eth.Eth instance
+        """
+        transaction_receipt = eth.getTransactionReceipt(transaction_hash)
+        logs = transaction_receipt.logs
+        for log in logs:
+            self.decode_transaction_log(log)
 
 
 def get_methods_infos(contract_abi):
@@ -104,30 +147,6 @@ def decode_method(contract_abi, topics, log_data):
     return decoded_method
 
 
-def decode_transaction_log(log):
-    """
-    Given a transaction event log.
-    1) downloads the ABI associated to the recipient address
-    2) uses it to decode methods calls
-    """
-    contract_address = log.address
-    contract_abi = get_contract_abi(contract_address)
-    topics = log.topics
-    log_data = log.data
-    decoded_method = decode_method(contract_abi, topics, log_data)
-    pprint(decoded_method)
-
-
-def decode_transaction_logs(eth, transaction_hash):
-    """
-    Given a transaction hash, reads and decode the event log.
-    Params:
-    eth: web3.eth.Eth instance
-    """
-    transaction_receipt = eth.getTransactionReceipt(transaction_hash)
-    logs = transaction_receipt.logs
-    for log in logs:
-        decode_transaction_log(log)
 
 
 # def decode_contract_call(contract_abi: list, call_data: str):

@@ -309,7 +309,7 @@ class Etheroll:
         roll_under = chances
         value_wei = w3.toWei(bet_size_ether, 'ether')
         gas = 310000
-        gas_price = w3.toWei(20, 'gwei')
+        gas_price = w3.toWei(4, 'gwei')
         # since Account.load is hanging while decrypting the password
         # we set password to None and use `w3.eth.account.decrypt` instead
         account = Account.load(wallet_path, password=None)

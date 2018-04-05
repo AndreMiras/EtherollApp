@@ -2,8 +2,7 @@ import unittest
 
 from hexbytes.main import HexBytes
 
-# from .. import pyetheroll
-import pyetheroll
+from pyetheroll import ChainID, TransactionDebugger
 
 
 class TestUtils(unittest.TestCase):
@@ -77,7 +76,7 @@ class TestUtils(unittest.TestCase):
             "3a312c226d6178223a3130302c227265706c6163656d656e74223a747275652c"
             "2262617365223a3130247b5b6964656e746974795d20227d227d2c226964223a"
             "31247b5b6964656e746974795d20227d227d275d000000000000000000000000")
-        decoded_method = pyetheroll.decode_method(
+        decoded_method = TransactionDebugger.decode_method(
             contract_abi, topics, log_data)
         # TODO: simplify that arg call for unit testing
         self.assertEqual(
@@ -169,7 +168,7 @@ class TestUtils(unittest.TestCase):
             '0000000000000000000000000000000000000000000000000007533f2ecb6c34'
             '000000000000000000000000000000000000000000000000016345785d8a0000'
             '0000000000000000000000000000000000000000000000000000000000000062')
-        decoded_method = pyetheroll.decode_method(
+        decoded_method = TransactionDebugger.decode_method(
             contract_abi, topics, log_data)
         self.assertEqual(
             decoded_method['call'],
@@ -188,3 +187,26 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(
           decoded_method['method_info']['sha3'].hex(),
           '0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4')
+
+
+class TestTransactionDebugger(unittest.TestCase):
+
+    # TODO: mock the request/response
+    def test_decode_transaction_logs(self):
+        chain_id = ChainID.ROPSTEN
+        transaction_debugger = TransactionDebugger(chain_id)
+        transaction_hash = (
+          "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
+        decoded_methods = transaction_debugger.decode_transaction_logs(
+            transaction_hash)
+        self.assertEqual(len(decoded_methods), 2)
+        decoded_method = decoded_methods[0]
+        self.assertEqual(
+          decoded_method['method_info']['definition'],
+          'Log1(address,bytes32,uint256,string,string,uint256,bytes1,uint256)'
+        )
+        decoded_method = decoded_methods[1]
+        self.assertEqual(
+            decoded_method['method_info']['definition'],
+            'LogBet(bytes32,address,uint256,uint256,uint256,uint256)'
+        )

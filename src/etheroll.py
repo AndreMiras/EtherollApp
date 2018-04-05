@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function, unicode_literals
-
 import os
 from os.path import expanduser
 
@@ -169,6 +167,31 @@ class SwitchAccountScreen(SubScreen):
         self.on_back()
 
 
+class SettingsScreen(SubScreen):
+    """
+    Screen for configuring network, gas price...
+    """
+
+    def __init__(self, **kwargs):
+        super(SettingsScreen, self).__init__(**kwargs)
+        # Clock.schedule_once(self._after_init)
+
+    @property
+    def network(self):
+        """
+        Returns selected network.
+        """
+        if self.is_mainnet():
+            return pyetheroll.ChainID.MAINNET
+        return pyetheroll.ChainID.ROPSTEN
+
+    def is_mainnet(self):
+        return self.ids.mainnet_checkbox_id.active
+
+    def is_testnet(self):
+        return self.ids.testnet_checkbox_id.active
+
+
 class AboutScreen(SubScreen):
     project_page_property = StringProperty(
         "https://github.com/AndreMiras/EtherollApp")
@@ -293,7 +316,8 @@ class Controller(FloatLayout):
         super(Controller, self).__init__(**kwargs)
         Clock.schedule_once(self._after_init)
         self._init_pyethapp()
-        self.account_passwords = {}
+        self._account_passwords = {}
+        self._pyetheroll = None
 
     def _after_init(self, dt):
         """
@@ -313,6 +337,17 @@ class Controller(FloatLayout):
         self.pyethapp = BaseApp(
             config=dict(accounts=dict(keystore_dir=keystore_dir)))
         AccountsService.register_with_app(self.pyethapp)
+
+    @property
+    def pyetheroll(self):
+        """
+        Gets or creates the Etheroll object.
+        Also recreates the object if the chain_id changed.
+        """
+        chain_id = self.settings_screen.network
+        if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
+            self._pyetheroll = pyetheroll.Etheroll(chain_id)
+        return self._pyetheroll
 
     @classmethod
     def get_keystore_path(cls):
@@ -410,11 +445,15 @@ class Controller(FloatLayout):
     def switch_account_screen(self):
         return self.ids.switch_account_screen_id
 
+    @property
+    def settings_screen(self):
+        return self.ids.settings_screen_id
+
     def on_unlock_clicked(self, dialog, account, password):
         """
         Caches the password and call roll method again.
         """
-        self.account_passwords[account.address.hex()] = password
+        self._account_passwords[account.address.hex()] = password
         dialog.dismiss()
         # calling roll again since the password is now cached
         self.roll()
@@ -444,7 +483,7 @@ class Controller(FloatLayout):
         """
         address = account.address.hex()
         try:
-            return self.account_passwords[address]
+            return self._account_passwords[address]
         except KeyError:
             self.prompt_password_dialog(account)
 
@@ -484,7 +523,7 @@ class Controller(FloatLayout):
         password = self.get_account_password(account)
         if password is not None:
             try:
-                tx_hash = pyetheroll.player_roll_dice(
+                tx_hash = self.pyetheroll.player_roll_dice(
                     bet_size, chances, wallet_path, password)
             except ValueError as exception:
                 self.dialog_roll_error(exception)

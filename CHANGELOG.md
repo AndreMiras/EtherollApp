@@ -3,6 +3,7 @@
 ## [Unreleased]
 
   - Switch testnet/mainnet from UI, refs #11, #21
+  - Integrate with Sentry, refs #17
   - Android splash screen and icon, refs #24
 
 

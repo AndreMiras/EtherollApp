@@ -94,7 +94,8 @@ requirements =
     cytoolz==0.9.0,
     toolz==0.9.0,
     eth-abi==1.0.0,
-    eth-utils==1.0.1
+    eth-utils==1.0.1,
+    raven==6.6.0
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

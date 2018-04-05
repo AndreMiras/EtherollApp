@@ -239,7 +239,7 @@ class BetSize(BoxLayout):
         Returns normalized bet size value.
         """
         try:
-            return self.cast_to(self.ids.bet_size_input_id.text)
+            return round(float(self.ids.bet_size_input_id.text), ROUND_DIGITS)
         except ValueError:
             return 0
 
@@ -265,7 +265,10 @@ class ChanceOfWinning(BoxLayout):
         Returns normalized chances value.
         """
         try:
-            return int(self.ids.chances_input_id.text)
+            # `input_filter: 'int'` only verifies that we have a number
+            # but doesn't convert to int
+            chances = float(self.ids.chances_input_id.text)
+            return int(chances)
         except ValueError:
             return 0
 
@@ -276,17 +279,11 @@ class RollScreen(Screen):
         """
         Returns bet size and chance of winning user input values.
         """
-        # bet size
         bet_size = self.ids.bet_size_id
-        bet_size_input = bet_size.ids.bet_size_input_id
-        bet_size_value = float(bet_size_input.text)
-        # chance of winning
         chance_of_winning = self.ids.chance_of_winning_id
-        chances_input = chance_of_winning.ids.chances_input_id
-        chances_value = int(chances_input.text)
         return {
-            "bet_size": bet_size_value,
-            "chances": chances_value,
+            "bet_size": bet_size.value,
+            "chances": chance_of_winning.value,
         }
 
 

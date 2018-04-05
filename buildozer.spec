@@ -105,11 +105,11 @@ requirements =
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
-# presplash.filename = docs/images/icon.png
+presplash.filename = docs/images/etheroll-logo.png
 
 # (str) Icon of the application
 #icon.filename = %(source.dir)s/data/icon.png
-# icon.filename = docs/images/icon.png
+icon.filename = docs/images/icon.png
 
 # (str) Supported orientation (one of landscape, portrait or all)
 orientation = portrait

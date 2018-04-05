@@ -3,6 +3,7 @@
 ## [Unreleased]
 
   - Switch testnet/mainnet from UI, refs #11, #21
+  - Android splash screen and icon, refs #24
 
 
 ## [v20180404]

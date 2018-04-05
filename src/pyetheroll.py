@@ -8,7 +8,6 @@ from __future__ import print_function
 import json
 import os
 from enum import Enum
-from pprint import pprint
 
 import eth_abi
 from ethereum.abi import decode_abi
@@ -37,37 +36,108 @@ class RopstenEtherscanContract(EtherscanContract):
 
 class ChainEtherscanContractFactory:
 
-    @staticmethod
-    def create(chain_id=ChainID.MAINNET):
-        if chain_id == ChainID.MAINNET:
-            return EtherscanContract
-        elif chain_id == ChainID.MORDEN:
-            raise NotImplemented('MORDEN not yet supported')
-        elif chain_id == ChainID.ROPSTEN:
-            return RopstenEtherscanContract
-        else:
-            raise ValueError('Unknown chain_id {}'.format(chain_id))
+    CONTRACTS = {
+        ChainID.MAINNET: EtherscanContract,
+        ChainID.ROPSTEN: RopstenEtherscanContract,
+    }
+
+    @classmethod
+    def create(cls, chain_id=ChainID.MAINNET):
+        ChainEtherscanContract = cls.CONTRACTS[chain_id]
+        return ChainEtherscanContract
+
+
+class HTTPProviderFactory:
+
+    PROVIDER_URLS = {
+        ChainID.MAINNET: 'https://api.myetherapi.com/eth',
+        # also https://api.myetherapi.com/rop
+        ChainID.ROPSTEN: 'https://ropsten.infura.io',
+    }
+
+    @classmethod
+    def create(cls, chain_id=ChainID.MAINNET):
+        url = cls.PROVIDER_URLS[chain_id]
+        return HTTPProvider(url)
 
 
 class TransactionDebugger:
 
     def __init__(self, chain_id=ChainID.MAINNET):
         self.chain_id = chain_id
+        self.provider = HTTPProviderFactory.create(chain_id)
+        self.web3 = Web3(self.provider)
+        # print("blockNumber:", self.web3.eth.blockNumber)
 
     def get_contract_abi(self, contract_address):
         """
-        Given a contract address returns the contract ABI from Etherscan, refs #2.
+        Given a contract address returns the contract ABI from Etherscan,
+        refs #2
         """
         location = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
         api_key_path = str(os.path.join(location, 'api_key.json'))
         with open(api_key_path, mode='r') as key_file:
             key = json.loads(key_file.read())['key']
-        ChainEtherscanContract = ChainEtherscanContractFactory.create(self.chain_id)
+        ChainEtherscanContract = ChainEtherscanContractFactory.create(
+            self.chain_id)
         api = ChainEtherscanContract(address=contract_address, api_key=key)
         json_abi = api.get_abi()
         abi = json.loads(json_abi)
         return abi
+
+    @staticmethod
+    def get_methods_infos(contract_abi):
+        """
+        List of infos for each events.
+        """
+        methods_infos = {}
+        # only retrieves functions and events, other existing types are:
+        # "fallback" and "constructor"
+        types = ['function', 'event']
+        methods = [a for a in contract_abi if a['type'] in types]
+        for description in methods:
+            method_name = description['name']
+            types = ','.join([x['type'] for x in description['inputs']])
+            event_definition = "%s(%s)" % (method_name, types)
+            event_sha3 = Web3.sha3(text=event_definition)
+            method_info = {
+                'definition': event_definition,
+                'sha3': event_sha3,
+                'abi': description,
+            }
+            methods_infos.update({method_name: method_info})
+        return methods_infos
+
+    @classmethod
+    def decode_method(cls, contract_abi, topics, log_data):
+        """
+        Given a topic and log data, decode the event.
+        """
+        topic = topics[0]
+        # each indexed field generates a new topics and is excluded from data
+        # hence we consider topics[1:] like data, assuming indexed fields
+        # always come first
+        # see https://codeburst.io/deep-dive-into-ethereum-logs-a8d2047c7371
+        topics_log_data = b"".join(topics[1:])
+        log_data = log_data.lower().replace("0x", "")
+        log_data = bytes.fromhex(log_data)
+        topics_log_data += log_data
+        methods_infos = cls.get_methods_infos(contract_abi)
+        method_info = None
+        for event, info in methods_infos.items():
+            if info['sha3'].lower() == topic.lower():
+                method_info = info
+        event_inputs = method_info['abi']['inputs']
+        types = [e_input['type'] for e_input in event_inputs]
+        names = [e_input['name'] for e_input in event_inputs]
+        values = eth_abi.decode_abi(types, topics_log_data)
+        call = {name: value for name, value in zip(names, values)}
+        decoded_method = {
+            'method_info': method_info,
+            'call': call,
+        }
+        return decoded_method
 
     def decode_transaction_log(self, log):
         """
@@ -79,72 +149,23 @@ class TransactionDebugger:
         contract_abi = self.get_contract_abi(contract_address)
         topics = log.topics
         log_data = log.data
-        decoded_method = decode_method(contract_abi, topics, log_data)
-        pprint(decoded_method)
+        decoded_method = self.decode_method(contract_abi, topics, log_data)
+        # pprint(decoded_method)
+        return decoded_method
 
-    def decode_transaction_logs(self, eth, transaction_hash):
+    def decode_transaction_logs(self, transaction_hash):
         """
         Given a transaction hash, reads and decode the event log.
         Params:
         eth: web3.eth.Eth instance
         """
-        transaction_receipt = eth.getTransactionReceipt(transaction_hash)
+        decoded_methods = []
+        transaction_receipt = self.web3.eth.getTransactionReceipt(
+            transaction_hash)
         logs = transaction_receipt.logs
         for log in logs:
-            self.decode_transaction_log(log)
-
-
-def get_methods_infos(contract_abi):
-    """
-    List of infos for each events.
-    """
-    methods_infos = {}
-    # only retrieves functions and events, other existing types are:
-    # "fallback" and "constructor"
-    types = ['function', 'event']
-    methods = [a for a in contract_abi if a['type'] in types]
-    for description in methods:
-        method_name = description['name']
-        types = ','.join([x['type'] for x in description['inputs']])
-        event_definition = "%s(%s)" % (method_name, types)
-        event_sha3 = Web3.sha3(text=event_definition)
-        method_info = {
-            'definition': event_definition,
-            'sha3': event_sha3,
-            'abi': description,
-        }
-        methods_infos.update({method_name: method_info})
-    return methods_infos
-
-
-def decode_method(contract_abi, topics, log_data):
-    """
-    Given a topic and log data, decode the event.
-    """
-    topic = topics[0]
-    # each indexed field generates a new topics and is excluded from data
-    # hence we consider topics[1:] like data, assuming indexed fields
-    # always come first
-    # see https://codeburst.io/deep-dive-into-ethereum-logs-a8d2047c7371
-    topics_log_data = b"".join(topics[1:])
-    log_data = log_data.lower().replace("0x", "")
-    log_data = bytes.fromhex(log_data)
-    topics_log_data += log_data
-    methods_infos = get_methods_infos(contract_abi)
-    method_info = None
-    for event, info in methods_infos.items():
-        if info['sha3'].lower() == topic.lower():
-            method_info = info
-    event_inputs = method_info['abi']['inputs']
-    types = [e_input['type'] for e_input in event_inputs]
-    names = [e_input['name'] for e_input in event_inputs]
-    values = eth_abi.decode_abi(types, topics_log_data)
-    call = {name: value for name, value in zip(names, values)}
-    decoded_method = {
-        'method_info': method_info,
-        'call': call,
-    }
-    return decoded_method
+            decoded_methods.append(self.decode_transaction_log(log))
+        return decoded_methods
 
 
 

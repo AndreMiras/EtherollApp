@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+  - Switch testnet/mainnet from UI, refs #11, #21
+
+
 ## [v20180404]
 
   - Simple account managment refs, #6, #7, #14

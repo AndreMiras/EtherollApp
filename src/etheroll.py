@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-from __future__ import print_function, unicode_literals
-
 import os
 from os.path import expanduser
 
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.logger import LOG_LEVELS, Logger
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -14,6 +13,9 @@ from kivy.utils import platform
 from kivymd.list import OneLineListItem
 from kivymd.theming import ThemeManager
 from kivymd.toolbar import Toolbar
+from raven import Client
+from raven.conf import setup_logging
+from raven.handlers.logging import SentryHandler
 
 from utils import Dialog, patch_find_library_android, patch_typing_python351
 from version import __version__
@@ -24,6 +26,7 @@ import pyetheroll  # noqa: E402, isort:skip, must be imported after patching
 
 # default pyethapp keystore path
 KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
+ROUND_DIGITS = 1
 
 
 class PasswordForm(BoxLayout):
@@ -168,6 +171,31 @@ class SwitchAccountScreen(SubScreen):
         self.on_back()
 
 
+class SettingsScreen(SubScreen):
+    """
+    Screen for configuring network, gas price...
+    """
+
+    def __init__(self, **kwargs):
+        super(SettingsScreen, self).__init__(**kwargs)
+        # Clock.schedule_once(self._after_init)
+
+    @property
+    def network(self):
+        """
+        Returns selected network.
+        """
+        if self.is_mainnet():
+            return pyetheroll.ChainID.MAINNET
+        return pyetheroll.ChainID.ROPSTEN
+
+    def is_mainnet(self):
+        return self.ids.mainnet_checkbox_id.active
+
+    def is_testnet(self):
+        return self.ids.testnet_checkbox_id.active
+
+
 class AboutScreen(SubScreen):
     project_page_property = StringProperty(
         "https://github.com/AndreMiras/EtherollApp")
@@ -208,8 +236,7 @@ class BetSize(BoxLayout):
         """
         slider = self.ids.bet_size_slider_id
         inpt = self.ids.bet_size_input_id
-
-        BetSize.bind_slider_input(slider, inpt, self.cast_to)
+        BetSize.bind_slider_input(slider, inpt)
 
     @staticmethod
     def bind_slider_input(slider, inpt, cast_to=float):
@@ -219,7 +246,8 @@ class BetSize(BoxLayout):
         # slider -> input
         slider.bind(
             value=lambda instance, value:
-            setattr(inpt, 'text', str(cast_to(value))))
+            setattr(inpt, 'text', "{0:.{1}f}".format(
+                cast_to(value), ROUND_DIGITS)))
         # input -> slider
         inpt.bind(
             on_text_validate=lambda instance:
@@ -232,20 +260,13 @@ class BetSize(BoxLayout):
         # synchronises values slider <-> input once
         inpt.dispatch('on_text_validate')
 
-    @staticmethod
-    def cast_to(value):
-        try:
-            return round(float(value), 1)
-        except ValueError:
-            return 0
-
     @property
     def value(self):
         """
         Returns normalized bet size value.
         """
         try:
-            return self.cast_to(self.ids.bet_size_input_id.text)
+            return round(float(self.ids.bet_size_input_id.text), ROUND_DIGITS)
         except ValueError:
             return 0
 
@@ -271,7 +292,10 @@ class ChanceOfWinning(BoxLayout):
         Returns normalized chances value.
         """
         try:
-            return int(self.ids.chances_input_id.text)
+            # `input_filter: 'int'` only verifies that we have a number
+            # but doesn't convert to int
+            chances = float(self.ids.chances_input_id.text)
+            return int(chances)
         except ValueError:
             return 0
 
@@ -282,17 +306,11 @@ class RollScreen(Screen):
         """
         Returns bet size and chance of winning user input values.
         """
-        # bet size
         bet_size = self.ids.bet_size_id
-        bet_size_input = bet_size.ids.bet_size_input_id
-        bet_size_value = float(bet_size_input.text)
-        # chance of winning
         chance_of_winning = self.ids.chance_of_winning_id
-        chances_input = chance_of_winning.ids.chances_input_id
-        chances_value = int(chances_input.text)
         return {
-            "bet_size": bet_size_value,
-            "chances": chances_value,
+            "bet_size": bet_size.value,
+            "chances": chance_of_winning.value,
         }
 
 
@@ -302,7 +320,8 @@ class Controller(FloatLayout):
         super(Controller, self).__init__(**kwargs)
         Clock.schedule_once(self._after_init)
         self._init_pyethapp()
-        self.account_passwords = {}
+        self._account_passwords = {}
+        self._pyetheroll = None
 
     def _after_init(self, dt):
         """
@@ -322,6 +341,17 @@ class Controller(FloatLayout):
         self.pyethapp = BaseApp(
             config=dict(accounts=dict(keystore_dir=keystore_dir)))
         AccountsService.register_with_app(self.pyethapp)
+
+    @property
+    def pyetheroll(self):
+        """
+        Gets or creates the Etheroll object.
+        Also recreates the object if the chain_id changed.
+        """
+        chain_id = self.settings_screen.network
+        if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
+            self._pyetheroll = pyetheroll.Etheroll(chain_id)
+        return self._pyetheroll
 
     @classmethod
     def get_keystore_path(cls):
@@ -419,11 +449,15 @@ class Controller(FloatLayout):
     def switch_account_screen(self):
         return self.ids.switch_account_screen_id
 
+    @property
+    def settings_screen(self):
+        return self.ids.settings_screen_id
+
     def on_unlock_clicked(self, dialog, account, password):
         """
         Caches the password and call roll method again.
         """
-        self.account_passwords[account.address.hex()] = password
+        self._account_passwords[account.address.hex()] = password
         dialog.dismiss()
         # calling roll again since the password is now cached
         self.roll()
@@ -453,7 +487,7 @@ class Controller(FloatLayout):
         """
         address = account.address.hex()
         try:
-            return self.account_passwords[address]
+            return self._account_passwords[address]
         except KeyError:
             self.prompt_password_dialog(account)
 
@@ -493,12 +527,59 @@ class Controller(FloatLayout):
         password = self.get_account_password(account)
         if password is not None:
             try:
-                tx_hash = pyetheroll.player_roll_dice(
+                tx_hash = self.pyetheroll.player_roll_dice(
                     bet_size, chances, wallet_path, password)
             except ValueError as exception:
                 self.dialog_roll_error(exception)
                 return
             self.dialog_roll_success(tx_hash)
+
+
+class DebugRavenClient(object):
+    """
+    The DebugRavenClient should be used in debug mode, it just raises
+    the exception rather than capturing it.
+    """
+
+    def captureException(self):
+        raise
+
+
+def configure_sentry(in_debug=False):
+    """
+    Configure the Raven client, or create a dummy one if `in_debug` is `True`.
+    """
+    key = 'b290ecc8934f4cb599e6fa6af6cc5cc2'
+    # the public DSN URL is not available on the Python client
+    # so we're exposing the secret and will be revoking it on abuse
+    # https://github.com/getsentry/raven-python/issues/569
+    secret = '0ae02bcb5a75467d9b4431042bb98cb9'
+    project_id = '1111738'
+    dsn = 'https://{key}:{secret}@sentry.io/{project_id}'.format(
+        key=key, secret=secret, project_id=project_id)
+    if in_debug:
+        client = DebugRavenClient()
+    else:
+        client = Client(dsn=dsn, release=__version__)
+        # adds context for Android devices
+        if platform == 'android':
+            from jnius import autoclass
+            Build = autoclass("android.os.Build")
+            VERSION = autoclass('android.os.Build$VERSION')
+            android_os_build = {
+                'model': Build.MODEL,
+                'brand': Build.BRAND,
+                'device': Build.DEVICE,
+                'manufacturer': Build.MANUFACTURER,
+                'version_release': VERSION.RELEASE,
+            }
+            client.user_context({'android_os_build': android_os_build})
+        # Logger.error() to Sentry
+        # https://docs.sentry.io/clients/python/integrations/logging/
+        handler = SentryHandler(client)
+        handler.setLevel(LOG_LEVELS.get('error'))
+        setup_logging(handler)
+    return client
 
 
 class EtherollApp(App):
@@ -509,5 +590,19 @@ class EtherollApp(App):
         self.icon = "docs/images/icon.png"
 
 
+def main():
+    # only send Android errors to Sentry
+    in_debug = platform != "android"
+    client = configure_sentry(in_debug)
+    try:
+        EtherollApp().run()
+    except Exception:
+        if type(client) == Client:
+            Logger.info(
+                'Errors will be sent to Sentry, run with "--debug" if you '
+                'are a developper and want to the error in the shell.')
+        client.captureException()
+
+
 if __name__ == '__main__':
-    EtherollApp().run()
+    main()

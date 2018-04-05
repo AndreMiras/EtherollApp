@@ -11,3 +11,4 @@ Kivy==1.10.0
 https://gitlab.com/kivymd/KivyMD/repository/archive.zip?ref=19e587e6
 # 2017/10/30 develop
 https://github.com/ethereum/pyethapp/archive/8406f32.zip
+raven==6.6.0

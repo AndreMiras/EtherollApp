@@ -94,7 +94,8 @@ requirements =
     cytoolz==0.9.0,
     toolz==0.9.0,
     eth-abi==1.0.0,
-    eth-utils==1.0.1
+    eth-utils==1.0.1,
+    raven==6.6.0
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -105,11 +106,11 @@ requirements =
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
-# presplash.filename = docs/images/icon.png
+presplash.filename = docs/images/etheroll-logo.png
 
 # (str) Icon of the application
 #icon.filename = %(source.dir)s/data/icon.png
-# icon.filename = docs/images/icon.png
+icon.filename = docs/images/icon.png
 
 # (str) Supported orientation (one of landscape, portrait or all)
 orientation = portrait

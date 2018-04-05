@@ -5,8 +5,10 @@
 #:import MDBottomNavigation kivymd.tabs.MDBottomNavigation
 #:import MDBottomNavigationItem kivymd.tabs.MDBottomNavigationItem
 #:import MDTextField kivymd.textfields.MDTextField
+#:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
 #:import MDSlider kivymd.slider.MDSlider
 #:import Toolbar kivymd.toolbar.Toolbar
+#:import ROUND_DIGITS etheroll.ROUND_DIGITS
 
 
 # need this hack to push widgets up
@@ -69,6 +71,36 @@
             ImportKeystore:
 
 
+<SettingsScreen>:
+    name: 'settings_screen'
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            MDCheckbox:
+                id: mainnet_checkbox_id
+                group: 'network'
+                size_hint: None, None
+                size: dp(48), dp(48)
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                active: True
+                on_release:
+                    print(root.network)
+            MDLabel:
+                text: 'Mainnet'
+        BoxLayout:
+            orientation: 'horizontal'
+            MDCheckbox:
+                id: testnet_checkbox_id
+                group: 'network'
+                size_hint: None, None
+                size: dp(48), dp(48)
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            MDLabel:
+                text: 'Testnet'
+        PushUp:
+
+
 <AboutScreen>:
     BoxLayout:
         orientation: "vertical"
@@ -122,9 +154,10 @@
         text: "Roll under %s" % int(root.roll_under_property)
         font_style: 'Headline'
     MDLabel:
-        text: "With a wager of %s ETH" % round(root.wager_property, 2)
+        text: "With a wager of {0:.{1}f} ETH".format(root.wager_property, ROUND_DIGITS)
     MDLabel:
-        text: "For a profit of %s ETH" % round(root.profit_property, 2)
+    MDLabel:
+        text: "For a profit of {0:.{1}f} ETH".format(root.profit_property, ROUND_DIGITS)
 
 
 <RollScreen>:
@@ -182,6 +215,12 @@
                 app.root.ids.screen_manager_id.transition.direction = "right"
                 app.root.ids.screen_manager_id.current = "switch_account_screen"
         NavigationDrawerIconButton:
+            icon: "settings"
+            text: "Settings"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "right"
+                app.root.ids.screen_manager_id.current = "settings_screen"
+        NavigationDrawerIconButton:
             icon: "help"
             text: "About"
             on_release:
@@ -206,6 +245,9 @@ Controller:
                 SwitchAccountScreen:
                     id: switch_account_screen_id
                     name: "switch_account_screen"
+                SettingsScreen:
+                    id: settings_screen_id
+                    name: "settings_screen"
                 AboutScreen:
                     id: about_screen_id
                     name: "about_screen"

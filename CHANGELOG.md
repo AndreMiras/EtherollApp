@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [v20180405]
 
   - Switch testnet/mainnet from UI, refs #11, #21
   - Integrate with Sentry, refs #17

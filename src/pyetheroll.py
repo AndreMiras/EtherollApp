@@ -168,8 +168,7 @@ class TransactionDebugger:
         return decoded_methods
 
 
-
-
+# TODO: move somewhere and unit test
 # def decode_contract_call(contract_abi: list, call_data: str):
 def decode_contract_call(contract_abi, call_data):
     call_data = call_data.lower().replace("0x", "")
@@ -193,19 +192,23 @@ def decode_contract_call(contract_abi, call_data):
 
 class Etheroll:
 
-    # Main network
-    # CONTRACT_ADDRESS = '0xddf0d0b9914d530e0b743808249d9af901f1bd01'
-    # Testnet
-    CONTRACT_ADDRESS = '0xFE8a5f3a7Bb446e1cB4566717691cD3139289ED4'
+    CONTRACT_ADDRESSES = {
+        ChainID.MAINNET: '0x048717Ea892F23Fb0126F00640e2b18072efd9D2',
+        ChainID.ROPSTEN: '0xFE8a5f3a7Bb446e1cB4566717691cD3139289ED4',
+    }
 
-    def __init__(self):
+    def __init__(self, chain_id=ChainID.MAINNET, contract_address=None):
+        if contract_address is None:
+            contract_address = self.CONTRACT_ADDRESSES[chain_id]
+        self.contract_address = contract_address
+        self.chain_id = chain_id
+        self.contract_address = contract_address
         # ethereum_tester = EthereumTester()
         # self.provider = EthereumTesterProvider(ethereum_tester)
-        self.provider = HTTPProvider('https://ropsten.infura.io')
-        # self.provider = HTTPProvider('https://api.myetherapi.com/rop')
-        # self.provider = HTTPProvider('https://api.myetherapi.com/eth')
+        self.provider = HTTPProviderFactory.create(self.chain_id)
         self.web3 = Web3(self.provider)
         # print("blockNumber:", self.web3.eth.blockNumber)
+        # TODO: hardcoded contract ABI
         location = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
         contract_abi_path = str(os.path.join(location, 'contract_abi.json'))
@@ -222,7 +225,7 @@ class Etheroll:
         # contract_factory_class = ConciseContract
         contract_factory_class = Contract
         self.contract = self.web3.eth.contract(
-            abi=self.abi, address=self.CONTRACT_ADDRESS,
+            abi=self.abi, address=self.contract_address,
             ContractFactoryClass=contract_factory_class)
 
     def events_abi(self, contract_abi=None):
@@ -274,67 +277,58 @@ class Etheroll:
         event_filter = self.web3.eth.filter({
             "fromBlock": "earliest",
             "toBlock": "latest",
-            "address": self.CONTRACT_ADDRESS,
+            "address": self.contract_address,
             "topics": topics,
         })
         events_logs = event_filter.get(False)
         return events_logs
 
+    @staticmethod
+    def play_with_contract():
+        """
+        This is just a test method that should go away at some point.
+        """
+        etheroll = Etheroll()
+        min_bet = etheroll.contract.call().minBet()
+        print("min_bet:", min_bet)
+        # events_definitions = etheroll.events_definitions()
+        # print(events_definitions)
+        # events_signatures = etheroll.events_signatures()
+        # # events_logs = etheroll.events_logs(['LogBet'])
+        # print(events_signatures)
+        # pending = etheroll.contract.call(
+        #     ).playerWithdrawPendingTransactions()
+        # print("pending:", pending)
 
-def play_with_contract():
-    etheroll = Etheroll()
-    # transaction_hash = (
-    #     "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
-    # decode_transaction_logs(etheroll.web3.eth, transaction_hash)
-    min_bet = etheroll.contract.call().minBet()
-    print("min_bet:", min_bet)
-    # events_definitions = etheroll.events_definitions()
-    # print(events_definitions)
-    # events_signatures = etheroll.events_signatures()
-    # # events_logs = etheroll.events_logs(['LogBet'])
-    # print(events_signatures)
-    # pending = etheroll.contract.call().playerWithdrawPendingTransactions()
-    # print("pending:", pending)
-
-
-def player_roll_dice(bet_size_ether, chances, wallet_path, wallet_password):
-    """
-    Work in progress:
-    https://github.com/AndreMiras/EtherollApp/issues/1
-    """
-    etheroll = Etheroll()
-    roll_under = chances
-    value_wei = w3.toWei(bet_size_ether, 'ether')
-    gas = 310000
-    gas_price = w3.toWei(20, 'gwei')
-    # since Account.load is hanging while decrypting the password
-    # we set password to None and use `w3.eth.account.decrypt` instead
-    account = Account.load(wallet_path, password=None)
-    from_address_normalized = checksum_encode(account.address)
-    nonce = etheroll.web3.eth.getTransactionCount(from_address_normalized)
-    transaction = {
-        # 'chainId': ChainID.ROPSTEN.value,
-        'chainId': int(etheroll.web3.net.version),
-        'gas': gas,
-        'gasPrice': gas_price,
-        'nonce': nonce,
-        'value': value_wei,
-    }
-    transaction = etheroll.contract.functions.playerRollDice(
-        roll_under).buildTransaction(transaction)
-    encrypted_key = open(wallet_path).read()
-    private_key = w3.eth.account.decrypt(encrypted_key, wallet_password)
-    signed_tx = etheroll.web3.eth.account.signTransaction(
-        transaction, private_key)
-    tx_hash = etheroll.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
-    print("tx_hash:", tx_hash.hex())
-    return tx_hash
-
-
-def main():
-    # play_with_contract()
-    player_roll_dice()
-
-
-if __name__ == "__main__":
-    main()
+    def player_roll_dice(
+            self, bet_size_ether, chances, wallet_path, wallet_password):
+        """
+        Work in progress:
+        https://github.com/AndreMiras/EtherollApp/issues/1
+        """
+        roll_under = chances
+        value_wei = w3.toWei(bet_size_ether, 'ether')
+        gas = 310000
+        gas_price = w3.toWei(20, 'gwei')
+        # since Account.load is hanging while decrypting the password
+        # we set password to None and use `w3.eth.account.decrypt` instead
+        account = Account.load(wallet_path, password=None)
+        from_address_normalized = checksum_encode(account.address)
+        nonce = self.web3.eth.getTransactionCount(from_address_normalized)
+        transaction = {
+            # 'chainId': ChainID.ROPSTEN.value,
+            'chainId': int(self.web3.net.version),
+            'gas': gas,
+            'gasPrice': gas_price,
+            'nonce': nonce,
+            'value': value_wei,
+        }
+        transaction = self.contract.functions.playerRollDice(
+            roll_under).buildTransaction(transaction)
+        encrypted_key = open(wallet_path).read()
+        private_key = w3.eth.account.decrypt(encrypted_key, wallet_password)
+        signed_tx = self.web3.eth.account.signTransaction(
+            transaction, private_key)
+        tx_hash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        print("tx_hash:", tx_hash.hex())
+        return tx_hash

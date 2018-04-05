@@ -293,7 +293,8 @@ class Controller(FloatLayout):
         super(Controller, self).__init__(**kwargs)
         Clock.schedule_once(self._after_init)
         self._init_pyethapp()
-        self.account_passwords = {}
+        self._account_passwords = {}
+        self._pyetheroll = None
 
     def _after_init(self, dt):
         """
@@ -313,6 +314,16 @@ class Controller(FloatLayout):
         self.pyethapp = BaseApp(
             config=dict(accounts=dict(keystore_dir=keystore_dir)))
         AccountsService.register_with_app(self.pyethapp)
+
+    @property
+    def pyetheroll(self):
+        """
+        Gets or creates the Etheroll object.
+        """
+        chain_id = pyetheroll.ChainID.ROPSTEN
+        if self._pyetheroll is None:
+            self._pyetheroll = pyetheroll.Etheroll(chain_id)
+        return self._pyetheroll
 
     @classmethod
     def get_keystore_path(cls):
@@ -414,7 +425,7 @@ class Controller(FloatLayout):
         """
         Caches the password and call roll method again.
         """
-        self.account_passwords[account.address.hex()] = password
+        self._account_passwords[account.address.hex()] = password
         dialog.dismiss()
         # calling roll again since the password is now cached
         self.roll()
@@ -444,7 +455,7 @@ class Controller(FloatLayout):
         """
         address = account.address.hex()
         try:
-            return self.account_passwords[address]
+            return self._account_passwords[address]
         except KeyError:
             self.prompt_password_dialog(account)
 
@@ -484,7 +495,7 @@ class Controller(FloatLayout):
         password = self.get_account_password(account)
         if password is not None:
             try:
-                tx_hash = pyetheroll.player_roll_dice(
+                tx_hash = self.pyetheroll.player_roll_dice(
                     bet_size, chances, wallet_path, password)
             except ValueError as exception:
                 self.dialog_roll_error(exception)

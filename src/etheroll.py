@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function, unicode_literals
-
 import os
 from os.path import expanduser
 
@@ -169,6 +167,31 @@ class SwitchAccountScreen(SubScreen):
         self.on_back()
 
 
+class SettingsScreen(SubScreen):
+    """
+    Screen for configuring network, gas price...
+    """
+
+    def __init__(self, **kwargs):
+        super(SettingsScreen, self).__init__(**kwargs)
+        # Clock.schedule_once(self._after_init)
+
+    @property
+    def network(self):
+        """
+        Returns selected network.
+        """
+        if self.is_mainnet():
+            return pyetheroll.ChainID.MAINNET
+        return pyetheroll.ChainID.ROPSTEN
+
+    def is_mainnet(self):
+        return self.ids.mainnet_checkbox_id.active
+
+    def is_testnet(self):
+        return self.ids.testnet_checkbox_id.active
+
+
 class AboutScreen(SubScreen):
     project_page_property = StringProperty(
         "https://github.com/AndreMiras/EtherollApp")
@@ -319,9 +342,10 @@ class Controller(FloatLayout):
     def pyetheroll(self):
         """
         Gets or creates the Etheroll object.
+        Also recreates the object if the chain_id changed.
         """
-        chain_id = pyetheroll.ChainID.ROPSTEN
-        if self._pyetheroll is None:
+        chain_id = self.settings_screen.network
+        if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
             self._pyetheroll = pyetheroll.Etheroll(chain_id)
         return self._pyetheroll
 
@@ -420,6 +444,10 @@ class Controller(FloatLayout):
     @property
     def switch_account_screen(self):
         return self.ids.switch_account_screen_id
+
+    @property
+    def settings_screen(self):
+        return self.ids.settings_screen_id
 
     def on_unlock_clicked(self, dialog, account, password):
         """

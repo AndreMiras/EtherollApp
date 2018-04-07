@@ -1,4 +1,7 @@
 # EtherollApp
+
+[![Build Status](https://secure.travis-ci.org/AndreMiras/EtherollApp.png?branch=develop)](http://travis-ci.org/AndreMiras/EtherollApp)
+
 Cross platform Etheroll app built with Python and Kivy.
 
 <img src="https://i.imgur.com/gwrIMX0.png" alt="Screenshot mainscreen" width="200">

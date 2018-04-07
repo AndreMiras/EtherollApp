@@ -1,6 +1,8 @@
 import unittest
+from unittest import mock
 
 from hexbytes.main import HexBytes
+from web3.utils.datastructures import AttributeDict
 
 from pyetheroll import ChainID, TransactionDebugger
 
@@ -191,14 +193,78 @@ class TestUtils(unittest.TestCase):
 
 class TestTransactionDebugger(unittest.TestCase):
 
-    # TODO: mock the request/response
     def test_decode_transaction_logs(self):
+        """
+        Mocking `web3.eth.Eth.getTransactionReceipt()` response and verifies
+        decoding transaction works as expected.
+        """
+        mocked_logs = [
+          AttributeDict({
+            'address': '0xCBf1735Aad8C4B337903cD44b419eFE6538aaB40',
+            'topics': [
+                HexBytes(
+                    'b76d0edd90c6a07aa3ff7a222d7f5933'
+                    'e29c6acc660c059c97837f05c4ca1a84'
+                )
+            ],
+            'data':
+            '000000000000000000000000fe8a5f3a7bb446e1cb4566717691cd3139289ed4'
+            'b0230ab70b78e47050766089ea333f2ff7ad41c6f31e8bed8c2acfcb8e911841'
+            '0000000000000000000000000000000000000000000000000000000000000000'
+            '0000000000000000000000000000000000000000000000000000000000000100'
+            '0000000000000000000000000000000000000000000000000000000000000140'
+            '00000000000000000000000000000000000000000000000000000000000395f8'
+            '1100000000000000000000000000000000000000000000000000000000000000'
+            '00000000000000000000000000000000000000000000000000000004a817c800'
+            '0000000000000000000000000000000000000000000000000000000000000006'
+            '6e65737465640000000000000000000000000000000000000000000000000000'
+            '00000000000000000000000000000000000000000000000000000000000001b4'
+            '5b55524c5d205b276a736f6e2868747470733a2f2f6170692e72616e646f6d2e'
+            '6f72672f6a736f6e2d7270632f312f696e766f6b65292e726573756c742e7261'
+            '6e646f6d5b2273657269616c4e756d626572222c2264617461225d272c20275c'
+            '6e7b226a736f6e727063223a22322e30222c226d6574686f64223a2267656e65'
+            '726174655369676e6564496e746567657273222c22706172616d73223a7b2261'
+            '70694b6579223a247b5b646563727970745d20424b6733544373376c6b7a4e72'
+            '316b523670786a50434d32534f656a63466f6a55504d544f73426b432f343748'
+            '485066317350326f78564c546a4e42752b736c523953675a797144746a564f56'
+            '35597a67313269556b62756270304470636a434564654a54486e477743366744'
+            '3732394755566f47766f393668757877526f5a6c436a594f3830725771325747'
+            '596f522f4c433357616d704475767632426f3d7d2c226e223a312c226d696e22'
+            '3a312c226d6178223a3130302c227265706c6163656d656e74223a747275652c'
+            '2262617365223a3130247b5b6964656e746974795d20227d227d2c226964223a'
+            '31247b5b6964656e746974795d20227d227d275d000000000000000000000000',
+          }),
+          AttributeDict({
+            'address': '0xFE8a5f3a7Bb446e1cB4566717691cD3139289ED4',
+            'topics': [
+              HexBytes(
+                '1cb5bfc4e69cbacf65c8e05bdb84d7a3'
+                '27bd6bb4c034ff82359aefd7443775c4'),
+              HexBytes(
+                'b0230ab70b78e47050766089ea333f2f'
+                'f7ad41c6f31e8bed8c2acfcb8e911841'),
+              HexBytes(
+                '00000000000000000000000066d4bacf'
+                'e61df23be813089a7a6d1a749a5c936a'),
+              HexBytes(
+                '00000000000000000000000000000000'
+                '0000000000000000016a98b78c556c34')
+            ],
+            'data':
+            '0000000000000000000000000000000000000000000000000007533f2ecb6c34'
+            '000000000000000000000000000000000000000000000000016345785d8a0000'
+            '0000000000000000000000000000000000000000000000000000000000000062',
+          })
+        ]
         chain_id = ChainID.ROPSTEN
         transaction_debugger = TransactionDebugger(chain_id)
         transaction_hash = (
           "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
-        decoded_methods = transaction_debugger.decode_transaction_logs(
-            transaction_hash)
+        with mock.patch('web3.eth.Eth.getTransactionReceipt') \
+                as m_getTransactionReceipt:
+            m_getTransactionReceipt.return_value.logs = mocked_logs
+            decoded_methods = transaction_debugger.decode_transaction_logs(
+                transaction_hash)
         self.assertEqual(len(decoded_methods), 2)
         decoded_method = decoded_methods[0]
         self.assertEqual(

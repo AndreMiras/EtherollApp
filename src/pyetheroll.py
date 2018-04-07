@@ -160,7 +160,6 @@ class TransactionDebugger:
         topics = log.topics
         log_data = log.data
         decoded_method = self.decode_method(contract_abi, topics, log_data)
-        # pprint(decoded_method)
         return decoded_method
 
     def decode_transaction_logs(self, transaction_hash):

@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+  - Setup continuous integration, refs #18
   - Dockerized project, refs #19
 
 

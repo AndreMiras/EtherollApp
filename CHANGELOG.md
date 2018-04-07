@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+  - Dockerized project, refs #19
+
+
 ## [v20180405]
 
   - Switch testnet/mainnet from UI, refs #11, #21

@@ -21,6 +21,20 @@ from web3.auto import w3
 from web3.contract import Contract
 
 
+def get_etherscan_api_key():
+    """
+    Tries to retrieve etherscan API key from environment or from file.
+    """
+    ETHERSCAN_API_KEY = os.environ.get('ETHERSCAN_API_KEY')
+    if ETHERSCAN_API_KEY is None:
+        location = os.path.realpath(
+            os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        api_key_path = str(os.path.join(location, 'api_key.json'))
+        with open(api_key_path, mode='r') as key_file:
+            ETHERSCAN_API_KEY = json.loads(key_file.read())['key']
+    return ETHERSCAN_API_KEY
+
+
 class ChainID(Enum):
     MAINNET = 1
     MORDEN = 2
@@ -74,11 +88,7 @@ class TransactionDebugger:
         Given a contract address returns the contract ABI from Etherscan,
         refs #2
         """
-        location = os.path.realpath(
-            os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        api_key_path = str(os.path.join(location, 'api_key.json'))
-        with open(api_key_path, mode='r') as key_file:
-            key = json.loads(key_file.read())['key']
+        key = get_etherscan_api_key()
         ChainEtherscanContract = ChainEtherscanContractFactory.create(
             self.chain_id)
         api = ChainEtherscanContract(address=contract_address, api_key=key)

@@ -9,4 +9,5 @@ before_install:
   - docker build --tag=etheroll .
 
 script:
-  - docker run -e ETHERSCAN_API_KEY etheroll /bin/sh -c '. venv/bin/activate && make test'
+  - docker run -e ETHERSCAN_API_KEY=$ETHERSCAN_API_KEY etheroll
+    /bin/sh -c '. venv/bin/activate && make test'

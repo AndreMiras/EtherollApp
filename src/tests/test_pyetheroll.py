@@ -1,8 +1,13 @@
 import json
+import os
+import shutil
 import unittest
+from tempfile import mkdtemp
 from unittest import mock
 
+from ethereum.tools.keys import PBKDF2_CONSTANTS
 from hexbytes.main import HexBytes
+from pyethapp.accounts import Account
 from web3.utils.datastructures import AttributeDict
 
 from pyetheroll import (ChainID, Etheroll, TransactionDebugger,
@@ -341,6 +346,12 @@ class TestTransactionDebugger(unittest.TestCase):
 
 class TestEtheroll(unittest.TestCase):
 
+    def setUp(self):
+        self.keystore_dir = mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.keystore_dir, ignore_errors=True)
+
     def test_init(self):
         """
         Verifies object initializes properly and contract methods are callable.
@@ -348,3 +359,29 @@ class TestEtheroll(unittest.TestCase):
         etheroll = Etheroll()
         min_bet = etheroll.contract.call().minBet()
         self.assertEqual(min_bet, 100000000000000000)
+
+    def create_account_helper(self, password):
+        # reduces key derivation iterations to speed up creation
+        PBKDF2_CONSTANTS['c'] = 1
+        wallet_path = os.path.join(self.keystore_dir, 'wallet.json')
+        account = Account.new(password, path=wallet_path)
+        with open(account.path, 'w') as f:
+            f.write(account.dump())
+        return account
+
+    def test_player_roll_dice(self):
+        """
+        Verifies the `web3.eth.Eth.sendRawTransaction()` is called.
+        """
+        etheroll = Etheroll()
+        bet_size_ether = 0.1
+        chances = 50
+        wallet_password = 'password'
+        account = self.create_account_helper(wallet_password)
+        wallet_path = account.path
+        with mock.patch('web3.eth.Eth.sendRawTransaction') \
+                as m_sendRawTransaction:
+            transaction = etheroll.player_roll_dice(
+                bet_size_ether, chances, wallet_path, wallet_password)
+        self.assertIsNotNone(transaction)
+        self.assertTrue(m_sendRawTransaction.called)

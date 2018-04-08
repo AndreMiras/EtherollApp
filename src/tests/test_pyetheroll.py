@@ -356,9 +356,14 @@ class TestEtheroll(unittest.TestCase):
         """
         Verifies object initializes properly and contract methods are callable.
         """
-        etheroll = Etheroll()
-        min_bet = etheroll.contract.call().minBet()
-        self.assertEqual(min_bet, 100000000000000000)
+        with mock.patch('etherscan.contracts.Contract.get_abi') \
+                as m_get_abi:
+            m_get_abi.return_value = (
+                '[{"constant":true,"inputs":[],"name":"minBet","outputs":[{"na'
+                'me":"","type":"uint256"}],"payable":false,"stateMutability":"'
+                'view","type":"function"}]')
+            etheroll = Etheroll()
+        self.assertIsNotNone(etheroll.contract)
 
     def create_account_helper(self, password):
         # reduces key derivation iterations to speed up creation
@@ -373,15 +378,31 @@ class TestEtheroll(unittest.TestCase):
         """
         Verifies the `web3.eth.Eth.sendRawTransaction()` is called.
         """
-        etheroll = Etheroll()
+        with mock.patch('etherscan.contracts.Contract.get_abi') \
+                as m_get_abi:
+            m_get_abi.return_value = (
+                '[{"constant":true,"inputs":[],"name":"minBet","outputs":[{"na'
+                'me":"","type":"uint256"}],"payable":false,"stateMutability":"'
+                'view","type":"function"},{"constant":false,"inputs":[{"name":'
+                '"rollUnder","type":"uint256"}],"name":"playerRollDice","outpu'
+                'ts":[],"payable":true,"stateMutability":"payable","type":"fun'
+                'ction"}]')
+            etheroll = Etheroll()
         bet_size_ether = 0.1
         chances = 50
         wallet_password = 'password'
         account = self.create_account_helper(wallet_password)
         wallet_path = account.path
-        with mock.patch('web3.eth.Eth.sendRawTransaction') \
-                as m_sendRawTransaction:
+        with \
+                mock.patch('web3.eth.Eth.sendRawTransaction') \
+                as m_sendRawTransaction, mock.patch(
+                    'web3.eth.Eth.getTransactionCount'
+                    ) as m_getTransactionCount:
+            m_getTransactionCount.return_value = 0
+            # TODO: could not mock.patch('web3.net.Net') it for some reason
+            etheroll.web3.net = AttributeDict({'version': 1})
             transaction = etheroll.player_roll_dice(
                 bet_size_ether, chances, wallet_path, wallet_password)
         self.assertIsNotNone(transaction)
         self.assertTrue(m_sendRawTransaction.called)
+        self.assertTrue(m_getTransactionCount.called)

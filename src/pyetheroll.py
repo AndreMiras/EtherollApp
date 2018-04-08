@@ -327,7 +327,6 @@ class Etheroll:
         from_address_normalized = checksum_encode(account.address)
         nonce = self.web3.eth.getTransactionCount(from_address_normalized)
         transaction = {
-            # 'chainId': ChainID.ROPSTEN.value,
             'chainId': int(self.web3.net.version),
             'gas': gas,
             'gasPrice': gas_price,

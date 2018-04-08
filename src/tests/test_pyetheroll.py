@@ -5,7 +5,8 @@ from unittest import mock
 from hexbytes.main import HexBytes
 from web3.utils.datastructures import AttributeDict
 
-from pyetheroll import ChainID, TransactionDebugger, decode_contract_call
+from pyetheroll import (ChainID, Etheroll, TransactionDebugger,
+                        decode_contract_call)
 
 
 class TestUtils(unittest.TestCase):
@@ -336,3 +337,14 @@ class TestTransactionDebugger(unittest.TestCase):
             decoded_method['method_info']['definition'],
             'LogBet(bytes32,address,uint256,uint256,uint256,uint256)'
         )
+
+
+class TestEtheroll(unittest.TestCase):
+
+    def test_init(self):
+        """
+        Verifies object initializes properly and contract methods are callable.
+        """
+        etheroll = Etheroll()
+        min_bet = etheroll.contract.call().minBet()
+        self.assertEqual(min_bet, 100000000000000000)

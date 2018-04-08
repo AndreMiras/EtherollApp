@@ -198,12 +198,12 @@ class TestUtils(unittest.TestCase):
         0xf7b7196ca9eab6e4fb6e7bce81aeb25a4edf04330e57b3c15bece9d260577e2b
         In its simplified form for tests.
         """
-        contract_abi_str = (
+        json_abi = (
             '[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"na'
             'me":"_value","type":"uint256"}],"name":"transfer","outputs":[{"na'
             'me":"success","type":"bool"}],"payable":false,"type":"function"}]'
         )
-        contract_abi = json.loads(contract_abi_str)
+        contract_abi = json.loads(json_abi)
         call_data = (
             'a9059cbb000000000000000000000000'
             '67fa2c06c9c6d4332f330e14a66bdf18'
@@ -219,6 +219,35 @@ class TestUtils(unittest.TestCase):
 
 
 class TestTransactionDebugger(unittest.TestCase):
+
+    def m_get_abi(self, instance):
+        """
+        Mocked version of `web3.contract.Contract.get_abi()`.
+        """
+        # retrieves the original contract address
+        address = instance.url_dict[instance.ADDRESS]
+        abi1 = (
+            '[{"anonymous":false,"inputs":[{"indexed":false,"name":"sender","t'
+            'ype":"address"},{"indexed":false,"name":"cid","type":"bytes32"},{'
+            '"indexed":false,"name":"timestamp","type":"uint256"},{"indexed":f'
+            'alse,"name":"datasource","type":"string"},{"indexed":false,"name"'
+            ':"arg","type":"string"},{"indexed":false,"name":"gaslimit","type"'
+            ':"uint256"},{"indexed":false,"name":"proofType","type":"bytes1"},'
+            '{"indexed":false,"name":"gasPrice","type":"uint256"}],"name":"Log'
+            '1","type":"event"}]')
+        abi2 = (
+            '[{"anonymous":false,"inputs":[{"indexed":true,"name":"BetID","typ'
+            'e":"bytes32"},{"indexed":true,"name":"PlayerAddress","type":"addr'
+            'ess"},{"indexed":true,"name":"RewardValue","type":"uint256"},{"in'
+            'dexed":false,"name":"ProfitValue","type":"uint256"},{"indexed":fa'
+            'lse,"name":"BetValue","type":"uint256"},{"indexed":false,"name":"'
+            'PlayerNumber","type":"uint256"}],"name":"LogBet","type":"event"}]'
+        )
+        if address.lower() == '0xcbf1735aad8c4b337903cd44b419efe6538aab40':
+            return abi1
+        elif address.lower() == '0xfe8a5f3a7bb446e1cb4566717691cd3139289ed4':
+            return abi2
+        return None
 
     def test_decode_transaction_logs(self):
         """
@@ -287,8 +316,12 @@ class TestTransactionDebugger(unittest.TestCase):
         transaction_debugger = TransactionDebugger(chain_id)
         transaction_hash = (
           "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
-        with mock.patch('web3.eth.Eth.getTransactionReceipt') \
-                as m_getTransactionReceipt:
+        with \
+                mock.patch('web3.eth.Eth.getTransactionReceipt') \
+                as m_getTransactionReceipt, \
+                mock.patch(
+                    'etherscan.contracts.Contract.get_abi',
+                    side_effect=self.m_get_abi, autospec=True):
             m_getTransactionReceipt.return_value.logs = mocked_logs
             decoded_methods = transaction_debugger.decode_transaction_logs(
                 transaction_hash)

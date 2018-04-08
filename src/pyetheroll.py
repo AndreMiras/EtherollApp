@@ -35,6 +35,29 @@ def get_etherscan_api_key():
     return ETHERSCAN_API_KEY
 
 
+def decode_contract_call(contract_abi: list, call_data: str):
+    """
+    https://ethereum.stackexchange.com/a/33887/34898
+    """
+    call_data = call_data.lower().replace("0x", "")
+    call_data_bin = decode_hex(call_data)
+    method_signature = call_data_bin[:4]
+    for description in contract_abi:
+        if description.get('type') != 'function':
+            continue
+        method_name = normalize_abi_method_name(description['name'])
+        arg_types = [item['type'] for item in description['inputs']]
+        method_id = get_abi_method_id(method_name, arg_types)
+        if zpad(encode_int(method_id), 4) == method_signature:
+            try:
+                # TODO: ethereum.abi.decode_abi vs eth_abi.decode_abi
+                args = decode_abi(arg_types, call_data_bin[4:])
+            except AssertionError:
+                # Invalid args
+                continue
+            return method_name, args
+
+
 class ChainID(Enum):
     MAINNET = 1
     MORDEN = 2
@@ -175,28 +198,6 @@ class TransactionDebugger:
         for log in logs:
             decoded_methods.append(self.decode_transaction_log(log))
         return decoded_methods
-
-
-# TODO: move somewhere and unit test
-# def decode_contract_call(contract_abi: list, call_data: str):
-def decode_contract_call(contract_abi, call_data):
-    call_data = call_data.lower().replace("0x", "")
-    call_data_bin = decode_hex(call_data)
-    method_signature = call_data_bin[:4]
-    for description in contract_abi:
-        if description.get('type') != 'function':
-            continue
-        method_name = normalize_abi_method_name(description['name'])
-        arg_types = [item['type'] for item in description['inputs']]
-        method_id = get_abi_method_id(method_name, arg_types)
-        if zpad(encode_int(method_id), 4) == method_signature:
-            try:
-                # TODO: ethereum.abi.decode_abi vs eth_abi.decode_abi
-                args = decode_abi(arg_types, call_data_bin[4:])
-            except AssertionError:
-                # Invalid args
-                continue
-            return method_name, args
 
 
 class Etheroll:

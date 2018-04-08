@@ -1,10 +1,11 @@
+import json
 import unittest
 from unittest import mock
 
 from hexbytes.main import HexBytes
 from web3.utils.datastructures import AttributeDict
 
-from pyetheroll import ChainID, TransactionDebugger
+from pyetheroll import ChainID, TransactionDebugger, decode_contract_call
 
 
 class TestUtils(unittest.TestCase):
@@ -189,6 +190,32 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(
           decoded_method['method_info']['sha3'].hex(),
           '0x1cb5bfc4e69cbacf65c8e05bdb84d7a327bd6bb4c034ff82359aefd7443775c4')
+
+    def test_decode_contract_call(self):
+        """
+        Uses actual data from:
+        https://etherscan.io/tx/
+        0xf7b7196ca9eab6e4fb6e7bce81aeb25a4edf04330e57b3c15bece9d260577e2b
+        In its simplified form for tests.
+        """
+        contract_abi_str = (
+            '[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"na'
+            'me":"_value","type":"uint256"}],"name":"transfer","outputs":[{"na'
+            'me":"success","type":"bool"}],"payable":false,"type":"function"}]'
+        )
+        contract_abi = json.loads(contract_abi_str)
+        call_data = (
+            'a9059cbb000000000000000000000000'
+            '67fa2c06c9c6d4332f330e14a66bdf18'
+            '73ef3d2b000000000000000000000000'
+            '0000000000000000000000000de0b6b3'
+            'a7640000')
+        method_name, args = decode_contract_call(contract_abi, call_data)
+        self.assertEqual(method_name, 'transfer')
+        self.assertEqual(
+            args,
+            ['0x67fa2c06c9c6d4332f330e14a66bdf1873ef3d2b', 1000000000000000000]
+        )
 
 
 class TestTransactionDebugger(unittest.TestCase):

@@ -95,7 +95,8 @@ requirements =
     toolz==0.9.0,
     eth-abi==1.0.0,
     eth-utils==1.0.1,
-    raven==6.6.0
+    raven==6.6.0,
+    requests-cache==0.4.13
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

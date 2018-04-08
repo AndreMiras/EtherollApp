@@ -5,6 +5,7 @@
   - Setup continuous integration, refs #18
   - Dockerized project, refs #19
   - Caching Docker Linux build on Travis, refs #40
+  - Download ABIs dynamically and cache it, fixes #41
 
 
 ## [v20180405]

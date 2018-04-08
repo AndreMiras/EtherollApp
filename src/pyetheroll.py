@@ -10,6 +10,7 @@ import os
 from enum import Enum
 
 import eth_abi
+import requests_cache
 from ethereum.abi import decode_abi
 from ethereum.abi import method_id as get_abi_method_id
 from ethereum.abi import normalize_name as normalize_abi_method_name
@@ -19,6 +20,12 @@ from pyethapp.accounts import Account
 from web3 import HTTPProvider, Web3
 from web3.auto import w3
 from web3.contract import Contract
+
+requests_cache_params = {
+    'cache_name': 'requests_cache',
+    'backend': 'sqlite',
+    'fast_save': True,
+}
 
 
 def get_etherscan_api_key():
@@ -218,12 +225,14 @@ class Etheroll:
         self.provider = HTTPProviderFactory.create(self.chain_id)
         self.web3 = Web3(self.provider)
         # print("blockNumber:", self.web3.eth.blockNumber)
-        # TODO: hardcoded contract ABI
-        location = os.path.realpath(
-            os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        contract_abi_path = str(os.path.join(location, 'contract_abi.json'))
-        with open(contract_abi_path, 'r') as abi_definition:
-            self.abi = json.load(abi_definition)
+        key = get_etherscan_api_key()
+        ChainEtherscanContract = ChainEtherscanContractFactory.create(
+            self.chain_id)
+        with requests_cache.enabled(**requests_cache_params):
+            api = ChainEtherscanContract(
+                address=self.contract_address, api_key=key)
+            json_abi = api.get_abi()
+        self.abi = json.loads(json_abi)
         # contract_factory_class = ConciseContract
         contract_factory_class = Contract
         self.contract = self.web3.eth.contract(

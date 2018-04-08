@@ -4,6 +4,7 @@
 
   - Setup continuous integration, refs #18
   - Dockerized project, refs #19
+  - Caching Docker Linux build on Travis, refs #40
 
 
 ## [v20180405]

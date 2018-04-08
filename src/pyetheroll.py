@@ -224,14 +224,6 @@ class Etheroll:
         contract_abi_path = str(os.path.join(location, 'contract_abi.json'))
         with open(contract_abi_path, 'r') as abi_definition:
             self.abi = json.load(abi_definition)
-        contract_abi_path = str(
-            os.path.join(location, 'oraclize_contract_abi.json'))
-        with open(contract_abi_path, 'r') as abi_definition:
-            self.oraclize_contract_abi = json.load(abi_definition)
-        contract_abi_path = str(
-            os.path.join(location, 'oraclize2_contract_abi.json'))
-        with open(contract_abi_path, 'r') as abi_definition:
-            self.oraclize2_contract_abi = json.load(abi_definition)
         # contract_factory_class = ConciseContract
         contract_factory_class = Contract
         self.contract = self.web3.eth.contract(

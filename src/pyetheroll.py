@@ -327,7 +327,7 @@ class Etheroll:
         from_address_normalized = checksum_encode(account.address)
         nonce = self.web3.eth.getTransactionCount(from_address_normalized)
         transaction = {
-            'chainId': int(self.web3.net.version),
+            'chainId': self.chain_id.value,
             'gas': gas,
             'gasPrice': gas_price,
             'nonce': nonce,
@@ -340,5 +340,4 @@ class Etheroll:
         signed_tx = self.web3.eth.account.signTransaction(
             transaction, private_key)
         tx_hash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
-        print("tx_hash:", tx_hash.hex())
         return tx_hash

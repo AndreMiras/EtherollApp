@@ -178,7 +178,6 @@ class SettingsScreen(SubScreen):
 
     def __init__(self, **kwargs):
         super(SettingsScreen, self).__init__(**kwargs)
-        # Clock.schedule_once(self._after_init)
 
     @property
     def network(self):
@@ -588,6 +587,7 @@ class EtherollApp(App):
 
     def build(self):
         self.icon = "docs/images/icon.png"
+        return Controller()
 
 
 def main():

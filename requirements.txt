@@ -14,3 +14,4 @@ ethereum==2.1.1
 https://github.com/ethereum/pyethapp/archive/8406f32.zip#egg=pyethapp
 raven==6.6.0
 requests-cache
+https://github.com/tito/telenium/archive/0.4.1.zip#egg=telenium

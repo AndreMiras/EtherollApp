@@ -452,6 +452,10 @@ class Controller(FloatLayout):
     def settings_screen(self):
         return self.ids.settings_screen_id
 
+    @property
+    def about_screen(self):
+        return self.ids.about_screen_id
+
     def on_unlock_clicked(self, dialog, account, password):
         """
         Caches the password and call roll method again.

@@ -105,9 +105,35 @@ class UITestCase(unittest.TestCase):
         # going back to main screen
         left_actions = toolbar.ids.left_actions
         left_actions.children[0].dispatch('on_release')
+        # loading screen takes time
+        self.advance_frames(50)
         self.assertEqual(
             controller.ids.screen_manager_id.current, 'roll_screen')
 
+    def helper_test_about_screen(self, app):
+        """
+        Verifies the about screen loads and shows infos.
+        """
+        controller = app.root
+        screen_manager = controller.ids.screen_manager_id
+        # verify the landing screen is loaded by default
+        screen = screen_manager.children[0]
+        self.assertEqual(screen.name, 'roll_screen')
+        # loads the about and verify
+        screen_manager.current = 'about_screen'
+        # loading screen takes time
+        self.advance_frames(50)
+        screen = screen_manager.children[0]
+        self.assertEqual(screen.name, 'about_screen')
+        # checks about screen content
+        about_content = screen.children[0].children[0].text
+        self.assertTrue('EtherollApp version: ' in about_content)
+        self.assertTrue(
+            'https://github.com/AndreMiras/EtherollApp' in about_content)
+        # loads back the default screen
+        screen_manager.current = 'roll_screen'
+        # loading screen takes time
+        self.advance_frames(50)
 
     # main test function
     def run_test(self, app, *args):
@@ -117,9 +143,10 @@ class UITestCase(unittest.TestCase):
         self.advance_frames(1)
         self.helper_test_empty_account(app)
         self.helper_test_toolbar(app)
+        self.helper_test_about_screen(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
-        # app.stop()
+        app.stop()
 
     # same named function as the filename(!)
     def test_ui_base(self):

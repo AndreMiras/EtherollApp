@@ -62,6 +62,53 @@ class UITestCase(unittest.TestCase):
         dialog.dismiss()
         self.assertEqual(len(dialogs), 0)
 
+    def helper_test_toolbar(self, app):
+        """
+        Opens the about screen using the toolbar.
+        """
+        controller = app.root
+        toolbar = controller.ids.toolbar_id
+        left_action_items = toolbar.left_action_items
+        # checking action items displayed, it should be only the menu
+        self.assertEqual(len(left_action_items), 1)
+        menu_action_item = left_action_items[0]
+        self.assertEqual(menu_action_item[0], 'menu')
+        self.assertEqual(
+            menu_action_item[1].__qualname__,
+            'CustomToolbar.load_default_buttons.<locals>.<lambda>')
+        # this is reflected in the toolbar left_actions widget
+        left_actions = toolbar.ids.left_actions
+        self.assertEqual(len(left_actions.children), 1)
+        # clicking the menu action item should load the navigation drawer
+        left_actions.children[0].dispatch('on_release')
+        # the drawer animation takes time
+        self.advance_frames(50)
+        # checking the drawer items
+        navigation = controller.ids.navigation_id
+        navigation_drawer = navigation.ids.navigation_drawer_id
+        navigation_drawer_items = navigation_drawer.ids.list.children
+        self.assertEqual(
+            [child.text for child in navigation_drawer_items],
+            ['About', 'Settings', 'Wallet', 'Home'])
+        # clicking the about one
+        about_item = navigation_drawer_items[0]
+        about_item.dispatch('on_release')
+        # the drawer animation takes time
+        self.advance_frames(50)
+        self.assertEqual(
+            controller.ids.screen_manager_id.current, 'about_screen')
+        # toolbar should now be loaded with the back button
+        left_action_items = toolbar.left_action_items
+        self.assertEqual(len(left_action_items), 1)
+        menu_action_item = left_action_items[0]
+        self.assertEqual(menu_action_item[0], 'arrow-left')
+        # going back to main screen
+        left_actions = toolbar.ids.left_actions
+        left_actions.children[0].dispatch('on_release')
+        self.assertEqual(
+            controller.ids.screen_manager_id.current, 'roll_screen')
+
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -69,10 +116,10 @@ class UITestCase(unittest.TestCase):
         # lets it finish to init
         self.advance_frames(1)
         self.helper_test_empty_account(app)
-        # self.helper_test_empty_account(app)
+        self.helper_test_toolbar(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
-        app.stop()
+        # app.stop()
 
     # same named function as the filename(!)
     def test_ui_base(self):

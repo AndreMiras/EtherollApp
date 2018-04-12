@@ -20,6 +20,7 @@ make
 ## Test
 ```
 make test
+make uitest
 ```
 
 ## Docker

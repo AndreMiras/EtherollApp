@@ -21,6 +21,8 @@ from web3 import HTTPProvider, Web3
 from web3.auto import w3
 from web3.contract import Contract
 
+from ethereum_utils import AccountUtils
+
 requests_cache_params = {
     'cache_name': 'requests_cache',
     'backend': 'sqlite',
@@ -314,8 +316,8 @@ class Etheroll:
     def player_roll_dice(
             self, bet_size_ether, chances, wallet_path, wallet_password):
         """
-        Work in progress:
-        https://github.com/AndreMiras/EtherollApp/issues/1
+        Signs and broadcasts `playerRollDice` transaction.
+        Returns transaction hash.
         """
         roll_under = chances
         value_wei = w3.toWei(bet_size_ether, 'ether')
@@ -335,8 +337,8 @@ class Etheroll:
         }
         transaction = self.contract.functions.playerRollDice(
             roll_under).buildTransaction(transaction)
-        encrypted_key = open(wallet_path).read()
-        private_key = w3.eth.account.decrypt(encrypted_key, wallet_password)
+        private_key = AccountUtils.get_private_key(
+            wallet_path, wallet_password)
         signed_tx = self.web3.eth.account.signTransaction(
             transaction, private_key)
         tx_hash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)

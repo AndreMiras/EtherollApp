@@ -3,6 +3,7 @@
 ## [Unreleased]
 
   - UI testing, refs #10
+  - Account creation, refs #13
   - Setup continuous integration, refs #18
   - Dockerized project, refs #19
   - Caching Docker Linux build on Travis, refs #40

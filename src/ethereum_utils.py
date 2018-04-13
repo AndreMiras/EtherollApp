@@ -1,5 +1,8 @@
 import os
 
+import eth_keyfile
+from ethereum.tools import keys
+from ethereum.utils import is_string, to_string
 from pyethapp.accounts import Account
 from web3.auto import w3
 
@@ -14,6 +17,7 @@ class AccountUtils():
         self.app = BaseApp(
             config=dict(accounts=dict(keystore_dir=self.keystore_dir)))
         AccountsService.register_with_app(self.app)
+        self.patch_ethereum_tools_keys()
 
     def get_account_list(self):
         """
@@ -43,3 +47,17 @@ class AccountUtils():
             account.address.hex())
         self.app.services.accounts.add_account(account)
         return account
+
+    @staticmethod
+    def patch_ethereum_tools_keys():
+        """
+        Patches `make_keystore_json()` to use `create_keyfile_json()`, see:
+        https://github.com/ethereum/pyethapp/issues/292
+        """
+        keys.make_keystore_json = eth_keyfile.create_keyfile_json
+
+        def decode_keyfile_json(raw_keyfile_json, password):
+            if not is_string(password):
+                password = to_string(password)
+            return eth_keyfile.decode_keyfile_json(raw_keyfile_json, password)
+        keys.decode_keystore_json = decode_keyfile_json

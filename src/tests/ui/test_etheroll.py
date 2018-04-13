@@ -143,9 +143,9 @@ class UITestCase(unittest.TestCase):
         screen_manager.current = 'roll_screen'
         self.advance_frames_for_screen()
 
-    def helper_test_create_first_account(self, app):
+    def helper_no_account_checks(self, app):
         """
-        Creates the first account.
+        Helper method for checking widget are in expected state on no account.
         """
         controller = app.root
         screen_manager = controller.ids.screen_manager_id
@@ -169,6 +169,14 @@ class UITestCase(unittest.TestCase):
         create_new_account_nav_item.dispatch('on_tab_press')
         # verifies no current account is setup
         self.assertEqual(switch_account_screen.current_account, None)
+
+    def helper_test_create_first_account(self, app):
+        """
+        Creates the first account.
+        """
+        controller = app.root
+        account_utils = controller.account_utils
+        switch_account_screen = controller.switch_account_screen
         # retrieves the create_new_account widget
         create_new_account = switch_account_screen.ids.create_new_account_id
         # retrieves widgets (password fields, sliders and buttons)
@@ -221,6 +229,71 @@ class UITestCase(unittest.TestCase):
         dialog.dismiss()
         self.assertEqual(len(dialogs), 0)
 
+    def helper_test_create_account_form(self, app):
+        """
+        Create account form validation checks.
+        Testing both not matching and empty passwords.
+        """
+        controller = app.root
+        switch_account_screen = controller.switch_account_screen
+        account_utils = controller.account_utils
+        # number of existing accounts before the test
+        account_count_before = account_utils.get_account_list()
+        # retrieves the create_new_account widget
+        create_new_account = switch_account_screen.ids.create_new_account_id
+        # retrieves widgets (password fields, sliders and buttons)
+        new_password1_id = create_new_account.ids.new_password1_id
+        new_password2_id = create_new_account.ids.new_password2_id
+        create_account_button_id = \
+            create_new_account.ids.create_account_button_id
+        passwords_to_try = [
+            # passwords not matching
+            {
+                'new_password1': 'not matching1',
+                'new_password2': 'not matching2'
+            },
+            # passwords empty
+            {
+                'new_password1': '',
+                'new_password2': ''
+            },
+        ]
+        for password_dict in passwords_to_try:
+            new_password1_id.text = password_dict['new_password1']
+            new_password2_id.text = password_dict['new_password2']
+            # makes the account creation fast
+            # before clicking the create account button,
+            # only the main thread is running
+            self.assertEqual(len(threading.enumerate()), 1)
+            main_thread = threading.enumerate()[0]
+            self.assertEqual(type(main_thread), threading._MainThread)
+            # click the create account button
+            create_account_button_id.dispatch('on_release')
+            # after submitting the account verification thread should run
+            threads = threading.enumerate()
+            # since we may run into race condition with threading.enumerate()
+            # we make the test conditional
+            if len(threads) == 2:
+                create_account_thread = threading.enumerate()[1]
+                self.assertEqual(
+                    type(create_account_thread), threading.Thread)
+                self.assertEqual(
+                    create_account_thread._Thread__target.func_name,
+                    "create_account")
+                # waits for the end of the thread
+                create_account_thread.join()
+            # the form should popup an error dialog
+            dialogs = Dialog.dialogs
+            self.assertEqual(len(dialogs), 1)
+            dialog = dialogs[0]
+            self.assertEqual(dialog.title, 'Invalid form')
+            dialog.dismiss()
+            self.assertEqual(len(dialogs), 0)
+            # no account were created
+            self.assertEqual(
+                len(account_count_before),
+                len(account_utils.get_account_list()))
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -231,6 +304,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_toolbar(app)
         self.helper_test_about_screen(app)
         self.helper_test_create_first_account(app)
+        self.helper_test_create_account_form(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

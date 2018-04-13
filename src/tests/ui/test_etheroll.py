@@ -46,7 +46,7 @@ class UITestCase(unittest.TestCase):
         Verifies the UI behaves as expected on empty account list.
         """
         controller = app.root
-        accounts = controller.pyethapp.services.accounts
+        accounts = controller.account_utils.get_account_list()
         # loading the app with empty account directory
         self.assertEqual(len(accounts), 0)
         # retrieving the roll button, to click it

@@ -3,13 +3,17 @@ import os
 from os.path import expanduser
 
 from kivy.app import App
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
+from kivy.core.clipboard import Clipboard
+from kivy.garden.qrcode import QRCodeWidget
 from kivy.logger import LOG_LEVELS, Logger
+from kivy.metrics import dp
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
 from kivy.utils import platform
+from kivymd.bottomsheet import MDListBottomSheet
 from kivymd.list import OneLineListItem
 from kivymd.theming import ThemeManager
 from kivymd.toolbar import Toolbar
@@ -17,13 +21,15 @@ from raven import Client
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
-from ethereum_utils import AccountUtils
-from utils import Dialog, patch_find_library_android, patch_typing_python351
+from utils import (Dialog, patch_find_library_android, patch_typing_python351,
+                   run_in_thread)
 from version import __version__
 
 patch_find_library_android()
 patch_typing_python351()
-import pyetheroll  # noqa: E402, isort:skip, must be imported after patching
+# must be imported after patching
+from ethereum_utils import AccountUtils  # noqa: E402, isort:skip
+import pyetheroll  # noqa: E402, isort:skip
 
 # default pyethapp keystore path
 KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
@@ -140,7 +146,7 @@ class CreateNewAccount(BoxLayout):
             dialog.open()
             return
 
-    # @mainthread
+    @mainthread
     def on_account_created(self, account):
         """
         Switches to the newly created account.
@@ -150,13 +156,14 @@ class CreateNewAccount(BoxLayout):
         self.new_password1 = ''
         self.new_password2 = ''
 
-    # @mainthread
+    @mainthread
     def toggle_widgets(self, enabled):
         """
         Enables/disables account creation widgets.
         """
         self.disabled = not enabled
 
+    @mainthread
     def show_redirect_dialog(self):
         title = "Account created, redirecting..."
         body = ""
@@ -173,7 +180,7 @@ class CreateNewAccount(BoxLayout):
         screen_manager.transition.direction = 'right'
         screen_manager.current = 'roll_screen'
 
-    # @run_in_thread
+    @run_in_thread
     def create_account(self):
         """
         Creates an account from provided form.
@@ -192,7 +199,7 @@ class CreateNewAccount(BoxLayout):
         Dialog.snackbar_message("Created!")
         self.toggle_widgets(True)
         self.on_account_created(account)
-        CreateNewAccount.try_unlock(account, password)
+        # CreateNewAccount.try_unlock(account, password)
         self.show_redirect_dialog()
         self.load_landing_page()
         return account
@@ -411,6 +418,27 @@ class ChanceOfWinning(BoxLayout):
 
 
 class RollScreen(Screen):
+
+    current_account_string = StringProperty()
+
+    def __init__(self, **kwargs):
+        super(RollScreen, self).__init__(**kwargs)
+        Clock.schedule_once(self._after_init)
+
+    def _after_init(self, dt):
+        """
+        Binds `SwitchAccountScreen.current_account` ->
+        `RollScreen.current_account`.
+        """
+        controller = App.get_running_app().root
+        controller.switch_account_screen.bind(
+            current_account=self.on_current_account)
+
+    def on_current_account(self, instance, account):
+        """
+        Sets current_account_string.
+        """
+        self.current_account_string = '0x' + account.address.hex()
 
     def get_roll_input(self):
         """
@@ -646,6 +674,63 @@ class Controller(FloatLayout):
                 self.dialog_roll_error(exception)
                 return
             self.dialog_roll_success(tx_hash)
+
+    def load_switch_account(self):
+        """
+        Loads the switch account screen.
+        """
+        screen_manager = self.screen_manager
+        screen_manager.transition.direction = 'right'
+        screen_manager.current = 'switch_account_screen'
+
+    def show_qr_code(self):
+        """
+        Shows address QR Code in a dialog.
+        """
+        account = self.switch_account_screen.current_account
+        if not account:
+            return
+        address = "0x" + account.address.hex()
+        title = address
+        qr_code = QRCodeWidget()
+        qr_code.data = address
+        dialog = Dialog.create_dialog_content_helper(
+                    title=title,
+                    content=qr_code)
+        # workaround for MDDialog container size (too small by default)
+        dialog.ids.container.size_hint_y = 1
+        dialog.height = dp(500)
+        dialog.add_action_button(
+            "OK",
+            action=lambda *x: dialog.dismiss())
+        dialog.open()
+        return dialog
+
+    def copy_address_clipboard(self):
+        """
+        Copies the current account address to the clipboard.
+        """
+        account = self.switch_account_screen.current_account
+        if not account:
+            return
+        address = "0x" + account.address.hex()
+        Clipboard.copy(address)
+
+    def open_address_options(self):
+        """
+        Loads the address options bottom sheet.
+        """
+        bottom_sheet = MDListBottomSheet()
+        bottom_sheet.add_item(
+            'Switch account',
+            lambda x: self.load_switch_account(), icon='swap-horizontal')
+        bottom_sheet.add_item(
+            'Show QR Code',
+            lambda x: self.show_qr_code(), icon='information')
+        bottom_sheet.add_item(
+            'Copy address',
+            lambda x: self.copy_address_clipboard(), icon='content-copy')
+        bottom_sheet.open()
 
 
 class DebugRavenClient(object):

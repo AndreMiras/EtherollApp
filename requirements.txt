@@ -15,3 +15,4 @@ https://github.com/ethereum/pyethapp/archive/8406f32.zip#egg=pyethapp
 raven==6.6.0
 requests-cache
 kivyunittest==0.1.8
+qrcode==5.3

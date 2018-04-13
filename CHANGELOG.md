@@ -7,7 +7,9 @@
   - Setup continuous integration, refs #18
   - Dockerized project, refs #19
   - Caching Docker Linux build on Travis, refs #40
-  - Download ABIs dynamically and cache it, fixes #41
+  - Download ABIs dynamically and cache it, refs #41
+  - Show account QR Code, refs #44
+  - Quick account actions, refs #45
 
 
 ## [v20180405]

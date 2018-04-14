@@ -10,6 +10,7 @@
   - Download ABIs dynamically and cache it, refs #41
   - Show account QR Code, refs #44
   - Quick account actions, refs #45
+  - Chances input binding fixes, refs #46
 
 
 ## [v20180405]

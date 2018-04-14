@@ -294,6 +294,29 @@ class UITestCase(unittest.TestCase):
                 len(account_count_before),
                 len(account_utils.get_account_list()))
 
+    def helper_test_chances_input_binding(self, app):
+        """
+        Makes sure the chances input works as expected, refs:
+        https://github.com/AndreMiras/EtherollApp/issues/46
+        """
+        controller = app.root
+        # retrieves both widgets from roll screen
+        roll_screen = controller.roll_screen
+        chance_of_winning = roll_screen.ids.chance_of_winning_id
+        chances_slider = chance_of_winning.ids.chances_slider_id
+        chances_input = chance_of_winning.ids.chances_input_id
+        # makes sure both values are the same
+        self.assertEqual(str(chances_slider.value), chances_input.text)
+        # checks the default value
+        self.assertEqual(chances_slider.value, 50)
+        # verifies values are binded input -> slider
+        chances_input.text = '30'
+        chances_input.dispatch('on_text_validate')
+        self.assertEqual(chances_slider.value, 30)
+        # slider -> input
+        chances_slider.value = 70
+        self.assertEqual(chances_input.text, '70')
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -305,6 +328,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_about_screen(app)
         self.helper_test_create_first_account(app)
         self.helper_test_create_account_form(app)
+        self.helper_test_chances_input_binding(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

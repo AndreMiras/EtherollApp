@@ -356,7 +356,8 @@ class BetSize(BoxLayout):
         BetSize.bind_slider_input(slider, inpt)
 
     @staticmethod
-    def bind_slider_input(slider, inpt, cast_to=float):
+    def bind_slider_input(
+            slider, inpt, cast_to=float, round_digits=ROUND_DIGITS):
         """
         Binds slider <-> input both ways.
         """
@@ -364,7 +365,7 @@ class BetSize(BoxLayout):
         slider.bind(
             value=lambda instance, value:
             setattr(inpt, 'text', "{0:.{1}f}".format(
-                cast_to(value), ROUND_DIGITS)))
+                cast_to(value), round_digits)))
         # input -> slider
         inpt.bind(
             on_text_validate=lambda instance:
@@ -400,8 +401,12 @@ class ChanceOfWinning(BoxLayout):
         """
         slider = self.ids.chances_slider_id
         inpt = self.ids.chances_input_id
-        cast_to = int
-        BetSize.bind_slider_input(slider, inpt, cast_to)
+        cast_to = self.cast_to
+        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits=0)
+
+    @staticmethod
+    def cast_to(value):
+        return int(float(value))
 
     @property
     def value(self):

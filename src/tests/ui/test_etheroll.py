@@ -101,7 +101,7 @@ class UITestCase(unittest.TestCase):
         navigation_drawer_items = navigation_drawer.ids.list.children
         self.assertEqual(
             [child.text for child in navigation_drawer_items],
-            ['About', 'Settings', 'Wallet', 'Home'])
+            ['About', 'Settings', 'Wallet', 'Roll results', 'Home'])
         # clicking the about one
         about_item = navigation_drawer_items[0]
         about_item.dispatch('on_release')

@@ -5,9 +5,11 @@ import typing
 from ctypes.util import find_library as original_find_library
 from io import StringIO
 
+from kivy.app import App
 from kivy.clock import mainthread
 from kivy.lang import Builder
 from kivy.metrics import dp
+from kivy.uix.screenmanager import Screen
 from kivy.utils import platform
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
@@ -210,3 +212,27 @@ def patch_typing_python351():
     # TODO: check Python version and only patch if == 3.5.1
     if not hasattr(typing, 'Type'):
         typing.Type = Type
+
+
+class SubScreen(Screen):
+    """
+    Helper parent class for updating toolbar on enter/leave.
+    """
+
+    def on_back(self):
+        self.manager.transition.direction = 'right'
+        self.manager.current = 'roll_screen'
+
+    def on_enter(self):
+        """
+        Loads the toolbar back button.
+        """
+        app = App.get_running_app()
+        app.root.ids.toolbar_id.load_back_button(self.on_back)
+
+    def on_leave(self):
+        """
+        Loads the toolbar default button.
+        """
+        app = App.get_running_app()
+        app.root.ids.toolbar_id.load_default_buttons()

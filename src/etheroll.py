@@ -21,8 +21,8 @@ from raven import Client
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
-from utils import (Dialog, patch_find_library_android, patch_typing_python351,
-                   run_in_thread)
+from utils import (Dialog, SubScreen, patch_find_library_android,
+                   patch_typing_python351, run_in_thread)
 from version import __version__
 
 patch_find_library_android()
@@ -226,30 +226,6 @@ class CustomToolbar(Toolbar):
         self.left_action_items = [['arrow-left', lambda x: function()]]
 
 
-class SubScreen(Screen):
-    """
-    Helper parent class for updating toolbar on enter/leave.
-    """
-
-    def on_back(self):
-        self.manager.transition.direction = 'right'
-        self.manager.current = 'roll_screen'
-
-    def on_enter(self):
-        """
-        Loads the toolbar back button.
-        """
-        app = App.get_running_app()
-        app.root.ids.toolbar_id.load_back_button(self.on_back)
-
-    def on_leave(self):
-        """
-        Loads the toolbar default button.
-        """
-        app = App.get_running_app()
-        app.root.ids.toolbar_id.load_default_buttons()
-
-
 class ImportKeystore(BoxLayout):
     keystore_path = StringProperty()
 
@@ -329,10 +305,6 @@ class AboutScreen(SubScreen):
             "[color=00BFFF][ref=github]" + \
             self.project_page_property + \
             "[/ref][/color]"
-
-
-class RollResultsScreen(SubScreen):
-    pass
 
 
 class RollUnderRecap(BoxLayout):

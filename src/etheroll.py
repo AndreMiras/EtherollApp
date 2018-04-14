@@ -456,6 +456,13 @@ class RollScreen(Screen):
             "chances": chance_of_winning.value,
         }
 
+    @mainthread
+    def toggle_widgets(self, enabled):
+        """
+        Enables/disables widgets (useful during roll).
+        """
+        self.disabled = not enabled
+
 
 class Controller(FloatLayout):
 
@@ -648,6 +655,7 @@ class Controller(FloatLayout):
         dialog.open()
 
     @staticmethod
+    @mainthread
     def dialog_roll_success(tx_hash):
         title = "Rolled successfully"
         body = "Transaction hash:\n" + tx_hash.hex()
@@ -655,14 +663,40 @@ class Controller(FloatLayout):
         dialog.open()
 
     @staticmethod
+    @mainthread
     def dialog_roll_error(exception):
         title = "Error rolling"
         body = str(exception)
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 
+    @run_in_thread
+    def player_roll_dice(self, bet_size, chances, wallet_path, password):
+        """
+        Sending the bet to the smart contract requires signing a transaction
+        which requires CPU computation to unlock the account, hence this
+        is ran in a thread.
+        """
+        roll_screen = self.roll_screen
+        try:
+            Dialog.snackbar_message("Sending bet...")
+            roll_screen.toggle_widgets(False)
+            tx_hash = self.pyetheroll.player_roll_dice(
+                bet_size, chances, wallet_path, password)
+        except ValueError as exception:
+            roll_screen.toggle_widgets(True)
+            self.dialog_roll_error(exception)
+            return
+        roll_screen.toggle_widgets(True)
+        self.dialog_roll_success(tx_hash)
+
     def roll(self):
-        roll_input = self.roll_screen.get_roll_input()
+        """
+        Retrieves bet parameters from user input and sends it as a signed
+        transaction to the smart contract.
+        """
+        roll_screen = self.roll_screen
+        roll_input = roll_screen.get_roll_input()
         bet_size = roll_input['bet_size']
         chances = roll_input['chances']
         account = self.switch_account_screen.current_account
@@ -672,13 +706,7 @@ class Controller(FloatLayout):
         wallet_path = account.path
         password = self.get_account_password(account)
         if password is not None:
-            try:
-                tx_hash = self.pyetheroll.player_roll_dice(
-                    bet_size, chances, wallet_path, password)
-            except ValueError as exception:
-                self.dialog_roll_error(exception)
-                return
-            self.dialog_roll_success(tx_hash)
+            self.player_roll_dice(bet_size, chances, wallet_path, password)
 
     def load_switch_account(self):
         """

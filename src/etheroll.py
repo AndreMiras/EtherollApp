@@ -3,13 +3,17 @@ import os
 from os.path import expanduser
 
 from kivy.app import App
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
+from kivy.core.clipboard import Clipboard
+from kivy.garden.qrcode import QRCodeWidget
 from kivy.logger import LOG_LEVELS, Logger
+from kivy.metrics import dp
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import Screen
 from kivy.utils import platform
+from kivymd.bottomsheet import MDListBottomSheet
 from kivymd.list import OneLineListItem
 from kivymd.theming import ThemeManager
 from kivymd.toolbar import Toolbar
@@ -17,12 +21,15 @@ from raven import Client
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
-from utils import Dialog, patch_find_library_android, patch_typing_python351
+from utils import (Dialog, patch_find_library_android, patch_typing_python351,
+                   run_in_thread)
 from version import __version__
 
 patch_find_library_android()
 patch_typing_python351()
-import pyetheroll  # noqa: E402, isort:skip, must be imported after patching
+# must be imported after patching
+from ethereum_utils import AccountUtils  # noqa: E402, isort:skip
+import pyetheroll  # noqa: E402, isort:skip
 
 # default pyethapp keystore path
 KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
@@ -70,7 +77,7 @@ class SwitchAccount(BoxLayout):
         self.controller = App.get_running_app().root
         account_list_id = self.ids.account_list_id
         account_list_id.clear_widgets()
-        accounts = self.controller.pyethapp.services.accounts
+        accounts = self.controller.account_utils.get_account_list()
         if len(accounts) == 0:
             self.on_empty_account_list()
         for account in accounts:
@@ -80,11 +87,122 @@ class SwitchAccount(BoxLayout):
     @staticmethod
     def on_empty_account_list():
         controller = App.get_running_app().root
-        keystore_dir = controller.pyethapp.services.accounts.keystore_dir
+        keystore_dir = controller.account_utils.keystore_dir
         title = "No account found"
         body = "No account found in:\n%s" % keystore_dir
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
+
+
+class CreateNewAccount(BoxLayout):
+    """
+    Makes it possible to create json keyfiles.
+    """
+
+    new_password1 = StringProperty()
+    new_password2 = StringProperty()
+
+    def __init__(self, **kwargs):
+        super(CreateNewAccount, self).__init__(**kwargs)
+        Clock.schedule_once(lambda dt: self.setup())
+
+    def setup(self):
+        """
+        Sets security vs speed default values.
+        Plus hides the advanced widgets.
+        """
+        self.controller = App.get_running_app().root
+
+    def verify_password_field(self):
+        """
+        Makes sure passwords are matching and are not void.
+        """
+        passwords_matching = self.new_password1 == self.new_password2
+        passwords_not_void = self.new_password1 != ''
+        return passwords_matching and passwords_not_void
+
+    def verify_fields(self):
+        """
+        Verifies password fields are valid.
+        """
+        return self.verify_password_field()
+
+    @staticmethod
+    def try_unlock(account, password):
+        """
+        Just as a security measure, verifies we can unlock
+        the newly created account with provided password.
+        """
+        # making sure it's locked first
+        account.lock()
+        try:
+            account.unlock(password)
+        except ValueError:
+            title = "Unlock error"
+            body = ""
+            body += "Couldn't unlock your account.\n"
+            body += "The issue should be reported."
+            dialog = Dialog.create_dialog(title, body)
+            dialog.open()
+            return
+
+    @mainthread
+    def on_account_created(self, account):
+        """
+        Switches to the newly created account.
+        Clears the form.
+        """
+        self.controller.switch_account_screen.current_account = account
+        self.new_password1 = ''
+        self.new_password2 = ''
+
+    @mainthread
+    def toggle_widgets(self, enabled):
+        """
+        Enables/disables account creation widgets.
+        """
+        self.disabled = not enabled
+
+    @mainthread
+    def show_redirect_dialog(self):
+        title = "Account created, redirecting..."
+        body = ""
+        body += "Your account was created, "
+        body += "you will be redirected to the overview."
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
+    def load_landing_page(self):
+        """
+        Returns to the landing page.
+        """
+        screen_manager = self.controller.screen_manager
+        screen_manager.transition.direction = 'right'
+        screen_manager.current = 'roll_screen'
+
+    @run_in_thread
+    def create_account(self):
+        """
+        Creates an account from provided form.
+        Verify we can unlock it.
+        Disables widgets during the process, so the user doesn't try
+        to create another account during the process.
+        """
+        self.toggle_widgets(False)
+        if not self.verify_fields():
+            Dialog.show_invalid_form_dialog()
+            self.toggle_widgets(True)
+            return
+        password = self.new_password1
+        Dialog.snackbar_message("Creating account...")
+        account = self.controller.account_utils.new_account(password=password)
+        Dialog.snackbar_message("Created!")
+        self.toggle_widgets(True)
+        self.on_account_created(account)
+        # CreateNewAccount.try_unlock(account, password)
+        self.show_redirect_dialog()
+        self.load_landing_page()
+        return account
 
 
 class CustomToolbar(Toolbar):
@@ -178,7 +296,6 @@ class SettingsScreen(SubScreen):
 
     def __init__(self, **kwargs):
         super(SettingsScreen, self).__init__(**kwargs)
-        # Clock.schedule_once(self._after_init)
 
     @property
     def network(self):
@@ -239,7 +356,8 @@ class BetSize(BoxLayout):
         BetSize.bind_slider_input(slider, inpt)
 
     @staticmethod
-    def bind_slider_input(slider, inpt, cast_to=float):
+    def bind_slider_input(
+            slider, inpt, cast_to=float, round_digits=ROUND_DIGITS):
         """
         Binds slider <-> input both ways.
         """
@@ -247,7 +365,7 @@ class BetSize(BoxLayout):
         slider.bind(
             value=lambda instance, value:
             setattr(inpt, 'text', "{0:.{1}f}".format(
-                cast_to(value), ROUND_DIGITS)))
+                cast_to(value), round_digits)))
         # input -> slider
         inpt.bind(
             on_text_validate=lambda instance:
@@ -283,8 +401,12 @@ class ChanceOfWinning(BoxLayout):
         """
         slider = self.ids.chances_slider_id
         inpt = self.ids.chances_input_id
-        cast_to = int
-        BetSize.bind_slider_input(slider, inpt, cast_to)
+        cast_to = self.cast_to
+        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits=0)
+
+    @staticmethod
+    def cast_to(value):
+        return int(float(value))
 
     @property
     def value(self):
@@ -302,6 +424,27 @@ class ChanceOfWinning(BoxLayout):
 
 class RollScreen(Screen):
 
+    current_account_string = StringProperty()
+
+    def __init__(self, **kwargs):
+        super(RollScreen, self).__init__(**kwargs)
+        Clock.schedule_once(self._after_init)
+
+    def _after_init(self, dt):
+        """
+        Binds `SwitchAccountScreen.current_account` ->
+        `RollScreen.current_account`.
+        """
+        controller = App.get_running_app().root
+        controller.switch_account_screen.bind(
+            current_account=self.on_current_account)
+
+    def on_current_account(self, instance, account):
+        """
+        Sets current_account_string.
+        """
+        self.current_account_string = '0x' + account.address.hex()
+
     def get_roll_input(self):
         """
         Returns bet size and chance of winning user input values.
@@ -312,6 +455,13 @@ class RollScreen(Screen):
             "bet_size": bet_size.value,
             "chances": chance_of_winning.value,
         }
+
+    @mainthread
+    def toggle_widgets(self, enabled):
+        """
+        Enables/disables widgets (useful during roll).
+        """
+        self.disabled = not enabled
 
 
 class Controller(FloatLayout):
@@ -335,12 +485,7 @@ class Controller(FloatLayout):
     def _init_pyethapp(self, keystore_dir=None):
         if keystore_dir is None:
             keystore_dir = self.get_keystore_path()
-        # must be imported after `patch_find_library_android()`
-        from devp2p.app import BaseApp
-        from pyethapp.accounts import AccountsService
-        self.pyethapp = BaseApp(
-            config=dict(accounts=dict(keystore_dir=keystore_dir)))
-        AccountsService.register_with_app(self.pyethapp)
+        self.account_utils = AccountUtils(keystore_dir=keystore_dir)
 
     @property
     def pyetheroll(self):
@@ -442,6 +587,10 @@ class Controller(FloatLayout):
         return self.ids.navigation_id
 
     @property
+    def screen_manager(self):
+        return self.ids.screen_manager_id
+
+    @property
     def roll_screen(self):
         return self.ids.roll_screen_id
 
@@ -452,6 +601,10 @@ class Controller(FloatLayout):
     @property
     def settings_screen(self):
         return self.ids.settings_screen_id
+
+    @property
+    def about_screen(self):
+        return self.ids.about_screen_id
 
     def on_unlock_clicked(self, dialog, account, password):
         """
@@ -502,6 +655,7 @@ class Controller(FloatLayout):
         dialog.open()
 
     @staticmethod
+    @mainthread
     def dialog_roll_success(tx_hash):
         title = "Rolled successfully"
         body = "Transaction hash:\n" + tx_hash.hex()
@@ -509,14 +663,40 @@ class Controller(FloatLayout):
         dialog.open()
 
     @staticmethod
+    @mainthread
     def dialog_roll_error(exception):
         title = "Error rolling"
         body = str(exception)
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 
+    @run_in_thread
+    def player_roll_dice(self, bet_size, chances, wallet_path, password):
+        """
+        Sending the bet to the smart contract requires signing a transaction
+        which requires CPU computation to unlock the account, hence this
+        is ran in a thread.
+        """
+        roll_screen = self.roll_screen
+        try:
+            Dialog.snackbar_message("Sending bet...")
+            roll_screen.toggle_widgets(False)
+            tx_hash = self.pyetheroll.player_roll_dice(
+                bet_size, chances, wallet_path, password)
+        except ValueError as exception:
+            roll_screen.toggle_widgets(True)
+            self.dialog_roll_error(exception)
+            return
+        roll_screen.toggle_widgets(True)
+        self.dialog_roll_success(tx_hash)
+
     def roll(self):
-        roll_input = self.roll_screen.get_roll_input()
+        """
+        Retrieves bet parameters from user input and sends it as a signed
+        transaction to the smart contract.
+        """
+        roll_screen = self.roll_screen
+        roll_input = roll_screen.get_roll_input()
         bet_size = roll_input['bet_size']
         chances = roll_input['chances']
         account = self.switch_account_screen.current_account
@@ -526,13 +706,64 @@ class Controller(FloatLayout):
         wallet_path = account.path
         password = self.get_account_password(account)
         if password is not None:
-            try:
-                tx_hash = self.pyetheroll.player_roll_dice(
-                    bet_size, chances, wallet_path, password)
-            except ValueError as exception:
-                self.dialog_roll_error(exception)
-                return
-            self.dialog_roll_success(tx_hash)
+            self.player_roll_dice(bet_size, chances, wallet_path, password)
+
+    def load_switch_account(self):
+        """
+        Loads the switch account screen.
+        """
+        screen_manager = self.screen_manager
+        screen_manager.transition.direction = 'right'
+        screen_manager.current = 'switch_account_screen'
+
+    def show_qr_code(self):
+        """
+        Shows address QR Code in a dialog.
+        """
+        account = self.switch_account_screen.current_account
+        if not account:
+            return
+        address = "0x" + account.address.hex()
+        title = address
+        qr_code = QRCodeWidget()
+        qr_code.data = address
+        dialog = Dialog.create_dialog_content_helper(
+                    title=title,
+                    content=qr_code)
+        # workaround for MDDialog container size (too small by default)
+        dialog.ids.container.size_hint_y = 1
+        dialog.height = dp(500)
+        dialog.add_action_button(
+            "OK",
+            action=lambda *x: dialog.dismiss())
+        dialog.open()
+        return dialog
+
+    def copy_address_clipboard(self):
+        """
+        Copies the current account address to the clipboard.
+        """
+        account = self.switch_account_screen.current_account
+        if not account:
+            return
+        address = "0x" + account.address.hex()
+        Clipboard.copy(address)
+
+    def open_address_options(self):
+        """
+        Loads the address options bottom sheet.
+        """
+        bottom_sheet = MDListBottomSheet()
+        bottom_sheet.add_item(
+            'Switch account',
+            lambda x: self.load_switch_account(), icon='swap-horizontal')
+        bottom_sheet.add_item(
+            'Show QR Code',
+            lambda x: self.show_qr_code(), icon='information')
+        bottom_sheet.add_item(
+            'Copy address',
+            lambda x: self.copy_address_clipboard(), icon='content-copy')
+        bottom_sheet.open()
 
 
 class DebugRavenClient(object):
@@ -588,6 +819,7 @@ class EtherollApp(App):
 
     def build(self):
         self.icon = "docs/images/icon.png"
+        return Controller()
 
 
 def main():

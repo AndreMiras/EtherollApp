@@ -10,6 +10,7 @@ import os
 from enum import Enum
 
 import eth_abi
+import requests_cache
 from ethereum.abi import decode_abi
 from ethereum.abi import method_id as get_abi_method_id
 from ethereum.abi import normalize_name as normalize_abi_method_name
@@ -19,6 +20,51 @@ from pyethapp.accounts import Account
 from web3 import HTTPProvider, Web3
 from web3.auto import w3
 from web3.contract import Contract
+
+from ethereum_utils import AccountUtils
+
+requests_cache_params = {
+    'cache_name': 'requests_cache',
+    'backend': 'sqlite',
+    'fast_save': True,
+}
+
+
+def get_etherscan_api_key():
+    """
+    Tries to retrieve etherscan API key from environment or from file.
+    """
+    ETHERSCAN_API_KEY = os.environ.get('ETHERSCAN_API_KEY')
+    if ETHERSCAN_API_KEY is None:
+        location = os.path.realpath(
+            os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        api_key_path = str(os.path.join(location, 'api_key.json'))
+        with open(api_key_path, mode='r') as key_file:
+            ETHERSCAN_API_KEY = json.loads(key_file.read())['key']
+    return ETHERSCAN_API_KEY
+
+
+def decode_contract_call(contract_abi: list, call_data: str):
+    """
+    https://ethereum.stackexchange.com/a/33887/34898
+    """
+    call_data = call_data.lower().replace("0x", "")
+    call_data_bin = decode_hex(call_data)
+    method_signature = call_data_bin[:4]
+    for description in contract_abi:
+        if description.get('type') != 'function':
+            continue
+        method_name = normalize_abi_method_name(description['name'])
+        arg_types = [item['type'] for item in description['inputs']]
+        method_id = get_abi_method_id(method_name, arg_types)
+        if zpad(encode_int(method_id), 4) == method_signature:
+            try:
+                # TODO: ethereum.abi.decode_abi vs eth_abi.decode_abi
+                args = decode_abi(arg_types, call_data_bin[4:])
+            except AssertionError:
+                # Invalid args
+                continue
+            return method_name, args
 
 
 class ChainID(Enum):
@@ -74,11 +120,7 @@ class TransactionDebugger:
         Given a contract address returns the contract ABI from Etherscan,
         refs #2
         """
-        location = os.path.realpath(
-            os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        api_key_path = str(os.path.join(location, 'api_key.json'))
-        with open(api_key_path, mode='r') as key_file:
-            key = json.loads(key_file.read())['key']
+        key = get_etherscan_api_key()
         ChainEtherscanContract = ChainEtherscanContractFactory.create(
             self.chain_id)
         api = ChainEtherscanContract(address=contract_address, api_key=key)
@@ -150,7 +192,6 @@ class TransactionDebugger:
         topics = log.topics
         log_data = log.data
         decoded_method = self.decode_method(contract_abi, topics, log_data)
-        # pprint(decoded_method)
         return decoded_method
 
     def decode_transaction_logs(self, transaction_hash):
@@ -166,28 +207,6 @@ class TransactionDebugger:
         for log in logs:
             decoded_methods.append(self.decode_transaction_log(log))
         return decoded_methods
-
-
-# TODO: move somewhere and unit test
-# def decode_contract_call(contract_abi: list, call_data: str):
-def decode_contract_call(contract_abi, call_data):
-    call_data = call_data.lower().replace("0x", "")
-    call_data_bin = decode_hex(call_data)
-    method_signature = call_data_bin[:4]
-    for description in contract_abi:
-        if description.get('type') != 'function':
-            continue
-        method_name = normalize_abi_method_name(description['name'])
-        arg_types = [item['type'] for item in description['inputs']]
-        method_id = get_abi_method_id(method_name, arg_types)
-        if zpad(encode_int(method_id), 4) == method_signature:
-            try:
-                # TODO: ethereum.abi.decode_abi vs eth_abi.decode_abi
-                args = decode_abi(arg_types, call_data_bin[4:])
-            except AssertionError:
-                # Invalid args
-                continue
-            return method_name, args
 
 
 class Etheroll:
@@ -208,20 +227,14 @@ class Etheroll:
         self.provider = HTTPProviderFactory.create(self.chain_id)
         self.web3 = Web3(self.provider)
         # print("blockNumber:", self.web3.eth.blockNumber)
-        # TODO: hardcoded contract ABI
-        location = os.path.realpath(
-            os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        contract_abi_path = str(os.path.join(location, 'contract_abi.json'))
-        with open(contract_abi_path, 'r') as abi_definition:
-            self.abi = json.load(abi_definition)
-        contract_abi_path = str(
-            os.path.join(location, 'oraclize_contract_abi.json'))
-        with open(contract_abi_path, 'r') as abi_definition:
-            self.oraclize_contract_abi = json.load(abi_definition)
-        contract_abi_path = str(
-            os.path.join(location, 'oraclize2_contract_abi.json'))
-        with open(contract_abi_path, 'r') as abi_definition:
-            self.oraclize2_contract_abi = json.load(abi_definition)
+        key = get_etherscan_api_key()
+        ChainEtherscanContract = ChainEtherscanContractFactory.create(
+            self.chain_id)
+        with requests_cache.enabled(**requests_cache_params):
+            api = ChainEtherscanContract(
+                address=self.contract_address, api_key=key)
+            json_abi = api.get_abi()
+        self.abi = json.loads(json_abi)
         # contract_factory_class = ConciseContract
         contract_factory_class = Contract
         self.contract = self.web3.eth.contract(
@@ -303,8 +316,8 @@ class Etheroll:
     def player_roll_dice(
             self, bet_size_ether, chances, wallet_path, wallet_password):
         """
-        Work in progress:
-        https://github.com/AndreMiras/EtherollApp/issues/1
+        Signs and broadcasts `playerRollDice` transaction.
+        Returns transaction hash.
         """
         roll_under = chances
         value_wei = w3.toWei(bet_size_ether, 'ether')
@@ -316,8 +329,7 @@ class Etheroll:
         from_address_normalized = checksum_encode(account.address)
         nonce = self.web3.eth.getTransactionCount(from_address_normalized)
         transaction = {
-            # 'chainId': ChainID.ROPSTEN.value,
-            'chainId': int(self.web3.net.version),
+            'chainId': self.chain_id.value,
             'gas': gas,
             'gasPrice': gas_price,
             'nonce': nonce,
@@ -325,10 +337,9 @@ class Etheroll:
         }
         transaction = self.contract.functions.playerRollDice(
             roll_under).buildTransaction(transaction)
-        encrypted_key = open(wallet_path).read()
-        private_key = w3.eth.account.decrypt(encrypted_key, wallet_password)
+        private_key = AccountUtils.get_private_key(
+            wallet_path, wallet_password)
         signed_tx = self.web3.eth.account.signTransaction(
             transaction, private_key)
         tx_hash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
-        print("tx_hash:", tx_hash.hex())
         return tx_hash

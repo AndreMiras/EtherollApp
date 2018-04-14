@@ -1,5 +1,17 @@
 # Change Log
 
+## [v20180414]
+
+  - UI testing, refs #10
+  - Account creation, refs #13
+  - Setup continuous integration, refs #18
+  - Dockerized project, refs #19
+  - Download ABIs dynamically and cache it, refs #41
+  - Show account QR Code, refs #44
+  - Quick account actions, refs #45
+  - Chances input binding fixes, refs #46
+
+
 ## [v20180405]
 
   - Switch testnet/mainnet from UI, refs #11, #21

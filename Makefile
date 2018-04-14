@@ -1,5 +1,8 @@
-PIP=`. venv/bin/activate; which pip`
-TOX=`. venv/bin/activate; which tox`
+VENV_NAME="venv"
+ACTIVATE_PATH="$(VENV_NAME)/bin/activate"
+PIP=`. $(ACTIVATE_PATH); which pip`
+TOX=`. $(ACTIVATE_PATH); which tox`
+PYTHON="$(VENV_NAME)/bin/python"
 SYSTEM_DEPENDENCIES="python3-dev"
 OS=$(shell lsb_release -si)
 
@@ -25,3 +28,7 @@ clean:
 
 test: virtualenv
 	$(TOX)
+
+uitest: virtualenv
+	. $(ACTIVATE_PATH) && \
+    $(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/tests/ui/

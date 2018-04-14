@@ -95,7 +95,9 @@ requirements =
     toolz==0.9.0,
     eth-abi==1.0.0,
     eth-utils==1.0.1,
-    raven==6.6.0
+    raven==6.6.0,
+    requests-cache==0.4.13,
+    qrcode
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -103,6 +105,7 @@ requirements =
 
 # (list) Garden requirements
 #garden_requirements =
+garden_requirements = qrcode
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png

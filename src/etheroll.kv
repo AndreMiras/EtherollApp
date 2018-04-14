@@ -8,6 +8,7 @@
 #:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
 #:import MDSlider kivymd.slider.MDSlider
 #:import Toolbar kivymd.toolbar.Toolbar
+#:import AddressButton addressbutton.AddressButton
 #:import ROUND_DIGITS etheroll.ROUND_DIGITS
 
 
@@ -44,6 +45,35 @@
     PushUp:
 
 
+<CreateNewAccount>:
+    orientation: 'vertical'
+    MDTextField:
+        id: new_password1_id
+        hint_text: "Password"
+        helper_text: "Enter the password for encrypting your new account"
+        helper_text_mode: "on_focus"
+        password: True
+        write_tab: False
+        text: root.new_password1
+        on_text: root.new_password1 = args[1]
+    MDTextField:
+        id: new_password2_id
+        # TODO: do validation as we type
+        hint_text: "Password (again)"
+        helper_text: "Retype your password"
+        helper_text_mode: "on_focus"
+        password: True
+        write_tab: False
+        text: root.new_password2
+        on_text: root.new_password2 = args[1]
+    AnchorLayout:
+        MDRaisedButton:
+            id: create_account_button_id
+            text: "Create account"
+            on_release: root.create_account()
+    PushUp:
+
+
 <SwitchAccountScreen>:
     name: 'switch_account'
     on_pre_enter:
@@ -59,11 +89,12 @@
             SwitchAccount:
                 id: switch_account_id
         MDBottomNavigationItem:
+            id: create_new_account_nav_item_id
             name: "create"
             text: "Create"
             icon: "plus"
-            MDLabel:
-                text: "Not implemented"
+            CreateNewAccount:
+                id: create_new_account_id
         MDBottomNavigationItem:
             name: "import"
             text: "Import"
@@ -163,6 +194,9 @@
 <RollScreen>:
     BoxLayout:
         orientation: "vertical"
+        AddressButton:
+            text: root.current_account_string or 'No account selected'
+            on_release: app.root.open_address_options()
         MDLabel:
             text: "Place your bet"
             font_style: 'Headline'
@@ -211,9 +245,7 @@
         NavigationDrawerIconButton:
             icon: "key"
             text: "Wallet"
-            on_release:
-                app.root.ids.screen_manager_id.transition.direction = "right"
-                app.root.ids.screen_manager_id.current = "switch_account_screen"
+            on_release: app.root.load_switch_account()
         NavigationDrawerIconButton:
             icon: "settings"
             text: "Settings"
@@ -227,7 +259,7 @@
                 app.root.ids.screen_manager_id.transition.direction = "right"
                 app.root.ids.screen_manager_id.current = "about_screen"
 
-Controller:
+<Controller>:
     Navigation:
         id: navigation_id
         BoxLayout:

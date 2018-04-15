@@ -3,6 +3,7 @@ from kivy.clock import Clock, mainthread
 from kivy.properties import ListProperty
 from kivymd.list import TwoLineListItem
 
+import constants
 from utils import SubScreen, load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
@@ -51,8 +52,8 @@ class RollResultsScreen(SubScreen):
         """
         bet_size_ether = roll_dict['bet_size_ether']
         roll_under = roll_dict['roll_under']
-        text = 'roll under: {}, bet size: {} ETH'.format(
-            roll_under, bet_size_ether)
+        text = 'roll under: {0}, bet size: {1:.{2}f} ETH'.format(
+            roll_under, bet_size_ether, constants.ROUND_DIGITS)
         secondary_text = text
         list_item = TwoLineListItem(
             text=text, secondary_text=secondary_text)

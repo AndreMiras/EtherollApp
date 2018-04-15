@@ -21,6 +21,7 @@ from raven import Client
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
+import constants
 from utils import (Dialog, SubScreen, patch_find_library_android,
                    patch_typing_python351, run_in_thread)
 from version import __version__
@@ -30,10 +31,6 @@ patch_typing_python351()
 # must be imported after patching
 from ethereum_utils import AccountUtils  # noqa: E402, isort:skip
 import pyetheroll  # noqa: E402, isort:skip
-
-# default pyethapp keystore path
-KEYSTORE_DIR_SUFFIX = ".config/pyethapp/keystore/"
-ROUND_DIGITS = 1
 
 
 class PasswordForm(BoxLayout):
@@ -329,7 +326,7 @@ class BetSize(BoxLayout):
 
     @staticmethod
     def bind_slider_input(
-            slider, inpt, cast_to=float, round_digits=ROUND_DIGITS):
+            slider, inpt, cast_to=float, round_digits=constants.ROUND_DIGITS):
         """
         Binds slider <-> input both ways.
         """
@@ -356,7 +353,8 @@ class BetSize(BoxLayout):
         Returns normalized bet size value.
         """
         try:
-            return round(float(self.ids.bet_size_input_id.text), ROUND_DIGITS)
+            return round(
+                float(self.ids.bet_size_input_id.text), constants.ROUND_DIGITS)
         except ValueError:
             return 0
 
@@ -490,7 +488,8 @@ class Controller(FloatLayout):
         # uses kivy user_data_dir (/sdcard/<app_name>)
         if platform == "android":
             KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
-        keystore_dir = os.path.join(KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
+        keystore_dir = os.path.join(
+            KEYSTORE_DIR_PREFIX, constants.KEYSTORE_DIR_SUFFIX)
         return keystore_dir
 
     def bind_wager_property(self):

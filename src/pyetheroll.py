@@ -413,10 +413,14 @@ class Etheroll:
 
     def get_last_bets(self, address=None, page=1, offset=100):
         """
-        Retrieves address last bets (without the actual result).
+        Retrieves `address` last bets and returns the list of bets with:
+            - bet_size_ether
+            - roll_under
+        Does not return the actual roll result.
         """
         bets = []
-        transactions = self.get_player_roll_dice_tx(address=address)
+        transactions = self.get_player_roll_dice_tx(
+            address=address, page=page, offset=offset)
         for transaction in transactions:
             # from Wei to Ether
             bet_size_ether = int(transaction['value']) / pow(10, 18)

@@ -1,10 +1,8 @@
 <RollResultsScreen>:
+    on_pre_enter:
+        root.get_last_bets()
     BoxLayout:
         orientation: "vertical"
-        MDLabel:
-            text: "TODO 1"
-        MDLabel:
-            text: "TODO 2"
 		ScrollView:
 			MDList:
 				id: roll_list_id

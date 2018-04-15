@@ -425,9 +425,89 @@ class TestEtheroll(unittest.TestCase):
         self.assertEqual(m_signTransaction.call_args_list, expected_calls)
 
     def test_get_last_bets(self):
-        # TODO: do all the patching for not hitting the network
-        # with mock.patch('etherscan.contracts.Contract.get_abi') \
-        etheroll = Etheroll()
+        """
+        Verifies `get_last_bets()` performs the correct calls to underlying
+        libraries, and verifies it handle their inputs correctly.
+        """
+        # we want this unit test to still pass even if the Etheroll contract
+        # address changes, so let's make it explicit
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = '[]'
+            etheroll = Etheroll(contract_address=contract_address)
+
+        # simplified version of `get_transaction_page()` return
+        transactions = [
+            {
+                'blockHash': (
+                        '0xd0e85045f06f2ac6419ce6a3edf51b0'
+                        '3c67fc78ffe92594e29f4aeddeab67476'),
+                'blockNumber': '5442078',
+                # this transactions has the correct `from` address, but is not
+                'from': '0x46044beaa1e985c67767e04de58181de5daaa00f',
+                'hash': (
+                        '0x6191c2f77e4dee0d9677c77613c2e8d'
+                        '2785d43bc6082bf5b5b67cbd9e0eb2b54'),
+                'input': '0x',
+                'timeStamp': '1523753147',
+                # sent `to` Etheroll contract address
+                'to': '0x00e695c5d7b2f6a2e83e1b34db1390f89e2741ef',
+                'value': '197996051600000005'
+            },
+            {
+                'blockHash': (
+                        '0x9814be792821e5d98b639e211fbe8f4'
+                        'b1930b8f12fa28aeb9ecf4737e749626b'),
+                'blockNumber': '5394094',
+                'from': '0x46044beaa1e985c67767e04de58181de5daaa00f',
+                'hash': (
+                        '0x0440f1013a5eafd88f16be6b5612b6e'
+                        '051a4eb1b0b91a160c680295e7fab5bfe'),
+                'input': (
+                        '0xdc6dd152000000000000000000000000000'
+                        '000000000000000000000000000000000000e'),
+                'timeStamp': '1523060626',
+                'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+                'value': '500000000000000000',
+            },
+            {
+                'blockHash': (
+                        '0xbf5776b12ee403b3a99c03d560cd709'
+                        'a389f8342b03133c4eb9ae8fa58b5acfe'),
+                'blockNumber': '5394085',
+                'from': '0x46044beaa1e985c67767e04de58181de5daaa00f',
+                'hash': (
+                        '0x72def66d60ecc85268c714e71929953'
+                        'ef94fd4fae37632a5f56ea49bee44dd59'),
+                'input': (
+                        '0xdc6dd152000000000000000000000000000'
+                        '0000000000000000000000000000000000002'),
+                'timeStamp': '1523060494',
+                'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+                'value': '450000000000000000',
+            },
+        ]
         address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
-        bets = etheroll.get_last_bets(address=address)
-        print(bets)
+        page = 1
+        offset = 3
+        with mock.patch('etherscan.accounts.Account.get_transaction_page') \
+                as m_get_transaction_page:
+            m_get_transaction_page.return_value = transactions
+            bets = etheroll.get_last_bets(
+                address=address, page=page, offset=offset)
+            # we should have only two bets returns as the first transaction
+            # was not made to the Etheroll contract
+            self.assertEqual(
+                bets,
+                [
+                    {'bet_size_ether': 0.5, 'roll_under': 14},
+                    {'bet_size_ether': 0.45, 'roll_under': 2},
+                ]
+            )
+            # makes sure underlying library was used properly
+            expected_call = mock.call(
+                internal=False, offset=3, page=1, sort='desc')
+            # the method should have been called only once
+            expected_calls = [expected_call]
+            self.assertEqual(
+                m_get_transaction_page.call_args_list, expected_calls)

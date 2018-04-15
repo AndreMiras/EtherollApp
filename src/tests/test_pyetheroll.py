@@ -495,22 +495,21 @@ class TestEtheroll(unittest.TestCase):
             m_get_transaction_page.return_value = transactions
             bets = etheroll.get_last_bets(
                 address=address, page=page, offset=offset)
-            # we should have only two bets returns as the first transaction
-            # was not made to the Etheroll contract
-            self.assertEqual(
-                bets,
-                [
-                    {'bet_size_ether': 0.5, 'roll_under': 14},
-                    {'bet_size_ether': 0.45, 'roll_under': 2},
-                ]
-            )
-            # makes sure underlying library was used properly
-            expected_call = mock.call(
-                internal=False, offset=3, page=1, sort='desc')
-            # the method should have been called only once
-            expected_calls = [expected_call]
-            self.assertEqual(
-                m_get_transaction_page.call_args_list, expected_calls)
+        # we should have only two bets returns as the first transaction
+        # was not made to the Etheroll contract
+        self.assertEqual(
+            bets,
+            [
+                {'bet_size_ether': 0.5, 'roll_under': 14},
+                {'bet_size_ether': 0.45, 'roll_under': 2},
+            ]
+        )
+        # makes sure underlying library was used properly
+        expected_call = mock.call(
+            internal=False, offset=3, page=1, sort='desc')
+        # the method should have been called only once
+        expected_calls = [expected_call]
+        self.assertEqual(m_get_transaction_page.call_args_list, expected_calls)
 
     def test_get_logs_url(self):
         with \
@@ -615,7 +614,38 @@ class TestEtheroll(unittest.TestCase):
                 'address=0x048717Ea892F23Fb0126F00640e2b18072efd9D2&'
                 'fromBlock=1&toBlock=latest&'
                 'topic0=topic0&topic1=topic1&topic2=topic2&topic3=topic3&'
-                'topic0_1_opr=and&ortopic1_2_opr=or&andtopic2_3_opr=and&'
-                'ortopic0_2_opr=or&'
+                'topic0_1_opr=and&topic1_2_opr=or&topic2_3_opr=and&'
+                'topic0_2_opr=or&'
             )
         )
+
+    def test_get_log_bet_events(self):
+        """
+        Makes sure the Etherscan getLogs API is called correctly for LogBet.
+        """
+        with \
+                mock.patch('etherscan.contracts.Contract.get_abi') \
+                as m_get_abi, \
+                mock.patch('pyetheroll.get_etherscan_api_key') \
+                as m_get_etherscan_api_key:
+            m_get_abi.return_value = '[]'
+            m_get_etherscan_api_key.return_value = 'apikey'
+            etheroll = Etheroll()
+        player_adress = '0x46044beaa1e985c67767e04de58181de5daaa00f'
+        from_block = 5394085
+        to_block = 5442078
+        with mock.patch('requests.get') as m_get:
+            etheroll.get_log_bet_events(
+                player_adress, from_block, to_block)
+        expected_call = mock.call(
+            'https://api.etherscan.io/api?module=logs&action=getLogs'
+            '&apikey=apikey'
+            '&address=0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+            '&fromBlock=5394085&toBlock=5442078'
+            '&topic0=0x'
+            '56b3f1a6cd856076d6f8adbf8170c43a0b0f532fc5696a2699a0e0cabc704163'
+            '&topic2=0x'
+            '00000000000000000000000046044beaa1e985c67767e04de58181de5daaa00f'
+            '&topic0_2_opr=and&')
+        expected_calls = [expected_call]
+        self.assertEqual(m_get.call_args_list, expected_calls)

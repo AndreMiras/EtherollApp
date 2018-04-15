@@ -458,27 +458,75 @@ class Etheroll:
         if topic3 is not None:
             url += 'topic3={}&'.format(topic3)
         if topic_opr is not None:
-            topic0_1_opr = topic_opr.get('topic0_1_opr')
+            topic0_1_opr = topic_opr.get('topic0_1_opr', '')
             topic0_1_opr = 'topic0_1_opr={}&'.format(topic0_1_opr) \
-                if topic0_1_opr is not None else ''
-            topic1_2_opr = topic_opr.get('topic1_2_opr')
-            topic1_2_opr += 'topic1_2_opr={}&'.format(topic1_2_opr) \
-                if topic1_2_opr is not None else ''
-            topic2_3_opr = topic_opr.get('topic2_3_opr')
-            topic2_3_opr += 'topic2_3_opr={}&'.format(topic2_3_opr) \
-                if topic2_3_opr is not None else ''
-            topic0_2_opr = topic_opr.get('topic0_2_opr')
-            topic0_2_opr += 'topic0_2_opr={}&'.format(topic0_2_opr) \
-                if topic0_2_opr is not None else ''
+                if topic0_1_opr else ''
+            topic1_2_opr = topic_opr.get('topic1_2_opr', '')
+            topic1_2_opr = 'topic1_2_opr={}&'.format(topic1_2_opr) \
+                if topic1_2_opr else ''
+            topic2_3_opr = topic_opr.get('topic2_3_opr', '')
+            topic2_3_opr = 'topic2_3_opr={}&'.format(topic2_3_opr) \
+                if topic2_3_opr else ''
+            topic0_2_opr = topic_opr.get('topic0_2_opr', '')
+            topic0_2_opr = 'topic0_2_opr={}&'.format(topic0_2_opr) \
+                if topic0_2_opr else ''
             url += topic0_1_opr + topic1_2_opr + topic2_3_opr + topic0_2_opr
         return url
 
-    # TODO: add some topics filtering (e.g. from_address)
-    def get_logs(self, address, from_block, to_block='latest', topic0=None):
+    def get_logs(
+            self, address, from_block, to_block='latest',
+            topic0=None, topic1=None, topic2=None, topic3=None,
+            topic_opr=None):
         """
         Currently py-etherscan-api doesn't provide support for event logs, see:
         https://github.com/corpetty/py-etherscan-api/issues/26
         """
-        url = self.get_logs_url(address, from_block, to_block, topic0)
+        url = self.get_logs_url(
+            address, from_block, to_block, topic0, topic1, topic2, topic3,
+            topic_opr)
         response = requests.get(url)
         return response.json()
+
+    def get_log_bet_events(self, player_adress, from_block, to_block='latest'):
+        """
+        Retrieves all `LogBet` events associated with `player_adress`
+        between two blocks.
+        """
+        # TODO: hardcoded, use `Etheroll.events_signatures()` instead
+        log_bet_signature = (
+            '0x56b3f1a6cd856076d6f8adbf8170c43'
+            'a0b0f532fc5696a2699a0e0cabc704163')
+        address = self.contract_address
+        topic0 = log_bet_signature
+        # adds zero padding to match topic format (32 bytes)
+        topic2 = '0x' + player_adress[2:].zfill(2*32)
+        topic_opr = {
+            'topic0_2_opr': 'and',
+        }
+        logs = self.get_logs(
+            address, from_block, to_block, topic0, topic2=topic2,
+            topic_opr=topic_opr)
+        return logs
+
+    def get_log_result_events(
+            self, player_adress, from_block, to_block='latest'):
+        """
+        Retrieves all `LogResult` events associated with `player_adress`
+        between two blocks.
+        """
+        # TODO: hardcoded, use `Etheroll.events_signatures()` instead
+        log_result_signature = (
+            '0x8dd0b145385d04711e29558ceab40b4'
+            '56976a2b9a7d648cc1bcd416161bf97b9')
+        address = self.contract_address
+        topic0 = log_result_signature
+        # adds zero padding to match topic format (32 bytes)
+        topic3 = '0x' + player_adress[2:].zfill(2*32)
+        topic_opr = {
+            # TODO: `topic0_3_opr` is not available on Etherscan
+            'topic0_3_opr': 'and',
+        }
+        logs = self.get_logs(
+            address, from_block, to_block, topic0, topic3=topic3,
+            topic_opr=topic_opr)
+        return logs

@@ -423,3 +423,11 @@ class TestEtheroll(unittest.TestCase):
         # the method should have been called only once
         expected_calls = [expected_call]
         self.assertEqual(m_signTransaction.call_args_list, expected_calls)
+
+    def test_get_last_bets(self):
+        # TODO: do all the patching for not hitting the network
+        # with mock.patch('etherscan.contracts.Contract.get_abi') \
+        etheroll = Etheroll()
+        address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
+        bets = etheroll.get_last_bets(address=address)
+        print(bets)

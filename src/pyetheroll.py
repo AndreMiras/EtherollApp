@@ -15,6 +15,7 @@ from ethereum.abi import decode_abi
 from ethereum.abi import method_id as get_abi_method_id
 from ethereum.abi import normalize_name as normalize_abi_method_name
 from ethereum.utils import checksum_encode, decode_hex, encode_int, zpad
+from etherscan.accounts import Account as EtherscanAccount
 from etherscan.contracts import Contract as EtherscanContract
 from pyethapp.accounts import Account
 from web3 import HTTPProvider, Web3
@@ -81,6 +82,9 @@ class RopstenEtherscanContract(EtherscanContract):
 
 
 class ChainEtherscanContractFactory:
+    """
+    Creates Contract class type depending on the chain ID.
+    """
 
     CONTRACTS = {
         ChainID.MAINNET: EtherscanContract,
@@ -91,6 +95,29 @@ class ChainEtherscanContractFactory:
     def create(cls, chain_id=ChainID.MAINNET):
         ChainEtherscanContract = cls.CONTRACTS[chain_id]
         return ChainEtherscanContract
+
+
+class RopstenEtherscanAccount(EtherscanAccount):
+    """
+    https://github.com/corpetty/py-etherscan-api/issues/24
+    """
+    PREFIX = 'https://api-ropsten.etherscan.io/api?'
+
+
+class ChainEtherscanAccountFactory:
+    """
+    Creates Account class type depending on the chain ID.
+    """
+
+    ACCOUNTS = {
+        ChainID.MAINNET: EtherscanAccount,
+        ChainID.ROPSTEN: RopstenEtherscanAccount,
+    }
+
+    @classmethod
+    def create(cls, chain_id=ChainID.MAINNET):
+        ChainEtherscanAccount = cls.ACCOUNTS[chain_id]
+        return ChainEtherscanAccount
 
 
 class HTTPProviderFactory:
@@ -227,14 +254,18 @@ class Etheroll:
         self.provider = HTTPProviderFactory.create(self.chain_id)
         self.web3 = Web3(self.provider)
         # print("blockNumber:", self.web3.eth.blockNumber)
-        key = get_etherscan_api_key()
+        self.etherscan_api_key = get_etherscan_api_key()
         ChainEtherscanContract = ChainEtherscanContractFactory.create(
             self.chain_id)
+        self.ChainEtherscanAccount = ChainEtherscanAccountFactory.create(
+            self.chain_id)
+        # object construction needs to be within the context manager because
+        # the requests.Session object to be patched is initialized in the
+        # constructor
         with requests_cache.enabled(**requests_cache_params):
-            api = ChainEtherscanContract(
-                address=self.contract_address, api_key=key)
-            json_abi = api.get_abi()
-        self.abi = json.loads(json_abi)
+            self.etherscan_contract_api = ChainEtherscanContract(
+                address=self.contract_address, api_key=self.etherscan_api_key)
+            self.abi = json.loads(self.etherscan_contract_api.get_abi())
         # contract_factory_class = ConciseContract
         contract_factory_class = Contract
         self.contract = self.web3.eth.contract(
@@ -343,3 +374,59 @@ class Etheroll:
             transaction, private_key)
         tx_hash = self.web3.eth.sendRawTransaction(signed_tx.rawTransaction)
         return tx_hash
+
+    def get_transaction_page(
+            self, address=None, page=1, offset=100, internal=False):
+        """
+        Retrieves all transactions related to the given address.
+        """
+        if address is None:
+            address = self.contract_address
+        # that one should not be cached, because we want the user to know
+        # realtime what's happening with his transaction
+        etherscan_account_api = self.ChainEtherscanAccount(
+            address=address, api_key=self.etherscan_api_key)
+        sort = 'desc'
+        transactions = etherscan_account_api.get_transaction_page(
+            page=page, offset=offset, sort=sort, internal=internal)
+        return transactions
+
+    def get_player_roll_dice_tx(self, address, page=1, offset=100):
+        """
+        Retrieves `address` last `playerRollDice` transactions associated with
+        the Etheroll contract.
+        """
+        # last transactions from/to address
+        transactions = self.get_transaction_page(
+            address=address, page=page, offset=offset)
+        # keeps only transactions sent to Etheroll contract
+        transactions = filter(
+            lambda t: t['to'].lower() == self.contract_address.lower(),
+            transactions)
+        # TODO: hardcoded methodID, retrieve it from contract ABI instead
+        # keeps only transactions to `playerRollDice` methodID
+        method_id = '0xdc6dd152'
+        transactions = filter(
+            lambda t: t['input'].lower().startswith(method_id),
+            transactions)
+        return transactions
+
+    def get_last_bets(self, address=None, page=1, offset=100):
+        """
+        Retrieves address last bets (without the actual result).
+        """
+        bets = []
+        transactions = self.get_player_roll_dice_tx(address=address)
+        for transaction in transactions:
+            # from Wei to Ether
+            bet_size_ether = int(transaction['value']) / pow(10, 18)
+            # `playerRollDice(uint256 rollUnder)`, rollUnder is 256 bits
+            # let's strip it from methodID and keep only 32 bytes
+            roll_under = transaction['input'][-2*32:]
+            roll_under = int(roll_under, 16)
+            bet = {
+                'bet_size_ether': bet_size_ether,
+                'roll_under': roll_under,
+            }
+            bets.append(bet)
+        return bets

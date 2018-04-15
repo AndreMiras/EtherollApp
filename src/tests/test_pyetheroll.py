@@ -556,3 +556,66 @@ class TestEtheroll(unittest.TestCase):
                 'fromBlock=1&toBlock=latest&'
             )
         )
+
+    def test_get_logs_url_topics(self):
+        """
+        More advanced tests for topic support.
+        """
+        with \
+                mock.patch('etherscan.contracts.Contract.get_abi') \
+                as m_get_abi, \
+                mock.patch('pyetheroll.get_etherscan_api_key') \
+                as m_get_etherscan_api_key:
+            m_get_abi.return_value = '[]'
+            m_get_etherscan_api_key.return_value = 'apikey'
+            etheroll = Etheroll()
+        address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        from_block = 1
+        logs_url = etheroll.get_logs_url(
+            address=address, from_block=from_block)
+        self.assertEqual(
+            logs_url,
+            (
+                'https://api.etherscan.io/api?'
+                'module=logs&action=getLogs&apikey=apikey'
+                '&address=0x048717Ea892F23Fb0126F00640e2b18072efd9D2&'
+                'fromBlock=1&toBlock=latest&'
+            )
+        )
+        # makes sure Testnet is also supported
+        with \
+                mock.patch('etherscan.contracts.Contract.get_abi') \
+                as m_get_abi, \
+                mock.patch('pyetheroll.get_etherscan_api_key') \
+                as m_get_etherscan_api_key:
+            m_get_abi.return_value = '[]'
+            m_get_etherscan_api_key.return_value = 'apikey'
+            etheroll = Etheroll(chain_id=ChainID.ROPSTEN)
+        address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        from_block = 1
+        topic0 = 'topic0'
+        topic1 = 'topic1'
+        topic2 = 'topic2'
+        topic3 = 'topic3'
+        topic_opr = {
+            'topic0_1_opr': 'and',
+            'topic1_2_opr': 'or',
+            'topic2_3_opr': 'and',
+            'topic0_2_opr': 'or',
+        }
+        logs_url = etheroll.get_logs_url(
+            address=address, from_block=from_block,
+            topic0=topic0, topic1=topic1, topic2=topic2, topic3=topic3,
+            topic_opr=topic_opr)
+        self.assertEqual(
+            logs_url,
+            (
+                'https://api-ropsten.etherscan.io/api?'
+                'module=logs&action=getLogs&apikey=apikey&'
+                'address=0x048717Ea892F23Fb0126F00640e2b18072efd9D2&'
+                'fromBlock=1&toBlock=latest&'
+                'topic0=topic0&topic1=topic1&topic2=topic2&topic3=topic3&'
+                'topic0_1_opr=and&ortopic1_2_opr=or&andtopic2_3_opr=and&'
+                'ortopic0_2_opr=or&'
+            )
+        )

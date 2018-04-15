@@ -10,6 +10,7 @@ import os
 from enum import Enum
 
 import eth_abi
+import requests
 import requests_cache
 from ethereum.abi import decode_abi
 from ethereum.abi import method_id as get_abi_method_id
@@ -436,7 +437,9 @@ class Etheroll:
         return bets
 
     def get_logs_url(
-            self, address, from_block, to_block='latest', topic0=None):
+            self, address, from_block, to_block='latest',
+            topic0=None, topic1=None, topic2=None, topic3=None,
+            topic_opr=None):
         """
         Builds the Etherscan API URL call for the `getLogs` action.
         """
@@ -448,4 +451,34 @@ class Etheroll:
         url += 'toBlock={}&'.format(to_block)
         if topic0 is not None:
             url += 'topic0={}&'.format(topic0)
+        if topic1 is not None:
+            url += 'topic1={}&'.format(topic1)
+        if topic2 is not None:
+            url += 'topic2={}&'.format(topic2)
+        if topic3 is not None:
+            url += 'topic3={}&'.format(topic3)
+        if topic_opr is not None:
+            topic0_1_opr = topic_opr.get('topic0_1_opr')
+            topic0_1_opr = 'topic0_1_opr={}&'.format(topic0_1_opr) \
+                if topic0_1_opr is not None else ''
+            topic1_2_opr = topic_opr.get('topic1_2_opr')
+            topic1_2_opr += 'topic1_2_opr={}&'.format(topic1_2_opr) \
+                if topic1_2_opr is not None else ''
+            topic2_3_opr = topic_opr.get('topic2_3_opr')
+            topic2_3_opr += 'topic2_3_opr={}&'.format(topic2_3_opr) \
+                if topic2_3_opr is not None else ''
+            topic0_2_opr = topic_opr.get('topic0_2_opr')
+            topic0_2_opr += 'topic0_2_opr={}&'.format(topic0_2_opr) \
+                if topic0_2_opr is not None else ''
+            url += topic0_1_opr + topic1_2_opr + topic2_3_opr + topic0_2_opr
         return url
+
+    # TODO: add some topics filtering (e.g. from_address)
+    def get_logs(self, address, from_block, to_block='latest', topic0=None):
+        """
+        Currently py-etherscan-api doesn't provide support for event logs, see:
+        https://github.com/corpetty/py-etherscan-api/issues/26
+        """
+        url = self.get_logs_url(address, from_block, to_block, topic0)
+        response = requests.get(url)
+        return response.json()

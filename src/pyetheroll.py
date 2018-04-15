@@ -434,3 +434,18 @@ class Etheroll:
             }
             bets.append(bet)
         return bets
+
+    def get_logs_url(
+            self, address, from_block, to_block='latest', topic0=None):
+        """
+        Builds the Etherscan API URL call for the `getLogs` action.
+        """
+        url = self.ChainEtherscanAccount.PREFIX
+        url += 'module=logs&action=getLogs&'
+        url += 'apikey={}&'.format(self.etherscan_api_key)
+        url += 'address={}&'.format(address)
+        url += 'fromBlock={}&'.format(from_block)
+        url += 'toBlock={}&'.format(to_block)
+        if topic0 is not None:
+            url += 'topic0={}&'.format(topic0)
+        return url

@@ -521,7 +521,7 @@ class TestEtheroll(unittest.TestCase):
             m_get_abi.return_value = '[]'
             m_get_etherscan_api_key.return_value = 'apikey'
             etheroll = Etheroll()
-        address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
+        address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
         from_block = 1
         logs_url = etheroll.get_logs_url(
             address=address, from_block=from_block)
@@ -530,7 +530,7 @@ class TestEtheroll(unittest.TestCase):
             (
                 'https://api.etherscan.io/api?'
                 'module=logs&action=getLogs&apikey=apikey'
-                '&address=0x46044beaa1e985c67767e04de58181de5daaa00f&'
+                '&address=0x048717Ea892F23Fb0126F00640e2b18072efd9D2&'
                 'fromBlock=1&toBlock=latest&'
             )
         )
@@ -543,7 +543,7 @@ class TestEtheroll(unittest.TestCase):
             m_get_abi.return_value = '[]'
             m_get_etherscan_api_key.return_value = 'apikey'
             etheroll = Etheroll(chain_id=ChainID.ROPSTEN)
-        address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
+        address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
         from_block = 1
         logs_url = etheroll.get_logs_url(
             address=address, from_block=from_block)
@@ -552,7 +552,7 @@ class TestEtheroll(unittest.TestCase):
             (
                 'https://api-ropsten.etherscan.io/api?'
                 'module=logs&action=getLogs&apikey=apikey&'
-                'address=0x46044beaa1e985c67767e04de58181de5daaa00f&'
+                'address=0x048717Ea892F23Fb0126F00640e2b18072efd9D2&'
                 'fromBlock=1&toBlock=latest&'
             )
         )

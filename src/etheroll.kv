@@ -9,7 +9,8 @@
 #:import MDSlider kivymd.slider.MDSlider
 #:import Toolbar kivymd.toolbar.Toolbar
 #:import AddressButton addressbutton.AddressButton
-#:import ROUND_DIGITS etheroll.ROUND_DIGITS
+#:import RollResultsScreen roll_results.RollResultsScreen
+#:import ROUND_DIGITS constants.ROUND_DIGITS
 
 
 # need this hack to push widgets up
@@ -216,14 +217,6 @@
                 text: "Roll"
 
 
-<RollResultsScreen>:
-    BoxLayout:
-        orientation: "vertical"
-        MDLabel:
-            text: "TODO 1"
-        MDLabel:
-            text: "TODO 2"
-
 
 <CustomToolbar>:
     title: "Etheroll"
@@ -242,6 +235,12 @@
             on_release:
                 app.root.ids.screen_manager_id.transition.direction = "left"
                 app.root.ids.screen_manager_id.current = "roll_screen"
+        NavigationDrawerIconButton:
+            icon: "format-list-bulleted"
+            text: "Roll results"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "left"
+                app.root.ids.screen_manager_id.current = "roll_results_screen"
         NavigationDrawerIconButton:
             icon: "key"
             text: "Wallet"

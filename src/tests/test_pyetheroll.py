@@ -424,10 +424,10 @@ class TestEtheroll(unittest.TestCase):
         expected_calls = [expected_call]
         self.assertEqual(m_signTransaction.call_args_list, expected_calls)
 
-    def test_get_last_bets(self):
+    def test_get_last_bets_transactions(self):
         """
-        Verifies `get_last_bets()` performs the correct calls to underlying
-        libraries, and verifies it handle their inputs correctly.
+        Verifies `get_last_bets_transactions()` performs the correct calls to
+        underlying libraries, and verifies it handle their inputs correctly.
         """
         # we want this unit test to still pass even if the Etheroll contract
         # address changes, so let's make it explicit
@@ -493,7 +493,7 @@ class TestEtheroll(unittest.TestCase):
         with mock.patch('etherscan.accounts.Account.get_transaction_page') \
                 as m_get_transaction_page:
             m_get_transaction_page.return_value = transactions
-            bets = etheroll.get_last_bets(
+            bets = etheroll.get_last_bets_transactions(
                 address=address, page=page, offset=offset)
         # we should have only two bets returns as the first transaction
         # was not made to the Etheroll contract
@@ -760,4 +760,107 @@ class TestEtheroll(unittest.TestCase):
             logs = etheroll.get_log_result_events(
                 player_address, from_block, to_block)
         expected_logs = [matching_event]
+        self.assertEqual(logs, expected_logs)
+
+    def test_get_bets_logs(self):
+        """
+        Verifies `get_bets_logs()` can retrieve bet info out from the logs.
+        """
+        # simplified contract ABI
+        contract_abi = [
+          {
+            'inputs': [
+              {'indexed': True, 'type': 'bytes32', 'name': 'BetID'},
+              {'indexed': True, 'type': 'address', 'name': 'PlayerAddress'},
+              {'indexed': True, 'type': 'uint256', 'name': 'RewardValue'},
+              {'indexed': False, 'type': 'uint256', 'name': 'ProfitValue'},
+              {'indexed': False, 'type': 'uint256', 'name': 'BetValue'},
+              {'indexed': False, 'type': 'uint256', 'name': 'PlayerNumber'},
+              {'indexed': False, 'type': 'uint256', 'name': 'RandomQueryID'},
+            ],
+            'type': 'event', 'name': 'LogBet', 'anonymous': False
+          },
+        ]
+        # simplified (a bit) for tests
+        get_log_bet_events = [
+         {
+          'address': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+          'blockNumber': '0x524e94',
+          'data': (
+            '0x0000000000000000000000000000000000000000000000026402ac5922ba000'
+            '0000000000000000000000000000000000000000000000000063eb89da4ed0000'
+            '00000000000000000000000000000000000000000000000000000000000000020'
+            '000000000000000000000000000000000000000000000000000000000002aea'),
+          'logIndex': '0x2a',
+          'timeStamp': '0x5ac80e02',
+          'topics': [
+           '56b3f1a6cd856076d6f8adbf8170c43a0b0f532fc5696a2699a0e0cabc704163',
+           '15e007148ec621d996c886de0f2b88a03af083aa819e851a51133dc17b6e0e5b',
+           '00000000000000000000000046044beaa1e985c67767e04de58181de5daaa00f',
+           '0000000000000000000000000000000000000000000000026a4164f6c7a70000',
+          ],
+          'transactionHash': (
+           '0xf363906a9278c4dd300c50a3c9a2790'
+           '0bb85df60596c49f7833c232f2944d1cb'),
+         },
+         {
+          'address': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+          'blockNumber': '0x524eae',
+          'data': (
+           '0x0000000000000000000000000000000000000000000000002de748a1024ac4eb'
+           '00000000000000000000000000000000000000000000000006f05b59d3b2000000'
+           '0000000000000000000000000000000000000000000000000000000000000e0000'
+           '000000000000000000000000000000000000000000000000000000002af9'),
+          'logIndex': '0x1c',
+          'timeStamp': '0x5ac80f92',
+          'topics': [
+           '56b3f1a6cd856076d6f8adbf8170c43a0b0f532fc5696a2699a0e0cabc704163',
+           'c2997a1bad35841b2c30ca95eea9cb08c7b101bc14d5aa8b1b8a0facea793e05',
+           '00000000000000000000000046044beaa1e985c67767e04de58181de5daaa00f',
+           '00000000000000000000000000000000000000000000000034d7a3fad5fcc4eb',
+          ],
+          'transactionHash': (
+           '0x0440f1013a5eafd88f16be6b5612b6e'
+           '051a4eb1b0b91a160c680295e7fab5bfe'),
+         }
+        ]
+        with mock.patch('etherscan.contracts.Contract.get_abi') \
+                as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll()
+        address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
+        from_block = 5394067
+        to_block = 5394095
+        with mock.patch('pyetheroll.Etheroll.get_log_bet_events') \
+                as m_get_log_bet_events:
+            m_get_log_bet_events.return_value = get_log_bet_events
+            logs = etheroll.get_bets_logs(address, from_block, to_block)
+        expected_logs = [
+            {
+                'bet_id': (
+                    '15e007148ec621d996c886de0f2b88a0'
+                    '3af083aa819e851a51133dc17b6e0e5b'),
+                'bet_value_ether': 0.45,
+                'profit_value_ether': 44.1,
+                'reward_value_ether': 44.55,
+                'roll_under': 2,
+                'timestamp': '0x5ac80e02',
+                'transaction_hash': (
+                    '0xf363906a9278c4dd300c50a3c9a2790'
+                    '0bb85df60596c49f7833c232f2944d1cb'),
+            },
+            {
+                'bet_id': (
+                    'c2997a1bad35841b2c30ca95eea9cb08'
+                    'c7b101bc14d5aa8b1b8a0facea793e05'),
+                'bet_value_ether': 0.5,
+                'profit_value_ether': 3.31,
+                'reward_value_ether': 3.81,
+                'roll_under': 14,
+                'timestamp': '0x5ac80f92',
+                'transaction_hash': (
+                    '0x0440f1013a5eafd88f16be6b5612b6e'
+                    '051a4eb1b0b91a160c680295e7fab5bfe'),
+            },
+        ]
         self.assertEqual(logs, expected_logs)

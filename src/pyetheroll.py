@@ -18,11 +18,13 @@ from ethereum.abi import normalize_name as normalize_abi_method_name
 from ethereum.utils import checksum_encode, decode_hex, encode_int, zpad
 from etherscan.accounts import Account as EtherscanAccount
 from etherscan.contracts import Contract as EtherscanContract
+from hexbytes.main import HexBytes
 from pyethapp.accounts import Account
 from web3 import HTTPProvider, Web3
 from web3.auto import w3
 from web3.contract import Contract
 
+import constants
 from ethereum_utils import AccountUtils
 
 requests_cache_params = {
@@ -266,11 +268,12 @@ class Etheroll:
         with requests_cache.enabled(**requests_cache_params):
             self.etherscan_contract_api = ChainEtherscanContract(
                 address=self.contract_address, api_key=self.etherscan_api_key)
-            self.abi = json.loads(self.etherscan_contract_api.get_abi())
+            self.contract_abi = json.loads(
+                self.etherscan_contract_api.get_abi())
         # contract_factory_class = ConciseContract
         contract_factory_class = Contract
         self.contract = self.web3.eth.contract(
-            abi=self.abi, address=self.contract_address,
+            abi=self.contract_abi, address=self.contract_address,
             ContractFactoryClass=contract_factory_class)
 
     def events_abi(self, contract_abi=None):
@@ -278,7 +281,7 @@ class Etheroll:
         Returns only ABI definition of type "event".
         """
         if contract_abi is None:
-            contract_abi = self.abi
+            contract_abi = self.contract_abi
         return [a for a in contract_abi if a['type'] == 'event']
 
     def events_definitions(self, contract_abi=None):
@@ -414,9 +417,10 @@ class Etheroll:
         transactions = list(transactions)
         return transactions
 
-    def get_last_bets(self, address=None, page=1, offset=100):
+    def get_last_bets_transactions(self, address=None, page=1, offset=100):
         """
-        Retrieves `address` last bets and returns the list of bets with:
+        Retrieves `address` last bets from transactions and returns the list
+        of bets with:
             - bet_size_ether
             - roll_under
         Does not return the actual roll result.
@@ -426,7 +430,7 @@ class Etheroll:
             address=address, page=page, offset=offset)
         for transaction in transactions:
             # from Wei to Ether
-            bet_size_ether = int(transaction['value']) / pow(10, 18)
+            bet_size_ether = int(transaction['value']) / 1e18
             # `playerRollDice(uint256 rollUnder)`, rollUnder is 256 bits
             # let's strip it from methodID and keep only 32 bytes
             roll_under = transaction['input'][-2*32:]
@@ -434,6 +438,45 @@ class Etheroll:
             bet = {
                 'bet_size_ether': bet_size_ether,
                 'roll_under': roll_under,
+            }
+            bets.append(bet)
+        return bets
+
+    def get_bets_logs(self, address, from_block, to_block='latest'):
+        """
+        Retrieves `address` last bets from event logs and returns the list
+        of bets with info. Does not return the actual roll result.
+        """
+        bets = []
+        bet_events = self.get_log_bet_events(address, from_block, to_block)
+        contract_abi = self.contract_abi
+        for bet_event in bet_events:
+            # TODO: not so efficient to call that method in a loop this way
+            topics = [HexBytes(topic) for topic in bet_event['topics']]
+            log_data = bet_event['data']
+            decoded_method = TransactionDebugger.decode_method(
+                contract_abi, topics, log_data)
+            call = decoded_method['call']
+            bet_id = call['BetID'].hex()
+            reward_value = call['RewardValue']
+            reward_value_ether = round(
+                reward_value / 1e18, constants.ROUND_DIGITS)
+            profit_value = call['ProfitValue']
+            profit_value_ether = round(
+                profit_value / 1e18, constants.ROUND_DIGITS)
+            bet_value = call['BetValue']
+            bet_value_ether = round(bet_value / 1e18, constants.ROUND_DIGITS)
+            roll_under = call['PlayerNumber']
+            timestamp = bet_event['timeStamp']
+            transaction_hash = bet_event['transactionHash']
+            bet = {
+                'bet_id': bet_id,
+                'reward_value_ether': reward_value_ether,
+                'profit_value_ether': profit_value_ether,
+                'bet_value_ether': bet_value_ether,
+                'roll_under': roll_under,
+                'timestamp': timestamp,
+                'transaction_hash': transaction_hash,
             }
             bets.append(bet)
         return bets
@@ -488,7 +531,7 @@ class Etheroll:
             topic_opr)
         response = requests.get(url)
         response = response.json()
-        logs = response['results']
+        logs = response['result']
         return logs
 
     def get_log_bet_events(

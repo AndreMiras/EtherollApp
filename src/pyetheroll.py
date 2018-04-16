@@ -522,11 +522,17 @@ class Etheroll:
         topic0 = log_result_signature
         # adds zero padding to match topic format (32 bytes)
         topic3 = '0x' + player_adress[2:].zfill(2*32)
+        # `topic0_3_opr` is currently not supported on Etherscan
         topic_opr = {
-            # TODO: `topic0_3_opr` is not available on Etherscan
             'topic0_3_opr': 'and',
         }
+        # so we "cheat"
+        topic_opr = None
+        # and skip topic0 filtering
+        topic0 = None
         logs = self.get_logs(
             address, from_block, to_block, topic0, topic3=topic3,
             topic_opr=topic_opr)
+        # to later filter it in Python
+        # TODO
         return logs

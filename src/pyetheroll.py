@@ -423,10 +423,7 @@ class Etheroll:
     def get_last_bets_transactions(self, address=None, page=1, offset=100):
         """
         Retrieves `address` last bets from transactions and returns the list
-        of bets with:
-            - bet_size_ether
-            - roll_under
-        Does not return the actual roll result.
+        of bets infos. Does not return the actual roll result.
         """
         bets = []
         transactions = self.get_player_roll_dice_tx(
@@ -438,9 +435,15 @@ class Etheroll:
             # let's strip it from methodID and keep only 32 bytes
             roll_under = transaction['input'][-2*32:]
             roll_under = int(roll_under, 16)
+            block_number = transaction['blockNumber']
+            timestamp = transaction['timeStamp']
+            transaction_hash = transaction['hash']
             bet = {
                 'bet_size_ether': bet_size_ether,
                 'roll_under': roll_under,
+                'block_number': block_number,
+                'timestamp': timestamp,
+                'transaction_hash': transaction_hash,
             }
             bets.append(bet)
         return bets
@@ -486,8 +489,8 @@ class Etheroll:
 
     def get_bet_results_logs(self, address, from_block, to_block='latest'):
         """
-        Retrieves `address` last bet results from event logs and returns the
-        list of bet results with decoded info.
+        Retrieves `address` bet results from event logs and returns the list of
+        bet results with decoded info.
         """
         results = []
         result_events = self.get_log_result_events(
@@ -516,6 +519,25 @@ class Etheroll:
                 'transaction_hash': transaction_hash,
             }
             results.append(bet)
+        return results
+
+    def get_last_bets_results_logs(self, address):
+        """
+        Retrieves most recent bet results from event logs.
+        """
+        # retrieves recent `playerRollDice` transactions
+        transactions = self.get_player_roll_dice_tx(address)
+        # take the oldest block of the recent transactions
+        oldest_tx = transactions[-1]
+        from_block = int(oldest_tx['blockNumber'])
+        # makes sure this block is included in the search
+        from_block -= 1
+        # take the most recent block of the recent transactions
+        last_tx = transactions[0]
+        to_block = int(last_tx['blockNumber'])
+        # the result for the last roll is included in later blocks
+        to_block += 100
+        results = self.get_bet_results_logs(address, from_block, to_block)
         return results
 
     def get_logs_url(

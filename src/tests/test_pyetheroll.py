@@ -500,8 +500,24 @@ class TestEtheroll(unittest.TestCase):
         self.assertEqual(
             bets,
             [
-                {'bet_size_ether': 0.5, 'roll_under': 14},
-                {'bet_size_ether': 0.45, 'roll_under': 2},
+                {
+                    'bet_size_ether': 0.5,
+                    'roll_under': 14,
+                    'block_number': '5394094',
+                    'timestamp': '1523060626',
+                    'transaction_hash': (
+                        '0x0440f1013a5eafd88f16be6b5612b6e'
+                        '051a4eb1b0b91a160c680295e7fab5bfe'),
+                },
+                {
+                    'bet_size_ether': 0.45,
+                    'roll_under': 2,
+                    'block_number': '5394085',
+                    'timestamp': '1523060494',
+                    'transaction_hash': (
+                        '0x72def66d60ecc85268c714e71929953'
+                        'ef94fd4fae37632a5f56ea49bee44dd59'),
+                },
             ]
         )
         # makes sure underlying library was used properly
@@ -1000,3 +1016,10 @@ class TestEtheroll(unittest.TestCase):
             },
         ]
         self.assertEqual(results, expected_results)
+
+    def test_get_last_bets_results_logs(self):
+        # TODO
+        # etheroll = Etheroll()
+        # address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
+        # results = etheroll.get_last_bets_results_logs(address)
+        pass

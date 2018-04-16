@@ -11,7 +11,7 @@ load_kv_from_py(__file__)
 
 class RollResultsScreen(SubScreen):
 
-    bets = ListProperty()
+    roll_results = ListProperty()
 
     def __init__(self, **kwargs):
         super(RollResultsScreen, self).__init__(**kwargs)
@@ -26,16 +26,17 @@ class RollResultsScreen(SubScreen):
         self.update_roll_list()
 
     @mainthread
-    def on_bets(self, instance, value):
+    def on_roll_results(self, instance, value):
         """
-        Updates UI using bets list.
+        Updates UI using roll results list.
         """
         self.update_roll_list()
 
     @run_in_thread
-    def get_last_bets(self):
+    def get_last_results(self):
         """
-        Gets last bets using pyetheroll lib and updates `bets` list property.
+        Gets last roll results using pyetheroll lib and updates `roll_results`
+        list property.
         """
         controller = self.controller
         account = controller.switch_account_screen.current_account
@@ -43,17 +44,23 @@ class RollResultsScreen(SubScreen):
             controller.on_account_none()
             return
         address = "0x" + account.address.hex()
-        self.bets = self.pyetheroll.get_last_bets(address=address)
+        self.roll_results = self.pyetheroll.get_last_bets_results_logs(
+            address=address)
 
     @staticmethod
     def create_item_from_dict(roll_dict):
         """
         Creates a roll list item from a roll dictionary.
         """
-        bet_size_ether = roll_dict['bet_size_ether']
+        bet_value_ether = roll_dict['bet_value_ether']
         roll_under = roll_dict['roll_under']
-        text = 'roll under: {0}, bet size: {1:.{2}f} ETH'.format(
-            roll_under, bet_size_ether, constants.ROUND_DIGITS)
+        dice_result = roll_dict['dice_result']
+        roll_under = roll_dict['roll_under']
+        player_won = roll_under < dice_result
+        sign = '>' if player_won else '<'
+        text = '{0} {1} {2}, bet size: {3:.{4}f} ETH'.format(
+            dice_result, sign, roll_under, bet_value_ether,
+            constants.ROUND_DIGITS)
         secondary_text = text
         list_item = TwoLineListItem(
             text=text, secondary_text=secondary_text)
@@ -61,10 +68,11 @@ class RollResultsScreen(SubScreen):
 
     def update_roll_list(self):
         """
-        Updates the roll list widget.
+        Updates the roll results list widget.
         """
         roll_list = self.ids.roll_list_id
         roll_list.clear_widgets()
-        for bet in self.bets:
-            list_item = self.create_item_from_dict(bet)
+        roll_results = reversed(self.roll_results)
+        for roll_result in roll_results:
+            list_item = self.create_item_from_dict(roll_result)
             roll_list.add_widget(list_item)

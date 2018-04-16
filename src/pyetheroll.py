@@ -410,6 +410,8 @@ class Etheroll:
         transactions = filter(
             lambda t: t['input'].lower().startswith(method_id),
             transactions)
+        # let's not keep it as an iterator
+        transactions = list(transactions)
         return transactions
 
     def get_last_bets(self, address=None, page=1, offset=100):
@@ -485,11 +487,14 @@ class Etheroll:
             address, from_block, to_block, topic0, topic1, topic2, topic3,
             topic_opr)
         response = requests.get(url)
-        return response.json()
+        response = response.json()
+        logs = response['results']
+        return logs
 
-    def get_log_bet_events(self, player_adress, from_block, to_block='latest'):
+    def get_log_bet_events(
+            self, player_address, from_block, to_block='latest'):
         """
-        Retrieves all `LogBet` events associated with `player_adress`
+        Retrieves all `LogBet` events associated with `player_address`
         between two blocks.
         """
         # TODO: hardcoded, use `Etheroll.events_signatures()` instead
@@ -499,7 +504,7 @@ class Etheroll:
         address = self.contract_address
         topic0 = log_bet_signature
         # adds zero padding to match topic format (32 bytes)
-        topic2 = '0x' + player_adress[2:].zfill(2*32)
+        topic2 = '0x' + player_address[2:].zfill(2*32)
         topic_opr = {
             'topic0_2_opr': 'and',
         }
@@ -509,9 +514,9 @@ class Etheroll:
         return logs
 
     def get_log_result_events(
-            self, player_adress, from_block, to_block='latest'):
+            self, player_address, from_block, to_block='latest'):
         """
-        Retrieves all `LogResult` events associated with `player_adress`
+        Retrieves all `LogResult` events associated with `player_address`
         between two blocks.
         """
         # TODO: hardcoded, use `Etheroll.events_signatures()` instead
@@ -521,8 +526,9 @@ class Etheroll:
         address = self.contract_address
         topic0 = log_result_signature
         # adds zero padding to match topic format (32 bytes)
-        topic3 = '0x' + player_adress[2:].zfill(2*32)
-        # `topic0_3_opr` is currently not supported on Etherscan
+        topic3 = '0x' + player_address[2:].zfill(2*32)
+        # `topic0_3_opr` is currently not supported on Etherscan, see:
+        #  https://www.reddit.com/r/etherscan/comments/8cg7xh/slug/dxfz0zj/
         topic_opr = {
             'topic0_3_opr': 'and',
         }
@@ -534,5 +540,9 @@ class Etheroll:
             address, from_block, to_block, topic0, topic3=topic3,
             topic_opr=topic_opr)
         # to later filter it in Python
-        # TODO
+        logs = filter(
+            lambda l: l['topics'][0].lower() == log_result_signature.lower(),
+            logs)
+        # let's not keep it as an iterator
+        logs = list(logs)
         return logs

@@ -202,6 +202,9 @@ class TransactionDebugger:
                 method_info = info
         event_inputs = method_info['abi']['inputs']
         types = [e_input['type'] for e_input in event_inputs]
+        # hot patching `bytes` type to replace it with bytes32 since the former
+        # is crashing with `InsufficientDataBytes` during `LogResult` decoding.
+        types = ['bytes32' if t == 'bytes' else t for t in types]
         names = [e_input['name'] for e_input in event_inputs]
         values = eth_abi.decode_abi(types, topics_log_data)
         call = {name: value for name, value in zip(names, values)}
@@ -445,7 +448,7 @@ class Etheroll:
     def get_bets_logs(self, address, from_block, to_block='latest'):
         """
         Retrieves `address` last bets from event logs and returns the list
-        of bets with info. Does not return the actual roll result.
+        of bets with decoded info. Does not return the actual roll result.
         """
         bets = []
         bet_events = self.get_log_bet_events(address, from_block, to_block)
@@ -480,6 +483,40 @@ class Etheroll:
             }
             bets.append(bet)
         return bets
+
+    def get_bet_results_logs(self, address, from_block, to_block='latest'):
+        """
+        Retrieves `address` last bet results from event logs and returns the
+        list of bet results with decoded info.
+        """
+        results = []
+        result_events = self.get_log_result_events(
+            address, from_block, to_block)
+        contract_abi = self.contract_abi
+        for result_event in result_events:
+            # TODO: not so efficient to call that method in a loop this way
+            topics = [HexBytes(topic) for topic in result_event['topics']]
+            log_data = result_event['data']
+            decoded_method = TransactionDebugger.decode_method(
+                contract_abi, topics, log_data)
+            call = decoded_method['call']
+            bet_id = call['BetID'].hex()
+            roll_under = call['PlayerNumber']
+            dice_result = call['DiceResult']
+            bet_value = call['Value']
+            bet_value_ether = round(bet_value / 1e18, constants.ROUND_DIGITS)
+            timestamp = result_event['timeStamp']
+            transaction_hash = result_event['transactionHash']
+            bet = {
+                'bet_id': bet_id,
+                'roll_under': roll_under,
+                'dice_result': dice_result,
+                'bet_value_ether': bet_value_ether,
+                'timestamp': timestamp,
+                'transaction_hash': transaction_hash,
+            }
+            results.append(bet)
+        return results
 
     def get_logs_url(
             self, address, from_block, to_block='latest',

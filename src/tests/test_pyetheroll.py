@@ -864,3 +864,139 @@ class TestEtheroll(unittest.TestCase):
             },
         ]
         self.assertEqual(logs, expected_logs)
+
+    def test_get_bet_results_logs(self):
+        """
+        Checks `get_bet_results_logs()` can retrieve bet info from the logs.
+        """
+        # simplified contract ABI
+        contract_abi = [
+            {
+                'name': 'LogResult',
+                'inputs': [
+                    {
+                        'name': 'ResultSerialNumber',
+                        'indexed': True, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'BetID',
+                        'indexed': True, 'type': 'bytes32'
+                    },
+                    {
+                        'name': 'PlayerAddress',
+                        'indexed': True, 'type': 'address'
+                    },
+                    {
+                        'name': 'PlayerNumber',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'DiceResult',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'Value',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'Status',
+                        'indexed': False, 'type': 'int256'
+                    },
+                    {
+                        'name': 'Proof',
+                        'indexed': False, 'type': 'bytes'
+                    },
+                ],
+                'anonymous': False, 'type': 'event',
+            },
+        ]
+        # simplified (a bit) for tests
+        get_log_result_events = [
+         {
+          'address': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+          'blockNumber': '0x524e97',
+          'data': (
+           '0x0000000000000000000000000000000000000000000000000000000000000002'
+           '000000000000000000000000000000000000000000000000000000000000005600'
+           '0000000000000000000000000000000000000000000000063eb89da4ed00000000'
+           '000000000000000000000000000000000000000000000000000000000000000000'
+           '00000000000000000000000000000000000000000000000000000000a000000000'
+           '0000000000000000000000000000000000000000000000000000002212209856f6'
+           '9aa7983168979d4b0c41978807202b14cc7ffc6e31a17d443f017fcdff00000000'
+           '0000000000000000000000000000000000000000000000000000'),
+          'logIndex': '0xc',
+          'timeStamp': '0x5ac80e33',
+          'topics': [
+           '8dd0b145385d04711e29558ceab40b456976a2b9a7d648cc1bcd416161bf97b9',
+           '000000000000000000000000000000000000000000000000000000000004511d',
+           '15e007148ec621d996c886de0f2b88a03af083aa819e851a51133dc17b6e0e5b',
+           '00000000000000000000000046044beaa1e985c67767e04de58181de5daaa00f',
+          ],
+          'transactionHash': (
+           '0x3505de688dc20748eb5f6b3efd6e6d3'
+           '66ea7f0737b4ab17035c6b60ab4329f2a'),
+         },
+         {
+          'address': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+          'blockNumber': '0x524eaa',
+          'data': (
+           '0x0000000000000000000000000000000000000000000000000000000000000002'
+           '000000000000000000000000000000000000000000000000000000000000000400'
+           '0000000000000000000000000000000000000000000000063eb89da4ed00000000'
+           '000000000000000000000000000000000000000000000000000000000000000000'
+           '00000000000000000000000000000000000000000000000000000000a000000000'
+           '0000000000000000000000000000000000000000000000000000002212205a95b8'
+           '96176efeb912d5d4937c541ee511092aced04eb764eab4e9629c613c3c00000000'
+           '0000000000000000000000000000000000000000000000000000'),
+          'logIndex': '0x4f',
+          'timeStamp': '0x5ac80f38',
+          'topics': [
+           '8dd0b145385d04711e29558ceab40b456976a2b9a7d648cc1bcd416161bf97b9',
+           '000000000000000000000000000000000000000000000000000000000004512b',
+           'f2fb7902894213d47c482fb155cafd9677286d930fba1a1434265be0dbe80e66',
+           '00000000000000000000000046044beaa1e985c67767e04de58181de5daaa00f',
+          ],
+          'transactionHash': (
+           '0x6123e2a19f649df79c6cf2dfbe99811'
+           '530d0770ade8e2c71488b8eb881ad20e9'),
+         }
+        ]
+        with mock.patch('etherscan.contracts.Contract.get_abi') \
+                as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll()
+        address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
+        from_block = 5394067
+        to_block = 5394095
+        with mock.patch('pyetheroll.Etheroll.get_log_result_events') \
+                as m_get_log_result_events:
+            m_get_log_result_events.return_value = get_log_result_events
+            results = etheroll.get_bet_results_logs(
+                address, from_block, to_block)
+        expected_results = [
+            {
+                'bet_id': (
+                    '15e007148ec621d996c886de0f2b88a0'
+                    '3af083aa819e851a51133dc17b6e0e5b'),
+                'bet_value_ether': 0.45,
+                'dice_result': 86,
+                'roll_under': 2,
+                'timestamp': '0x5ac80e33',
+                'transaction_hash': (
+                    '0x3505de688dc20748eb5f6b3efd6e6d3'
+                    '66ea7f0737b4ab17035c6b60ab4329f2a'),
+            },
+            {
+                'bet_id': (
+                    'f2fb7902894213d47c482fb155cafd96'
+                    '77286d930fba1a1434265be0dbe80e66'),
+                'bet_value_ether': 0.45,
+                'dice_result': 4,
+                'roll_under': 2,
+                'timestamp': '0x5ac80f38',
+                'transaction_hash': (
+                    '0x6123e2a19f649df79c6cf2dfbe99811'
+                    '530d0770ade8e2c71488b8eb881ad20e9'),
+            },
+        ]
+        self.assertEqual(results, expected_results)

@@ -76,6 +76,9 @@ class RollResultsScreen(SubScreen):
         player_won = dice_result < roll_under
         profit_loss = bet_value_ether if player_won else -bet_value_ether
         sign = '<' if player_won else '>'
+        win_color = (0, 1, 0, 1)
+        loss_color = (1, 0, 0, 1)
+        text_color = win_color if player_won else loss_color
         text = '{0} ETH, bet size: {1:.{2}f} ETH'.format(
             profit_loss, bet_value_ether, constants.ROUND_DIGITS)
         secondary_text = '{0} {1} {2}'.format(
@@ -84,7 +87,8 @@ class RollResultsScreen(SubScreen):
         # tertiary_text is in fact embedded in secondary_text with new line
         secondary_text += '\n' + tertiary_text
         avatar_sample_widget = DiceResultWidget(
-            text=str(dice_result), font_style='Title')
+            text=str(dice_result), font_style='Title',
+            theme_text_color='Custom', text_color=text_color)
         list_item = ThreeLineAvatarListItem(
             text=text, secondary_text=secondary_text)
         list_item.add_widget(avatar_sample_widget)

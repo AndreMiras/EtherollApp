@@ -1,12 +1,17 @@
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.properties import ListProperty
-from kivymd.list import TwoLineListItem
+from kivymd.label import MDLabel
+from kivymd.list import ILeftBody, ThreeLineAvatarListItem
 
 import constants
 from utils import SubScreen, load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
+
+
+class DiceResultWidget(ILeftBody, MDLabel):
+    pass
 
 
 class RollResultsScreen(SubScreen):
@@ -60,18 +65,29 @@ class RollResultsScreen(SubScreen):
         """
         Creates a roll list item from a roll dictionary.
         """
+        # bet_value_ether is quiet confusing here, it's the actual payout
+        # that will be received in case of win
         bet_value_ether = roll_dict['bet_value_ether']
         roll_under = roll_dict['roll_under']
         dice_result = roll_dict['dice_result']
-        roll_under = roll_dict['roll_under']
-        player_won = roll_under < dice_result
-        sign = '>' if player_won else '<'
-        text = '{0} {1} {2}, bet size: {3:.{4}f} ETH'.format(
-            dice_result, sign, roll_under, bet_value_ether,
-            constants.ROUND_DIGITS)
-        secondary_text = text
-        list_item = TwoLineListItem(
+        date_time = roll_dict['datetime']
+        # chances_win = roll_under - 1
+        # profit = Etheroll.compute_profit(bet_value_ether, chances_win)
+        player_won = dice_result < roll_under
+        profit_loss = bet_value_ether if player_won else -bet_value_ether
+        sign = '<' if player_won else '>'
+        text = '{0} ETH, bet size: {1:.{2}f} ETH'.format(
+            profit_loss, bet_value_ether, constants.ROUND_DIGITS)
+        secondary_text = '{0} {1} {2}'.format(
+            dice_result, sign, roll_under)
+        tertiary_text = date_time.strftime("%Y-%m-%d %H:%M:%S")
+        # tertiary_text is in fact embedded in secondary_text with new line
+        secondary_text += '\n' + tertiary_text
+        avatar_sample_widget = DiceResultWidget(
+            text=str(dice_result), font_style='Title')
+        list_item = ThreeLineAvatarListItem(
             text=text, secondary_text=secondary_text)
+        list_item.add_widget(avatar_sample_widget)
         return list_item
 
     def update_roll_list(self):

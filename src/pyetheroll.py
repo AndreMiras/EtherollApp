@@ -3,8 +3,6 @@
 """
 Python Etheroll library.
 """
-from __future__ import print_function
-
 import json
 import os
 from enum import Enum
@@ -143,7 +141,6 @@ class TransactionDebugger:
         self.chain_id = chain_id
         self.provider = HTTPProviderFactory.create(chain_id)
         self.web3 = Web3(self.provider)
-        # print("blockNumber:", self.web3.eth.blockNumber)
 
     def get_contract_abi(self, contract_address):
         """
@@ -259,7 +256,6 @@ class Etheroll:
         # self.provider = EthereumTesterProvider(ethereum_tester)
         self.provider = HTTPProviderFactory.create(self.chain_id)
         self.web3 = Web3(self.provider)
-        # print("blockNumber:", self.web3.eth.blockNumber)
         self.etherscan_api_key = get_etherscan_api_key()
         ChainEtherscanContract = ChainEtherscanContractFactory.create(
             self.chain_id)
@@ -278,6 +274,8 @@ class Etheroll:
         self.contract = self.web3.eth.contract(
             abi=self.contract_abi, address=self.contract_address,
             ContractFactoryClass=contract_factory_class)
+        # retrieve events signatures
+        self.events_signatures = self.get_events_signatures(self.contract_abi)
 
     def events_abi(self, contract_abi=None):
         """
@@ -302,7 +300,7 @@ class Etheroll:
             events_definitions.update({event_name: event_definition})
         return events_definitions
 
-    def events_signatures(self, contract_abi=None):
+    def get_events_signatures(self, contract_abi=None):
         """
         Returns sha3 signature of all events.
         e.g.
@@ -320,8 +318,7 @@ class Etheroll:
         """
         Returns the logs of the given events.
         """
-        contract_abi = self.contract_abi
-        events_signatures = self.events_signatures(contract_abi)
+        events_signatures = self.events_signatures
         topics = []
         for event in event_list:
             topics.append(events_signatures[event])
@@ -333,23 +330,6 @@ class Etheroll:
         })
         events_logs = event_filter.get(False)
         return events_logs
-
-    @staticmethod
-    def play_with_contract():
-        """
-        This is just a test method that should go away at some point.
-        """
-        etheroll = Etheroll()
-        min_bet = etheroll.contract.call().minBet()
-        print("min_bet:", min_bet)
-        # events_definitions = etheroll.events_definitions()
-        # print(events_definitions)
-        # events_signatures = etheroll.events_signatures()
-        # # events_logs = etheroll.events_logs(['LogBet'])
-        # print(events_signatures)
-        # pending = etheroll.contract.call(
-        #     ).playerWithdrawPendingTransactions()
-        # print("pending:", pending)
 
     def player_roll_dice(
             self, bet_size_ether, chances, wallet_path, wallet_password):
@@ -599,12 +579,8 @@ class Etheroll:
         Retrieves all `LogBet` events associated with `player_address`
         between two blocks.
         """
-        # TODO: hardcoded, use `Etheroll.events_signatures()` instead
-        log_bet_signature = (
-            '0x56b3f1a6cd856076d6f8adbf8170c43'
-            'a0b0f532fc5696a2699a0e0cabc704163')
         address = self.contract_address
-        topic0 = log_bet_signature
+        topic0 = self.events_signatures['LogBet'].hex()
         # adds zero padding to match topic format (32 bytes)
         topic2 = '0x' + player_address[2:].zfill(2*32)
         topic_opr = {
@@ -621,10 +597,7 @@ class Etheroll:
         Retrieves all `LogResult` events associated with `player_address`
         between two blocks.
         """
-        # TODO: hardcoded, use `Etheroll.events_signatures()` instead
-        log_result_signature = (
-            '0x8dd0b145385d04711e29558ceab40b4'
-            '56976a2b9a7d648cc1bcd416161bf97b9')
+        log_result_signature = self.events_signatures['LogResult'].hex()
         address = self.contract_address
         topic0 = log_result_signature
         # adds zero padding to match topic format (32 bytes)
@@ -643,8 +616,7 @@ class Etheroll:
             topic_opr=topic_opr)
         # to later filter it in Python
         logs = filter(
-            lambda l: l['topics'][0].lower() == log_result_signature.lower(),
-            logs)
+            lambda l: l['topics'][0].lower() == log_result_signature, logs)
         # let's not keep it as an iterator
         logs = list(logs)
         return logs

@@ -639,12 +639,27 @@ class TestEtheroll(unittest.TestCase):
         """
         Makes sure the Etherscan getLogs API is called correctly for LogBet.
         """
+        # simplified contract ABI
+        contract_abi = [
+          {
+            'inputs': [
+              {'indexed': True, 'type': 'bytes32', 'name': 'BetID'},
+              {'indexed': True, 'type': 'address', 'name': 'PlayerAddress'},
+              {'indexed': True, 'type': 'uint256', 'name': 'RewardValue'},
+              {'indexed': False, 'type': 'uint256', 'name': 'ProfitValue'},
+              {'indexed': False, 'type': 'uint256', 'name': 'BetValue'},
+              {'indexed': False, 'type': 'uint256', 'name': 'PlayerNumber'},
+              {'indexed': False, 'type': 'uint256', 'name': 'RandomQueryID'},
+            ],
+            'type': 'event', 'name': 'LogBet', 'anonymous': False
+          },
+        ]
         with \
                 mock.patch('etherscan.contracts.Contract.get_abi') \
                 as m_get_abi, \
                 mock.patch('pyetheroll.get_etherscan_api_key') \
                 as m_get_etherscan_api_key:
-            m_get_abi.return_value = '[]'
+            m_get_abi.return_value = json.dumps(contract_abi)
             m_get_etherscan_api_key.return_value = 'apikey'
             etheroll = Etheroll()
         player_address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
@@ -669,12 +684,53 @@ class TestEtheroll(unittest.TestCase):
         """
         Makes sure the Etherscan getLogs API is called correctly for LogBet.
         """
+        # simplified contract ABI
+        contract_abi = [
+            {
+                'name': 'LogResult',
+                'inputs': [
+                    {
+                        'name': 'ResultSerialNumber',
+                        'indexed': True, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'BetID',
+                        'indexed': True, 'type': 'bytes32'
+                    },
+                    {
+                        'name': 'PlayerAddress',
+                        'indexed': True, 'type': 'address'
+                    },
+                    {
+                        'name': 'PlayerNumber',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'DiceResult',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'Value',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'Status',
+                        'indexed': False, 'type': 'int256'
+                    },
+                    {
+                        'name': 'Proof',
+                        'indexed': False, 'type': 'bytes'
+                    },
+                ],
+                'anonymous': False, 'type': 'event',
+            },
+        ]
         with \
                 mock.patch('etherscan.contracts.Contract.get_abi') \
                 as m_get_abi, \
                 mock.patch('pyetheroll.get_etherscan_api_key') \
                 as m_get_etherscan_api_key:
-            m_get_abi.return_value = '[]'
+            m_get_abi.return_value = json.dumps(contract_abi)
             m_get_etherscan_api_key.return_value = 'apikey'
             etheroll = Etheroll()
         player_address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
@@ -701,6 +757,47 @@ class TestEtheroll(unittest.TestCase):
         However we still want to filter it, hence this test, makes sure this is
         being done.
         """
+        # simplified contract ABI
+        contract_abi = [
+            {
+                'name': 'LogResult',
+                'inputs': [
+                    {
+                        'name': 'ResultSerialNumber',
+                        'indexed': True, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'BetID',
+                        'indexed': True, 'type': 'bytes32'
+                    },
+                    {
+                        'name': 'PlayerAddress',
+                        'indexed': True, 'type': 'address'
+                    },
+                    {
+                        'name': 'PlayerNumber',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'DiceResult',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'Value',
+                        'indexed': False, 'type': 'uint256'
+                    },
+                    {
+                        'name': 'Status',
+                        'indexed': False, 'type': 'int256'
+                    },
+                    {
+                        'name': 'Proof',
+                        'indexed': False, 'type': 'bytes'
+                    },
+                ],
+                'anonymous': False, 'type': 'event',
+            },
+        ]
         # topic3 is matching with `player_address` but topic0 is not matching
         # with `LogResult` sha3 signature
         not_matching_event = {
@@ -765,7 +862,7 @@ class TestEtheroll(unittest.TestCase):
                 as m_get_abi, \
                 mock.patch('pyetheroll.get_etherscan_api_key') \
                 as m_get_etherscan_api_key:
-            m_get_abi.return_value = '[]'
+            m_get_abi.return_value = json.dumps(contract_abi)
             m_get_etherscan_api_key.return_value = 'apikey'
             etheroll = Etheroll(contract_address=contract_address)
         player_address = '0x46044beaa1e985c67767e04de58181de5daaa00f'

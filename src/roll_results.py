@@ -22,8 +22,16 @@ class RollResultsScreen(SubScreen):
         Binds events.
         """
         self.controller = App.get_running_app().root
-        self.pyetheroll = self.controller.pyetheroll
         self.update_roll_list()
+
+    @property
+    def pyetheroll(self):
+        """
+        We want to make sure we go through the `Controller.pyetheroll` property
+        each time, because it recreates the Etheroll object on chain_id
+        changes.
+        """
+        return self.controller.pyetheroll
 
     @mainthread
     def on_roll_results(self, instance, value):

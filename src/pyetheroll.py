@@ -5,6 +5,7 @@ Python Etheroll library.
 """
 import json
 import os
+from datetime import datetime
 from enum import Enum
 
 import eth_abi
@@ -431,12 +432,14 @@ class Etheroll:
             roll_under = int(roll_under, 16)
             block_number = transaction['blockNumber']
             timestamp = transaction['timeStamp']
+            date_time = datetime.fromtimestamp(int(timestamp, 16))
             transaction_hash = transaction['hash']
             bet = {
                 'bet_size_ether': bet_size_ether,
                 'roll_under': roll_under,
                 'block_number': block_number,
                 'timestamp': timestamp,
+                'datetime': date_time,
                 'transaction_hash': transaction_hash,
             }
             bets.append(bet)
@@ -468,6 +471,7 @@ class Etheroll:
             bet_value_ether = round(bet_value / 1e18, constants.ROUND_DIGITS)
             roll_under = call['PlayerNumber']
             timestamp = bet_event['timeStamp']
+            date_time = datetime.fromtimestamp(int(timestamp, 16))
             transaction_hash = bet_event['transactionHash']
             bet = {
                 'bet_id': bet_id,
@@ -476,6 +480,7 @@ class Etheroll:
                 'bet_value_ether': bet_value_ether,
                 'roll_under': roll_under,
                 'timestamp': timestamp,
+                'datetime': date_time,
                 'transaction_hash': transaction_hash,
             }
             bets.append(bet)
@@ -500,9 +505,12 @@ class Etheroll:
             bet_id = call['BetID'].hex()
             roll_under = call['PlayerNumber']
             dice_result = call['DiceResult']
+            # not to be mistaken with what the user bet here, in this case it's
+            # what he will receive/loss as a result of his bet
             bet_value = call['Value']
             bet_value_ether = round(bet_value / 1e18, constants.ROUND_DIGITS)
             timestamp = result_event['timeStamp']
+            date_time = datetime.fromtimestamp(int(timestamp, 16))
             transaction_hash = result_event['transactionHash']
             bet = {
                 'bet_id': bet_id,
@@ -510,6 +518,7 @@ class Etheroll:
                 'dice_result': dice_result,
                 'bet_value_ether': bet_value_ether,
                 'timestamp': timestamp,
+                'datetime': date_time,
                 'transaction_hash': transaction_hash,
             }
             results.append(bet)
@@ -634,3 +643,18 @@ class Etheroll:
         # let's not keep it as an iterator
         logs = list(logs)
         return logs
+
+    @staticmethod
+    def compute_profit(bet_size, chances_win):
+        """
+        Helper method to compute profit given a bet_size and chances_win.
+        """
+        if chances_win <= 0 or chances_win >= 100:
+            return
+        house_edge = 1.0 / 100
+        chances_loss = 100 - chances_win
+        payout = ((chances_loss / chances_win) * bet_size) + bet_size
+        payout *= (1 - house_edge)
+        profit = payout - bet_size
+        profit = round(profit, constants.ROUND_DIGITS)
+        return profit

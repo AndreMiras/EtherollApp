@@ -429,11 +429,23 @@ class TestEtheroll(unittest.TestCase):
         Verifies `get_last_bets_transactions()` performs the correct calls to
         underlying libraries, and verifies it handle their inputs correctly.
         """
+        # simplified contract ABI
+        contract_abi = [
+            {
+                'constant': False,
+                'inputs': [{'name': 'rollUnder', 'type': 'uint256'}],
+                'name': 'playerRollDice',
+                'outputs': [],
+                'payable': True,
+                'stateMutability': 'payable',
+                'type': 'function',
+            },
+        ]
         # we want this unit test to still pass even if the Etheroll contract
         # address changes, so let's make it explicit
         contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
         with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
-            m_get_abi.return_value = '[]'
+            m_get_abi.return_value = json.dumps(contract_abi)
             etheroll = Etheroll(contract_address=contract_address)
 
         # simplified version of `get_transaction_page()` return

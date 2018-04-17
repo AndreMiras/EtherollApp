@@ -274,31 +274,45 @@ class Etheroll:
         self.contract = self.web3.eth.contract(
             abi=self.contract_abi, address=self.contract_address,
             ContractFactoryClass=contract_factory_class)
-        # retrieve events signatures
+        # retrieve signatures
         self.events_signatures = self.get_events_signatures(self.contract_abi)
+        self.functions_signatures = self.get_functions_signatures(
+            self.contract_abi)
 
-    def events_abi(self, contract_abi=None):
+    def abi_definitions(self, contract_abi, typ):
         """
-        Returns only ABI definition of type "event".
+        Returns only ABI definitions of matching type.
         """
-        if contract_abi is None:
-            contract_abi = self.contract_abi
-        return [a for a in contract_abi if a['type'] == 'event']
+        return [a for a in contract_abi if a['type'] == typ]
 
-    def events_definitions(self, contract_abi=None):
+    def definitions(self, contract_abi, typ):
         """
         Returns all events definitions (built from ABI definition).
         e.g.
         >>> {"LogRefund": "LogRefund(bytes32,address,uint256)"}
         """
         events_definitions = {}
-        events_abi = self.events_abi(contract_abi)
-        for event_abi in events_abi:
-            event_name = event_abi['name']
-            types = ','.join([x['type'] for x in event_abi['inputs']])
-            event_definition = "%s(%s)" % (event_name, types)
-            events_definitions.update({event_name: event_definition})
+        abi_definitions = self.abi_definitions(contract_abi, typ)
+        for abi_definition in abi_definitions:
+            name = abi_definition['name']
+            types = ','.join([x['type'] for x in abi_definition['inputs']])
+            definition = "%s(%s)" % (name, types)
+            events_definitions.update({name: definition})
         return events_definitions
+
+    def get_signatures(self, contract_abi, typ):
+        """
+        Returns sha3 signature of methods or events.
+        e.g.
+        >>> {'LogResult': '0x6883...5c88', 'LogBet': '0x1cb5...75c4'}
+        """
+        signatures = {}
+        definitions = self.definitions(contract_abi, typ)
+        for name in definitions:
+            definition = definitions[name]
+            signature = Web3.sha3(text=definition)
+            signatures.update({name: signature})
+        return signatures
 
     def get_events_signatures(self, contract_abi=None):
         """
@@ -306,13 +320,13 @@ class Etheroll:
         e.g.
         >>> {'LogResult': '0x6883...5c88', 'LogBet': '0x1cb5...75c4'}
         """
-        events_signatures = {}
-        events_definitions = self.events_definitions(contract_abi)
-        for event in events_definitions:
-            event_definition = events_definitions[event]
-            event_signature = Web3.sha3(text=event_definition)
-            events_signatures.update({event: event_signature})
-        return events_signatures
+        return self.get_signatures(contract_abi, 'event')
+
+    def get_functions_signatures(self, contract_abi=None):
+        """
+        Returns sha3 signature of all functions.
+        """
+        return self.get_signatures(contract_abi, 'function')
 
     def events_logs(self, event_list):
         """
@@ -390,9 +404,9 @@ class Etheroll:
         transactions = filter(
             lambda t: t['to'].lower() == self.contract_address.lower(),
             transactions)
-        # TODO: hardcoded methodID, retrieve it from contract ABI instead
         # keeps only transactions to `playerRollDice` methodID
-        method_id = '0xdc6dd152'
+        method_id = self.functions_signatures['playerRollDice'].hex()[:10]
+        self.functions_signatures
         transactions = filter(
             lambda t: t['input'].lower().startswith(method_id),
             transactions)

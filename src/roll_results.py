@@ -79,8 +79,11 @@ class RollResultsScreen(SubScreen):
         win_color = (0, 1, 0, 1)
         loss_color = (1, 0, 0, 1)
         text_color = win_color if player_won else loss_color
-        text = '{0} ETH, bet size: {1:.{2}f} ETH'.format(
-            profit_loss, bet_value_ether, constants.ROUND_DIGITS)
+        text = (
+            '{profit_loss:.{round_digits}f} ETH, '
+            'bet size: {bet_value_ether:.{round_digits}f} ETH').format(**{
+            'profit_loss': profit_loss, 'bet_value_ether': bet_value_ether,
+            'round_digits': constants.ROUND_DIGITS})
         secondary_text = '{0} {1} {2}'.format(
             dice_result, sign, roll_under)
         tertiary_text = date_time.strftime("%Y-%m-%d %H:%M:%S")

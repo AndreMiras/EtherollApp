@@ -556,7 +556,7 @@ class Etheroll:
         results = self.get_bet_results_logs(address, from_block, to_block)
         return results
 
-    def get_last_bets_logs(self, address, from_block, to_block='latest'):
+    def get_last_bets_logs(self, address):
         """
         Retrieves most recent bets from event logs.
         """
@@ -583,10 +583,20 @@ class Etheroll:
             bet_id = bet_log['bet_id']
             bet_result = bet_results_dict.get(bet_id)
             merged_log = {
+                'bet_log': bet_log,
                 'bet_result': bet_result,
-                'bet_log': bet_result,
             }
-            merged_logs.append(merge_log)
+            merged_logs.append(merged_log)
+        return merged_logs
+
+    def get_merged_logs(self, address):
+        last_bets_blocks = self.get_last_bets_blocks(address)
+        from_block = last_bets_blocks['from_block']
+        to_block = last_bets_blocks['to_block']
+        bet_logs = self.get_bets_logs(address, from_block, to_block)
+        bet_results_logs = self.get_bet_results_logs(
+            address, from_block, to_block)
+        merged_logs = self.merge_logs(bet_logs, bet_results_logs)
         return merged_logs
 
     def get_logs_url(

@@ -81,7 +81,8 @@ class RollResultsScreen(SubScreen):
         text_color = win_color if player_won else loss_color
         text = (
             '{profit_loss:.{round_digits}f} ETH, '
-            'bet size: {bet_value_ether:.{round_digits}f} ETH').format(**{
+            'bet size: {bet_value_ether:.{round_digits}f} ETH'
+        ).format(**{
             'profit_loss': profit_loss, 'bet_value_ether': bet_value_ether,
             'round_digits': constants.ROUND_DIGITS})
         secondary_text = '{0} {1} {2}'.format(

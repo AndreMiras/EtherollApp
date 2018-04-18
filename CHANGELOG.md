@@ -3,6 +3,7 @@
 ## [Unreleased]
 
   - Per account bet history, refs #16
+  - Handle unresolved bets, refs #51
 
 
 ## [v20180414]

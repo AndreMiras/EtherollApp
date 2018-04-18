@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [v20180418]
 
   - Per account bet history, refs #16
   - Handle unresolved bets, refs #51

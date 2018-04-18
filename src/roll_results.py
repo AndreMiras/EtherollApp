@@ -5,6 +5,7 @@ from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ThreeLineAvatarListItem
 
 import constants
+from pyetheroll import Etheroll
 from utils import SubScreen, load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
@@ -16,7 +17,7 @@ class DiceResultWidget(ILeftBody, MDLabel):
 
 class RollResultsScreen(SubScreen):
 
-    roll_results = ListProperty()
+    roll_logs = ListProperty()
 
     def __init__(self, **kwargs):
         super(RollResultsScreen, self).__init__(**kwargs)
@@ -39,7 +40,7 @@ class RollResultsScreen(SubScreen):
         return self.controller.pyetheroll
 
     @mainthread
-    def on_roll_results(self, instance, value):
+    def on_roll_logs(self, instance, value):
         """
         Updates UI using roll results list.
         """
@@ -48,7 +49,7 @@ class RollResultsScreen(SubScreen):
     @run_in_thread
     def get_last_results(self):
         """
-        Gets last roll results using pyetheroll lib and updates `roll_results`
+        Gets last rolls & results using pyetheroll lib and updates `roll_logs`
         list property.
         """
         controller = self.controller
@@ -57,33 +58,32 @@ class RollResultsScreen(SubScreen):
             controller.on_account_none()
             return
         address = "0x" + account.address.hex()
-        self.roll_results = self.pyetheroll.get_last_bet_results_logs(
+        self.roll_logs = self.pyetheroll.get_merged_logs(
             address=address)
 
     @staticmethod
-    def create_item_from_dict(roll_dict):
+    def create_item_from_dict(roll_log):
         """
-        Creates a roll list item from a roll dictionary.
+        Creates a roll list item from a roll log dictionary.
         """
-        # bet_value_ether is quiet confusing here, it's the actual payout
-        # that will be received in case of win
-        bet_value_ether = roll_dict['bet_value_ether']
-        roll_under = roll_dict['roll_under']
-        dice_result = roll_dict['dice_result']
-        date_time = roll_dict['datetime']
-        # chances_win = roll_under - 1
-        # profit = Etheroll.compute_profit(bet_value_ether, chances_win)
+        bet_log = roll_log['bet_log']
+        bet_result = roll_log['bet_result']
+        bet_value_ether = bet_log['bet_value_ether']
+        roll_under = bet_log['roll_under']
+        dice_result = bet_result['dice_result']
+        date_time = bet_log['datetime']
+        chances_win = roll_under - 1
+        profit = Etheroll.compute_profit(bet_value_ether, chances_win)
         player_won = dice_result < roll_under
-        profit_loss = bet_value_ether if player_won else -bet_value_ether
+        profit_loss = profit if player_won else -bet_value_ether
         sign = '<' if player_won else '>'
         win_color = (0, 1, 0, 1)
         loss_color = (1, 0, 0, 1)
         text_color = win_color if player_won else loss_color
         text = (
-            '{profit_loss:.{round_digits}f} ETH, '
-            'bet size: {bet_value_ether:.{round_digits}f} ETH'
+            '{profit_loss:+.{round_digits}f} ETH'
         ).format(**{
-            'profit_loss': profit_loss, 'bet_value_ether': bet_value_ether,
+            'profit_loss': profit_loss,
             'round_digits': constants.ROUND_DIGITS})
         secondary_text = '{0} {1} {2}'.format(
             dice_result, sign, roll_under)
@@ -104,7 +104,7 @@ class RollResultsScreen(SubScreen):
         """
         roll_list = self.ids.roll_list_id
         roll_list.clear_widgets()
-        roll_results = reversed(self.roll_results)
-        for roll_result in roll_results:
-            list_item = self.create_item_from_dict(roll_result)
+        roll_logs = reversed(self.roll_logs)
+        for roll_log in roll_logs:
+            list_item = self.create_item_from_dict(roll_log)
             roll_list.add_widget(list_item)

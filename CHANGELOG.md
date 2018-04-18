@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+  - Per account bet history, refs #16
+
+
 ## [v20180414]
 
   - UI testing, refs #10

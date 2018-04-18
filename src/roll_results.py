@@ -70,21 +70,31 @@ class RollResultsScreen(SubScreen):
         bet_result = roll_log['bet_result']
         bet_value_ether = bet_log['bet_value_ether']
         roll_under = bet_log['roll_under']
-        dice_result = bet_result['dice_result']
         date_time = bet_log['datetime']
-        chances_win = roll_under - 1
-        profit = Etheroll.compute_profit(bet_value_ether, chances_win)
-        player_won = dice_result < roll_under
-        profit_loss = profit if player_won else -bet_value_ether
-        sign = '<' if player_won else '>'
+        # will keep default value on unresolved bets
+        dice_result = '?'
+        player_won = None
+        sign = '?'
         win_color = (0, 1, 0, 1)
         loss_color = (1, 0, 0, 1)
-        text_color = win_color if player_won else loss_color
-        text = (
-            '{profit_loss:+.{round_digits}f} ETH'
-        ).format(**{
-            'profit_loss': profit_loss,
-            'round_digits': constants.ROUND_DIGITS})
+        unresolved_color = (0.5, 0.5, 0.5, 1)
+        text_color = unresolved_color
+        profit_loss_str = '?'
+        # resolved bets case
+        if bet_result is not None:
+            dice_result = bet_result['dice_result']
+            player_won = dice_result < roll_under
+            sign = '<' if player_won else '>'
+            text_color = win_color if player_won else loss_color
+            chances_win = roll_under - 1
+            profit = Etheroll.compute_profit(bet_value_ether, chances_win)
+            profit_loss = profit if player_won else -bet_value_ether
+            profit_loss_str = (
+                '{profit_loss:+.{round_digits}f}'
+            ).format(**{
+                'profit_loss': profit_loss,
+                'round_digits': constants.ROUND_DIGITS})
+        text = ('{0} ETH').format(profit_loss_str)
         secondary_text = '{0} {1} {2}'.format(
             dice_result, sign, roll_under)
         tertiary_text = date_time.strftime("%Y-%m-%d %H:%M:%S")

@@ -347,6 +347,44 @@ class TestTransactionDebugger(unittest.TestCase):
 
 class TestEtheroll(unittest.TestCase):
 
+    log_result_abi = {
+        'name': 'LogResult',
+        'inputs': [
+            {'name': 'ResultSerialNumber', 'indexed': True, 'type': 'uint256'},
+            {'name': 'BetID', 'indexed': True, 'type': 'bytes32'},
+            {'name': 'PlayerAddress', 'indexed': True, 'type': 'address'},
+            {'name': 'PlayerNumber', 'indexed': False, 'type': 'uint256'},
+            {'name': 'DiceResult', 'indexed': False, 'type': 'uint256'},
+            {'name': 'Value', 'indexed': False, 'type': 'uint256'},
+            {'name': 'Status', 'indexed': False, 'type': 'int256'},
+            {'name': 'Proof', 'indexed': False, 'type': 'bytes'},
+        ],
+        'anonymous': False, 'type': 'event',
+    }
+
+    log_bet_abi = {
+        'inputs': [
+          {'indexed': True, 'type': 'bytes32', 'name': 'BetID'},
+          {'indexed': True, 'type': 'address', 'name': 'PlayerAddress'},
+          {'indexed': True, 'type': 'uint256', 'name': 'RewardValue'},
+          {'indexed': False, 'type': 'uint256', 'name': 'ProfitValue'},
+          {'indexed': False, 'type': 'uint256', 'name': 'BetValue'},
+          {'indexed': False, 'type': 'uint256', 'name': 'PlayerNumber'},
+          {'indexed': False, 'type': 'uint256', 'name': 'RandomQueryID'},
+        ],
+        'type': 'event', 'name': 'LogBet', 'anonymous': False
+      }
+
+    player_roll_dice_abi = {
+        'constant': False,
+        'inputs': [{'name': 'rollUnder', 'type': 'uint256'}],
+        'name': 'playerRollDice',
+        'outputs': [],
+        'payable': True,
+        'stateMutability': 'payable',
+        'type': 'function',
+    }
+
     def setUp(self):
         self.keystore_dir = mkdtemp()
 
@@ -379,15 +417,11 @@ class TestEtheroll(unittest.TestCase):
         """
         Verifies the transaction is properly built and sent.
         """
+        # simplified contract ABI
+        contract_abi = [self.player_roll_dice_abi]
         with mock.patch('etherscan.contracts.Contract.get_abi') \
                 as m_get_abi:
-            m_get_abi.return_value = (
-                '[{"constant":true,"inputs":[],"name":"minBet","outputs":[{"na'
-                'me":"","type":"uint256"}],"payable":false,"stateMutability":"'
-                'view","type":"function"},{"constant":false,"inputs":[{"name":'
-                '"rollUnder","type":"uint256"}],"name":"playerRollDice","outpu'
-                'ts":[],"payable":true,"stateMutability":"payable","type":"fun'
-                'ction"}]')
+            m_get_abi.return_value = json.dumps(contract_abi)
             etheroll = Etheroll()
         bet_size_ether = 0.1
         chances = 50
@@ -431,17 +465,7 @@ class TestEtheroll(unittest.TestCase):
         underlying libraries, and verifies it handle their inputs correctly.
         """
         # simplified contract ABI
-        contract_abi = [
-            {
-                'constant': False,
-                'inputs': [{'name': 'rollUnder', 'type': 'uint256'}],
-                'name': 'playerRollDice',
-                'outputs': [],
-                'payable': True,
-                'stateMutability': 'payable',
-                'type': 'function',
-            },
-        ]
+        contract_abi = [self.player_roll_dice_abi]
         # we want this unit test to still pass even if the Etheroll contract
         # address changes, so let's make it explicit
         contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
@@ -655,20 +679,7 @@ class TestEtheroll(unittest.TestCase):
         Makes sure the Etherscan getLogs API is called correctly for LogBet.
         """
         # simplified contract ABI
-        contract_abi = [
-          {
-            'inputs': [
-              {'indexed': True, 'type': 'bytes32', 'name': 'BetID'},
-              {'indexed': True, 'type': 'address', 'name': 'PlayerAddress'},
-              {'indexed': True, 'type': 'uint256', 'name': 'RewardValue'},
-              {'indexed': False, 'type': 'uint256', 'name': 'ProfitValue'},
-              {'indexed': False, 'type': 'uint256', 'name': 'BetValue'},
-              {'indexed': False, 'type': 'uint256', 'name': 'PlayerNumber'},
-              {'indexed': False, 'type': 'uint256', 'name': 'RandomQueryID'},
-            ],
-            'type': 'event', 'name': 'LogBet', 'anonymous': False
-          },
-        ]
+        contract_abi = [self.log_bet_abi]
         with \
                 mock.patch('etherscan.contracts.Contract.get_abi') \
                 as m_get_abi, \
@@ -700,46 +711,7 @@ class TestEtheroll(unittest.TestCase):
         Makes sure the Etherscan getLogs API is called correctly for LogBet.
         """
         # simplified contract ABI
-        contract_abi = [
-            {
-                'name': 'LogResult',
-                'inputs': [
-                    {
-                        'name': 'ResultSerialNumber',
-                        'indexed': True, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'BetID',
-                        'indexed': True, 'type': 'bytes32'
-                    },
-                    {
-                        'name': 'PlayerAddress',
-                        'indexed': True, 'type': 'address'
-                    },
-                    {
-                        'name': 'PlayerNumber',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'DiceResult',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'Value',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'Status',
-                        'indexed': False, 'type': 'int256'
-                    },
-                    {
-                        'name': 'Proof',
-                        'indexed': False, 'type': 'bytes'
-                    },
-                ],
-                'anonymous': False, 'type': 'event',
-            },
-        ]
+        contract_abi = [self.log_result_abi]
         with \
                 mock.patch('etherscan.contracts.Contract.get_abi') \
                 as m_get_abi, \
@@ -773,20 +745,7 @@ class TestEtheroll(unittest.TestCase):
         Verifies `get_bets_logs()` can retrieve bet info out from the logs.
         """
         # simplified contract ABI
-        contract_abi = [
-          {
-            'inputs': [
-              {'indexed': True, 'type': 'bytes32', 'name': 'BetID'},
-              {'indexed': True, 'type': 'address', 'name': 'PlayerAddress'},
-              {'indexed': True, 'type': 'uint256', 'name': 'RewardValue'},
-              {'indexed': False, 'type': 'uint256', 'name': 'ProfitValue'},
-              {'indexed': False, 'type': 'uint256', 'name': 'BetValue'},
-              {'indexed': False, 'type': 'uint256', 'name': 'PlayerNumber'},
-              {'indexed': False, 'type': 'uint256', 'name': 'RandomQueryID'},
-            ],
-            'type': 'event', 'name': 'LogBet', 'anonymous': False
-          },
-        ]
+        contract_abi = [self.log_bet_abi]
         # simplified (a bit) for tests
         get_log_bet_events = [
          {
@@ -878,46 +837,7 @@ class TestEtheroll(unittest.TestCase):
         Checks `get_bet_results_logs()` can retrieve bet info from the logs.
         """
         # simplified contract ABI
-        contract_abi = [
-            {
-                'name': 'LogResult',
-                'inputs': [
-                    {
-                        'name': 'ResultSerialNumber',
-                        'indexed': True, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'BetID',
-                        'indexed': True, 'type': 'bytes32'
-                    },
-                    {
-                        'name': 'PlayerAddress',
-                        'indexed': True, 'type': 'address'
-                    },
-                    {
-                        'name': 'PlayerNumber',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'DiceResult',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'Value',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'Status',
-                        'indexed': False, 'type': 'int256'
-                    },
-                    {
-                        'name': 'Proof',
-                        'indexed': False, 'type': 'bytes'
-                    },
-                ],
-                'anonymous': False, 'type': 'event',
-            },
-        ]
+        contract_abi = [self.log_result_abi]
         # simplified (a bit) for tests
         get_log_result_events = [
          {

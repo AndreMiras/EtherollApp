@@ -57,7 +57,7 @@ class RollResultsScreen(SubScreen):
             controller.on_account_none()
             return
         address = "0x" + account.address.hex()
-        self.roll_results = self.pyetheroll.get_last_bets_results_logs(
+        self.roll_results = self.pyetheroll.get_last_bet_results_logs(
             address=address)
 
     @staticmethod

@@ -758,137 +758,15 @@ class TestEtheroll(unittest.TestCase):
             'https://api.etherscan.io/api?module=logs&action=getLogs'
             '&apikey=apikey'
             '&address=0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
-            '&fromBlock=5394085&toBlock=5442078&topic3=0x'
-            '00000000000000000000000046044beaa1e985c67767e04de58181de5daaa00f&'
+            '&fromBlock=5394085&toBlock=5442078'
+            '&topic0=0x'
+            '8dd0b145385d04711e29558ceab40b456976a2b9a7d648cc1bcd416161bf97b9'
+            '&topic3=0x'
+            '00000000000000000000000046044beaa1e985c67767e04de58181de5daaa00f'
+            '&topic0_3_opr=and&'
         )
         expected_calls = [expected_call]
         self.assertEqual(m_get.call_args_list, expected_calls)
-
-    def test_get_log_result_events_filter_topic0(self):
-        """
-        Etherscan doesn't current make it possible to filter by both `topic0`
-        and `topic3` at the same time, see:
-        https://www.reddit.com/r/etherscan/comments/8cg7xh/slug/dxfz0zj/
-        However we still want to filter it, hence this test, makes sure this is
-        being done.
-        """
-        # simplified contract ABI
-        contract_abi = [
-            {
-                'name': 'LogResult',
-                'inputs': [
-                    {
-                        'name': 'ResultSerialNumber',
-                        'indexed': True, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'BetID',
-                        'indexed': True, 'type': 'bytes32'
-                    },
-                    {
-                        'name': 'PlayerAddress',
-                        'indexed': True, 'type': 'address'
-                    },
-                    {
-                        'name': 'PlayerNumber',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'DiceResult',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'Value',
-                        'indexed': False, 'type': 'uint256'
-                    },
-                    {
-                        'name': 'Status',
-                        'indexed': False, 'type': 'int256'
-                    },
-                    {
-                        'name': 'Proof',
-                        'indexed': False, 'type': 'bytes'
-                    },
-                ],
-                'anonymous': False, 'type': 'event',
-            },
-        ]
-        # topic3 is matching with `player_address` but topic0 is not matching
-        # with `LogResult` sha3 signature
-        not_matching_event = {
-            'address': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
-            'blockNumber': '0x524eaa',
-            'data': '<simplified>',
-            'gasPrice': '0xee6b2800',
-            'gasUsed': '0x22ec7',
-            'logIndex': '0x4f',
-            'timeStamp': '0x5ac80f38',
-            'topics': [
-                '<not_matching>',
-                (
-                 '0x0000000000000000000000000000000'
-                 '00000000000000000000000000004512b'),
-                (
-                 '0xf2fb7902894213d47c482fb155cafd9'
-                 '677286d930fba1a1434265be0dbe80e66'),
-                (
-                 '0x00000000000000000000000046044be'
-                 'aa1e985c67767e04de58181de5daaa00f'),
-            ],
-            'transactionHash': (
-                '0x6123e2a19f649df79c6cf2dfbe99811'
-                '530d0770ade8e2c71488b8eb881ad20e9'),
-            'transactionIndex': '0x4a'}
-        # topic3 is matching with `player_address` and topic0 is matching with
-        # `LogResult` sha3 signature, also the case doesn't matter
-        matching_event = {
-            'address': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
-            'blockNumber': '0x524ec0',
-            'data': '<simplified>',
-            'gasPrice': '0xee6b2800',
-            'gasUsed': '0x232cb',
-            'logIndex': '0x28',
-            'timeStamp': '0x5ac81090',
-            'topics': [
-                (
-                 '0x8dd0b145385d04711e29558ceab40b4'
-                 '56976a2b9a7d648cc1bcd416161bf97b9'),
-                (
-                 '0x0000000000000000000000000000000'
-                 '00000000000000000000000000004512c'),
-                (
-                 '0xc2997a1bad35841b2c30ca95eea9cb0'
-                 '8c7b101bc14d5aa8b1b8a0facea793e05'),
-                (
-                 '0x00000000000000000000000046044be'
-                 'aa1e985c67767e04de58181de5daaa00f'),
-            ],
-            'transactionHash': (
-                '0xd80377e7533c42d892cfa193b82c31b'
-                '9f3889a6f2ada556aab66fd1ca8f27ab1'),
-            'transactionIndex': '0x37'}
-
-        get_logs_return_value = [not_matching_event, matching_event]
-        # we want this unit test to still pass even if the Etheroll contract
-        # address changes, so let's make it explicit
-        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
-        with \
-                mock.patch('etherscan.contracts.Contract.get_abi') \
-                as m_get_abi, \
-                mock.patch('pyetheroll.get_etherscan_api_key') \
-                as m_get_etherscan_api_key:
-            m_get_abi.return_value = json.dumps(contract_abi)
-            m_get_etherscan_api_key.return_value = 'apikey'
-            etheroll = Etheroll(contract_address=contract_address)
-        player_address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
-        from_block = 5394085
-        to_block = 5442078
-        with mock.patch('pyetheroll.Etheroll.get_logs') as m_get_logs:
-            m_get_logs.return_value = get_logs_return_value
-            logs = etheroll.get_log_result_events(
-                player_address, from_block, to_block)
-        expected_logs = [matching_event]
-        self.assertEqual(logs, expected_logs)
 
     def test_get_bets_logs(self):
         """
@@ -1133,11 +1011,23 @@ class TestEtheroll(unittest.TestCase):
         ]
         self.assertEqual(results, expected_results)
 
-    def test_get_last_bets_results_logs(self):
+    def test_get_last_bet_results_logs(self):
         # TODO
         # etheroll = Etheroll()
         # address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
-        # results = etheroll.get_last_bets_results_logs(address)
+        # results = etheroll.get_last_bet_results_logs(address)
+        pass
+
+    def test_get_last_bets_blocks(self):
+        # TODO
+        # etheroll = Etheroll()
+        # address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
+        # last_bets_blocks = etheroll.get_last_bets_blocks(address)
+        pass
+
+    def test_merge_logs(self):
+        # TODO
+        # Etheroll.merge_logs(bet_logs, bet_results_logs)
         pass
 
     def test_compute_profit(self):

@@ -524,9 +524,9 @@ class Etheroll:
             results.append(bet)
         return results
 
-    def get_last_bets_results_logs(self, address):
+    def get_last_bets_blocks(self, address):
         """
-        Retrieves most recent bet results from event logs.
+        Returns a block range containing the "last" bets.
         """
         # retrieves recent `playerRollDice` transactions
         transactions = self.get_player_roll_dice_tx(address)
@@ -540,8 +540,54 @@ class Etheroll:
         to_block = int(last_tx['blockNumber'])
         # the result for the last roll is included in later blocks
         to_block += 100
+        ret = {
+            'from_block': from_block,
+            'to_block': to_block,
+        }
+        return ret
+
+    def get_last_bet_results_logs(self, address):
+        """
+        Retrieves most recent bet results from event logs.
+        """
+        last_bets_blocks = self.get_last_bets_blocks(address)
+        from_block = last_bets_blocks['from_block']
+        to_block = last_bets_blocks['to_block']
         results = self.get_bet_results_logs(address, from_block, to_block)
         return results
+
+    def get_last_bets_logs(self, address, from_block, to_block='latest'):
+        """
+        Retrieves most recent bets from event logs.
+        """
+        last_bets_blocks = self.get_last_bets_blocks(address)
+        from_block = last_bets_blocks['from_block']
+        to_block = last_bets_blocks['to_block']
+        bets = self.get_bets_logs(address, from_block, to_block)
+        return bets
+
+    @staticmethod
+    def merge_logs(bet_logs, bet_results_logs):
+        """
+        Merges bet logs (LogBet) with bet results logs (LogResult).
+        """
+        merged_logs = []
+        # per bet ID dictionary
+        bet_results_dict = {}
+        for bet_result in bet_results_logs:
+            bet_id = bet_result['bet_id']
+            bet_results_dict.update({
+                bet_id: bet_result
+            })
+        for bet_log in bet_logs:
+            bet_id = bet_log['bet_id']
+            bet_result = bet_results_dict.get(bet_id)
+            merged_log = {
+                'bet_result': bet_result,
+                'bet_log': bet_result,
+            }
+            merged_logs.append(merge_log)
+        return merged_logs
 
     def get_logs_url(
             self, address, from_block, to_block='latest',
@@ -577,7 +623,15 @@ class Etheroll:
             topic0_2_opr = topic_opr.get('topic0_2_opr', '')
             topic0_2_opr = 'topic0_2_opr={}&'.format(topic0_2_opr) \
                 if topic0_2_opr else ''
-            url += topic0_1_opr + topic1_2_opr + topic2_3_opr + topic0_2_opr
+            topic0_3_opr = topic_opr.get('topic0_3_opr', '')
+            topic0_3_opr = 'topic0_3_opr={}&'.format(topic0_3_opr) \
+                if topic0_3_opr else ''
+            topic1_3_opr = topic_opr.get('topic1_3_opr', '')
+            topic1_3_opr = 'topic1_3_opr={}&'.format(topic1_3_opr) \
+                if topic1_3_opr else ''
+            url += (
+                topic0_1_opr + topic1_2_opr + topic2_3_opr + topic0_2_opr +
+                topic0_3_opr + topic1_3_opr)
         return url
 
     def get_logs(
@@ -625,23 +679,12 @@ class Etheroll:
         topic0 = log_result_signature
         # adds zero padding to match topic format (32 bytes)
         topic3 = '0x' + player_address[2:].zfill(2*32)
-        # `topic0_3_opr` is currently not supported on Etherscan, see:
-        #  https://www.reddit.com/r/etherscan/comments/8cg7xh/slug/dxfz0zj/
         topic_opr = {
             'topic0_3_opr': 'and',
         }
-        # so we "cheat"
-        topic_opr = None
-        # and skip topic0 filtering
-        topic0 = None
         logs = self.get_logs(
             address, from_block, to_block, topic0, topic3=topic3,
             topic_opr=topic_opr)
-        # to later filter it in Python
-        logs = filter(
-            lambda l: l['topics'][0].lower() == log_result_signature, logs)
-        # let's not keep it as an iterator
-        logs = list(logs)
         return logs
 
     @staticmethod

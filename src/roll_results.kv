@@ -1,8 +1,22 @@
+#:import MDSpinner kivymd.spinner.MDSpinner
+
+
+<ScrollViewSpinder>:
+    size_hint: None, None
+    size: dp(46), dp(46)
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    active: True
+
+
 <RollResultsScreen>:
     on_pre_enter:
         root.get_last_results()
     BoxLayout:
         orientation: "vertical"
+        ScrollViewSpinder:
+            id: spinner_id
 		ScrollView:
+            id: scroll_view_id
+            on_scroll_stop: root.on_scroll_stop(self.scroll_y)
 			MDList:
 				id: roll_list_id

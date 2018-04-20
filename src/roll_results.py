@@ -3,12 +3,17 @@ from kivy.clock import Clock, mainthread
 from kivy.properties import ListProperty
 from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ThreeLineAvatarListItem
+from kivymd.spinner import MDSpinner
 
 import constants
 from pyetheroll import Etheroll
 from utils import SubScreen, load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
+
+
+class ScrollViewSpinder(MDSpinner):
+    pass
 
 
 class DiceResultWidget(ILeftBody, MDLabel):
@@ -21,6 +26,8 @@ class RollResultsScreen(SubScreen):
 
     def __init__(self, **kwargs):
         super(RollResultsScreen, self).__init__(**kwargs)
+        # TODO: make it a property that starts/stops spinner on set
+        self._fetching_results = False
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):
@@ -29,6 +36,34 @@ class RollResultsScreen(SubScreen):
         """
         self.controller = App.get_running_app().root
         self.update_roll_list()
+
+    # TODO: create a dedicated PullRefreshScrollView that handle all this
+    def on_scroll_stop(self, scroll_y):
+        """
+        Refreshs roll results on overscroll.
+        """
+        # refresh if we hit the bottom or if we over pull
+        # currently hitting the bottom will refresh last transactions only
+        # rather than loading more ancient transactions
+        if scroll_y == 0 or scroll_y >= 1.03:
+            if not self._fetching_results:
+                self.get_last_results()
+
+    def toggle_spinner(self, show):
+        """
+        Actually shrinking and hidding it.
+        """
+        spinner = self.ids.spinner_id
+        # by default it's in "shown" mode and doesn't have attributes saved
+        if not hasattr(spinner, 'previous_size_hint'):
+            spinner.previous_size_hint = spinner.size_hint.copy()
+            spinner.previous_opacity = spinner.opacity
+        elif show:
+            spinner.size_hint = spinner.previous_size_hint
+            spinner.opacity = spinner.previous_opacity
+        else:
+            spinner.size_hint = (0, 0)
+            spinner.opacity = 0
 
     @property
     def pyetheroll(self):
@@ -56,10 +91,18 @@ class RollResultsScreen(SubScreen):
         account = controller.switch_account_screen.current_account
         if not account:
             controller.on_account_none()
+            self.on_back()
             return
+        self._fetching_results = True
+        self.toggle_spinner(show=True)
         address = "0x" + account.address.hex()
+        # TODO: we should handle exceptions, but `py-etherscan-api` is not
+        # raising any at the moment, refs:
+        # https://github.com/corpetty/py-etherscan-api/pull/23
         self.roll_logs = self.pyetheroll.get_merged_logs(
             address=address)
+        self.toggle_spinner(show=False)
+        self._fetching_results = False
 
     @staticmethod
     def create_item_from_dict(roll_log):

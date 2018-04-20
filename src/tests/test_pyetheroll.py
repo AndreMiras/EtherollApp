@@ -385,6 +385,81 @@ class TestEtheroll(unittest.TestCase):
         'type': 'function',
     }
 
+    bet_logs = [
+        {
+            'bet_id': (
+                '15e007148ec621d996c886de0f2b88a0'
+                '3af083aa819e851a51133dc17b6e0e5b'),
+            'bet_value_ether': 0.45,
+            'datetime': datetime(2018, 4, 7, 0, 17, 6),
+            'profit_value_ether': 44.1,
+            'reward_value_ether': 44.55,
+            'roll_under': 2,
+            'timestamp': '0x5ac80e02',
+            'transaction_hash': (
+                '0xf363906a9278c4dd300c50a3c9a2790'
+                '0bb85df60596c49f7833c232f2944d1cb')
+        },
+        {
+            'bet_id': (
+                '14bae6b4711bdc5e3db19983307a9208'
+                '1e2e7c1d45161117bdf7b8b509d1abbe'),
+            'bet_value_ether': 0.45,
+            'datetime': datetime(2018, 4, 7, 0, 20, 14),
+            'profit_value_ether': 6.97,
+            'reward_value_ether': 7.42,
+            'roll_under': 7,
+            'timestamp': '0x5ac80ebe',
+            'transaction_hash': (
+                '0x0df8789552248edf1dd9d06a7a90726'
+                'f1bc83a9c39f315b04efb6128f0d02146')
+        },
+        {
+            # that one would not have been yet resolved (no `LogResult`)
+            'bet_id': (
+                'c2997a1bad35841b2c30ca95eea9cb08'
+                'c7b101bc14d5aa8b1b8a0facea793e05'),
+            'bet_value_ether': 0.5,
+            'datetime': datetime(2018, 4, 7, 0, 23, 46),
+            'profit_value_ether': 3.31,
+            'reward_value_ether': 3.81,
+            'roll_under': 14,
+            'timestamp': '0x5ac80f92',
+            'transaction_hash': (
+                '0x0440f1013a5eafd88f16be6b5612b6e'
+                '051a4eb1b0b91a160c680295e7fab5bfe')
+        }
+    ]
+
+    bet_results_logs = [
+        {
+            'bet_id': (
+                '15e007148ec621d996c886de0f2b88a0'
+                '3af083aa819e851a51133dc17b6e0e5b'),
+            'bet_value_ether': 0.45,
+            'datetime': datetime(2018, 4, 7, 0, 17, 55),
+            'dice_result': 86,
+            'roll_under': 2,
+            'timestamp': '0x5ac80e33',
+            'transaction_hash': (
+                '0x3505de688dc20748eb5f6b3efd6e6d3'
+                '66ea7f0737b4ab17035c6b60ab4329f2a')
+        },
+        {
+            'bet_id': (
+                '14bae6b4711bdc5e3db19983307a9208'
+                '1e2e7c1d45161117bdf7b8b509d1abbe'),
+            'bet_value_ether': 0.45,
+            'datetime': datetime(2018, 4, 7, 0, 20, 54),
+            'dice_result': 51,
+            'roll_under': 7,
+            'timestamp': '0x5ac80ee6',
+            'transaction_hash': (
+                '0x42df3e3136957bcc64226206ed177d5'
+                '7ac9c31e116290c8778c97474226d3092')
+        },
+    ]
+
     def setUp(self):
         self.keystore_dir = mkdtemp()
 
@@ -946,9 +1021,16 @@ class TestEtheroll(unittest.TestCase):
         pass
 
     def test_merge_logs(self):
-        # TODO
-        # Etheroll.merge_logs(bet_logs, bet_results_logs)
-        pass
+        bet_logs = self.bet_logs
+        bet_results_logs = self.bet_results_logs
+        expected_merged_logs = [
+            {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
+            {'bet_log': bet_logs[1], 'bet_result': bet_results_logs[1]},
+            # not yet resolved (no `LogResult`)
+            {'bet_log': bet_logs[2], 'bet_result': None},
+        ]
+        merged_logs = Etheroll.merge_logs(bet_logs, bet_results_logs)
+        self.assertEqual(merged_logs, expected_merged_logs)
 
     def test_compute_profit(self):
         bet_size = 0.10
@@ -971,79 +1053,9 @@ class TestEtheroll(unittest.TestCase):
             self.log_bet_abi, self.log_result_abi, self.player_roll_dice_abi]
         contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
         last_bets_blocks = {'from_block': 5394067, 'to_block': 5394194}
-        bet_logs = [
-            {
-                'bet_id': (
-                    '15e007148ec621d996c886de0f2b88a0'
-                    '3af083aa819e851a51133dc17b6e0e5b'),
-                'bet_value_ether': 0.45,
-                'datetime': datetime(2018, 4, 7, 0, 17, 6),
-                'profit_value_ether': 44.1,
-                'reward_value_ether': 44.55,
-                'roll_under': 2,
-                'timestamp': '0x5ac80e02',
-                'transaction_hash': (
-                    '0xf363906a9278c4dd300c50a3c9a2790'
-                    '0bb85df60596c49f7833c232f2944d1cb')
-            },
-            {
-                'bet_id': (
-                    '14bae6b4711bdc5e3db19983307a9208'
-                    '1e2e7c1d45161117bdf7b8b509d1abbe'),
-                'bet_value_ether': 0.45,
-                'datetime': datetime(2018, 4, 7, 0, 20, 14),
-                'profit_value_ether': 6.97,
-                'reward_value_ether': 7.42,
-                'roll_under': 7,
-                'timestamp': '0x5ac80ebe',
-                'transaction_hash': (
-                    '0x0df8789552248edf1dd9d06a7a90726'
-                    'f1bc83a9c39f315b04efb6128f0d02146')
-            },
-            {
-                # that one would not have been yet resolved (no `LogResult`)
-                'bet_id': (
-                    'c2997a1bad35841b2c30ca95eea9cb08'
-                    'c7b101bc14d5aa8b1b8a0facea793e05'),
-                'bet_value_ether': 0.5,
-                'datetime': datetime(2018, 4, 7, 0, 23, 46),
-                'profit_value_ether': 3.31,
-                'reward_value_ether': 3.81,
-                'roll_under': 14,
-                'timestamp': '0x5ac80f92',
-                'transaction_hash': (
-                    '0x0440f1013a5eafd88f16be6b5612b6e'
-                    '051a4eb1b0b91a160c680295e7fab5bfe')
-            }
-        ]
-        bet_results_logs = [
-            {
-                'bet_id': (
-                    '15e007148ec621d996c886de0f2b88a0'
-                    '3af083aa819e851a51133dc17b6e0e5b'),
-                'bet_value_ether': 0.45,
-                'datetime': datetime(2018, 4, 7, 0, 17, 55),
-                'dice_result': 86,
-                'roll_under': 2,
-                'timestamp': '0x5ac80e33',
-                'transaction_hash': (
-                    '0x3505de688dc20748eb5f6b3efd6e6d3'
-                    '66ea7f0737b4ab17035c6b60ab4329f2a')
-            },
-            {
-                'bet_id': (
-                    '14bae6b4711bdc5e3db19983307a9208'
-                    '1e2e7c1d45161117bdf7b8b509d1abbe'),
-                'bet_value_ether': 0.45,
-                'datetime': datetime(2018, 4, 7, 0, 20, 54),
-                'dice_result': 51,
-                'roll_under': 7,
-                'timestamp': '0x5ac80ee6',
-                'transaction_hash': (
-                    '0x42df3e3136957bcc64226206ed177d5'
-                    '7ac9c31e116290c8778c97474226d3092')
-            },
-        ]
+        bet_logs = self.bet_logs
+        bet_results_logs = self.bet_results_logs
+
         with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
             m_get_abi.return_value = json.dumps(contract_abi)
             etheroll = Etheroll(contract_address=contract_address)

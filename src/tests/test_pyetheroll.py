@@ -1014,11 +1014,71 @@ class TestEtheroll(unittest.TestCase):
         pass
 
     def test_get_last_bets_blocks(self):
-        # TODO
-        # etheroll = Etheroll()
-        # address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
-        # last_bets_blocks = etheroll.get_last_bets_blocks(address)
-        pass
+        transactions = [
+            {
+                'blockHash': (
+                    '0x9814be792821e5d98b639e211fbe8f4'
+                    'b1930b8f12fa28aeb9ecf4737e749626b'),
+                'blockNumber': '5394094',
+                'confirmations': '81252',
+                'contractAddress': '',
+                'cumulativeGasUsed': '2619957',
+                'from': '0x46044beaa1e985c67767e04de58181de5daaa00f',
+                'gas': '250000',
+                'gasPrice': '2000000000',
+                'gasUsed': '177773',
+                'hash': (
+                    '0x0440f1013a5eafd88f16be6b5612b6e'
+                    '051a4eb1b0b91a160c680295e7fab5bfe'),
+                'input': (
+                    '0xdc6dd152000000000000000000000000000'
+                    '000000000000000000000000000000000000e'),
+                'isError': '0',
+                'nonce': '9485',
+                'timeStamp': '1523060626',
+                'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+                'transactionIndex': '42',
+                'txreceipt_status': '1',
+                'value': '500000000000000000'},
+            {
+                'blockHash': (
+                    '0x0f74b07fe04dd447b2a48c7aee6998a'
+                    'c97cf7c12b4fd46ef781f00652abe4642'),
+                'blockNumber': '5394068',
+                'confirmations': '81278',
+                'contractAddress': '',
+                'cumulativeGasUsed': '4388802',
+                'from': '0x46044beaa1e985c67767e04de58181de5daaa00f',
+                'gas': '250000',
+                'gasPrice': '2200000000',
+                'gasUsed': '177773',
+                'hash': (
+                    '0xf363906a9278c4dd300c50a3c9a2790'
+                    '0bb85df60596c49f7833c232f2944d1cb'),
+                'input': (
+                    '0xdc6dd152000000000000000000000000000'
+                    '0000000000000000000000000000000000002'),
+                'isError': '0',
+                'nonce': '9481',
+                'timeStamp': '1523060226',
+                'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+                'transactionIndex': '150',
+                'txreceipt_status': '1',
+                'value': '450000000000000000'
+            }
+        ]
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        contract_abi = []
+        address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll(contract_address=contract_address)
+        with mock.patch('pyetheroll.Etheroll.get_player_roll_dice_tx') \
+                as m_get_player_roll_dice_tx:
+            m_get_player_roll_dice_tx.return_value = transactions
+            last_bets_blocks = etheroll.get_last_bets_blocks(address)
+        self.assertEqual(
+            last_bets_blocks, {'from_block': 5394067, 'to_block': 5394194})
 
     def test_merge_logs(self):
         bet_logs = self.bet_logs

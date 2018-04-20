@@ -3,7 +3,9 @@
 ## [v20180418]
 
   - Per account bet history, refs #16
+  - Spinner animation on roll history fetching, refs #50
   - Handle unresolved bets, refs #51
+  - Pull to refresh roll history, refs #55
 
 
 ## [v20180414]

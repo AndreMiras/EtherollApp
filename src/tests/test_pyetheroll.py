@@ -86,8 +86,8 @@ class TestUtils(unittest.TestCase):
             "3a312c226d6178223a3130302c227265706c6163656d656e74223a747275652c"
             "2262617365223a3130247b5b6964656e746974795d20227d227d2c226964223a"
             "31247b5b6964656e746974795d20227d227d275d000000000000000000000000")
-        decoded_method = TransactionDebugger.decode_method(
-            contract_abi, topics, log_data)
+        transaction_debugger = TransactionDebugger(contract_abi)
+        decoded_method = transaction_debugger.decode_method(topics, log_data)
         # TODO: simplify that arg call for unit testing
         self.assertEqual(
             decoded_method['call'],
@@ -178,8 +178,8 @@ class TestUtils(unittest.TestCase):
             '0000000000000000000000000000000000000000000000000007533f2ecb6c34'
             '000000000000000000000000000000000000000000000000016345785d8a0000'
             '0000000000000000000000000000000000000000000000000000000000000062')
-        decoded_method = TransactionDebugger.decode_method(
-            contract_abi, topics, log_data)
+        transaction_debugger = TransactionDebugger(contract_abi)
+        decoded_method = transaction_debugger.decode_method(topics, log_data)
         self.assertEqual(
             decoded_method['call'],
             {'BetID': (
@@ -320,7 +320,6 @@ class TestTransactionDebugger(unittest.TestCase):
           })
         ]
         chain_id = ChainID.ROPSTEN
-        transaction_debugger = TransactionDebugger(chain_id)
         transaction_hash = (
           "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
         with \
@@ -330,8 +329,8 @@ class TestTransactionDebugger(unittest.TestCase):
                     'etherscan.contracts.Contract.get_abi',
                     side_effect=self.m_get_abi, autospec=True):
             m_getTransactionReceipt.return_value.logs = mocked_logs
-            decoded_methods = transaction_debugger.decode_transaction_logs(
-                transaction_hash)
+            decoded_methods = TransactionDebugger.decode_transaction_logs(
+                chain_id, transaction_hash)
         self.assertEqual(len(decoded_methods), 2)
         decoded_method = decoded_methods[0]
         self.assertEqual(

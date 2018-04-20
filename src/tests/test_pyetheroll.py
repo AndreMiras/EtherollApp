@@ -1006,13 +1006,6 @@ class TestEtheroll(unittest.TestCase):
         ]
         self.assertEqual(results, expected_results)
 
-    def test_get_last_bet_results_logs(self):
-        # TODO
-        # etheroll = Etheroll()
-        # address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
-        # results = etheroll.get_last_bet_results_logs(address)
-        pass
-
     def test_get_last_bets_blocks(self):
         transactions = [
             {

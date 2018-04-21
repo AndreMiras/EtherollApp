@@ -239,7 +239,7 @@ class ImportKeystore(BoxLayout):
 
 
 class SwitchAccountScreen(SubScreen):
-    current_account = ObjectProperty()
+    current_account = ObjectProperty(allownone=True)
 
     def __init__(self, **kwargs):
         super(SwitchAccountScreen, self).__init__(**kwargs)
@@ -413,6 +413,8 @@ class RollScreen(Screen):
         """
         Sets current_account_string.
         """
+        if account is None:
+            return
         self.current_account_string = '0x' + account.address.hex()
 
     def get_roll_input(self):
@@ -568,6 +570,10 @@ class Controller(FloatLayout):
     @property
     def switch_account_screen(self):
         return self.ids.switch_account_screen_id
+
+    @property
+    def roll_results_screen(self):
+        return self.ids.roll_results_screen_id
 
     @property
     def settings_screen(self):

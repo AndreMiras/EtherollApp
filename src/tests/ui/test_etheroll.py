@@ -316,6 +316,26 @@ class UITestCase(unittest.TestCase):
         chances_slider.value = 70
         self.assertEqual(chances_input.text, '70')
 
+    def helper_test_roll_history_no_acccount(self, app):
+        """
+        When going to the roll history screen with no account selected,
+        the application should complain and bring back to the main screen.
+        """
+        controller = app.root
+        switch_account_screen = controller.switch_account_screen
+        # makes sure no account is selected
+        switch_account_screen.current_account = None
+        screen_manager = controller.ids.screen_manager_id
+        screen_manager.current = 'roll_results_screen'
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'No account selected')
+        dialog.dismiss()
+        # we should get redirected to the overview page
+        self.advance_frames_for_screen()
+        self.assertEqual(controller.screen_manager.current, 'roll_screen')
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -328,6 +348,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_create_first_account(app)
         self.helper_test_create_account_form(app)
         self.helper_test_chances_input_binding(app)
+        self.helper_test_roll_history_no_acccount(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

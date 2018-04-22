@@ -316,6 +316,26 @@ class UITestCase(unittest.TestCase):
         chances_slider.value = 70
         self.assertEqual(chances_input.text, '70')
 
+    def helper_test_roll_history_no_tx(self, app):
+        """
+        When going to the roll history screen with an account selected that has
+        no transaction history, the application should fail gracefully.
+        """
+        # TODO: currently disabled because of a py-etherscan-api bug, refs:
+        # https://github.com/AndreMiras/EtherollApp/issues/67
+        return
+        controller = app.root
+        switch_account_screen = controller.switch_account_screen
+        # makes sure an account is selected
+        self.assertIsNotNone(switch_account_screen.current_account)
+        screen_manager = controller.ids.screen_manager_id
+        screen_manager.current = 'roll_results_screen'
+        # make sure the application is not complaining
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'No transaction found')
+
     def helper_test_roll_history_no_acccount(self, app):
         """
         When going to the roll history screen with no account selected,
@@ -348,6 +368,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_create_first_account(app)
         self.helper_test_create_account_form(app)
         self.helper_test_chances_input_binding(app)
+        self.helper_test_roll_history_no_tx(app)
         self.helper_test_roll_history_no_acccount(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.

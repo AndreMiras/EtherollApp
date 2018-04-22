@@ -1107,7 +1107,6 @@ class TestEtheroll(unittest.TestCase):
         last_bets_blocks = {'from_block': 5394067, 'to_block': 5394194}
         bet_logs = self.bet_logs
         bet_results_logs = self.bet_results_logs
-
         with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
             m_get_abi.return_value = json.dumps(contract_abi)
             etheroll = Etheroll(contract_address=contract_address)
@@ -1130,3 +1129,25 @@ class TestEtheroll(unittest.TestCase):
             {'bet_log': bet_logs[2], 'bet_result': None},
         ]
         self.assertEqual(merged_logs, expected_merged_logs)
+
+    def test_get_merged_logs_empty(self):
+        """
+        Empty transaction history crashes the application, refs:
+        https://github.com/AndreMiras/EtherollApp/issues/67
+        """
+        contract_abi = []
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll(contract_address=contract_address)
+        address = '0x7aBE7DdD94DB8feb6BE426e53cA090b94F15d73E'
+        with mock.patch('requests.sessions.Session.get') as m_get:
+            # this is what etherscan.io would return on empty tx history
+            m_get.return_value.status_code = 200
+            m_get.return_value.text = (
+                '{"status":"0","message":"No transactions found","result":[]}')
+            m_get.return_value.json.return_value = json.loads(
+                m_get.return_value.text)
+            # but this crashes the library with an exit
+            with self.assertRaises(SystemExit):
+                etheroll.get_merged_logs(address)

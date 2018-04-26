@@ -6,6 +6,7 @@
   - Spinner animation on roll history fetching, refs #50
   - Handle unresolved bets, refs #51
   - Pull to refresh roll history, refs #55
+  - UI testing sending rolls, refs #64
 
 
 ## [v20180414]

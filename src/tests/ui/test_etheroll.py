@@ -7,6 +7,7 @@ from functools import partial
 from tempfile import mkdtemp
 from unittest import mock
 
+from hexbytes import HexBytes
 from kivy.clock import Clock
 from tests import test_pyetheroll
 
@@ -408,6 +409,62 @@ class UITestCase(unittest.TestCase):
         self.advance_frames_for_screen()
         self.assertEqual(controller.screen_manager.current, 'roll_screen')
 
+    def helper_test_roll(self, app):
+        """
+        Trying to place a valid roll.
+        """
+        controller = app.root
+        # makes sure an account is selected
+        switch_account_screen = controller.switch_account_screen
+        switch_account_screen.current_account = \
+            controller.account_utils.get_account_list()[0]
+        # retrieving the roll button, to click it
+        roll_screen = controller.roll_screen
+        roll_button = roll_screen.ids.roll_button_id
+        self.assertEqual(roll_button.text, 'Roll')
+        roll_button.dispatch('on_release')
+        # it should open the error dialog
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'Enter your password')
+        dialog.content.password = 'password'
+        unlock_button = dialog._action_buttons[0]
+        with mock.patch('pyetheroll.Etheroll.player_roll_dice') \
+                as m_player_roll_dice:
+            m_player_roll_dice.return_value = HexBytes(
+                '0x7be6e37621eb12db7dc535954345f69'
+                'd8cc5644b2de0ec32a344ca33c3054237')
+            unlock_button.dispatch('on_release')
+            threads = threading.enumerate()
+            # since we may run into race condition with threading.enumerate()
+            # we make the test conditional
+            if len(threads) == 2:
+                # rolls should be pulled from a thread
+                self.assertEqual(len(threads), 2)
+                player_roll_dice_thread = threads[1]
+                self.assertEqual(
+                    type(player_roll_dice_thread), threading.Thread)
+                self.assertTrue(
+                    'function Controller.player_roll_dice'
+                    in str(player_roll_dice_thread._target))
+                # waits for the end of the thread
+                player_roll_dice_thread.join()
+        self.advance_frames_for_screen()
+        # thread has ended and the main thread is running alone again
+        self.assertEqual(len(threading.enumerate()), 1)
+        main_thread = threading.enumerate()[0]
+        self.assertEqual(type(main_thread), threading._MainThread)
+        # a confirmation dialog with transaction hash should pop
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'Rolled successfully')
+        # loads back the default screen
+        screen_manager = controller.ids.screen_manager_id
+        screen_manager.current = 'roll_screen'
+        self.advance_frames_for_screen()
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -423,6 +480,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_roll_history(app)
         self.helper_test_roll_history_no_tx(app)
         self.helper_test_roll_history_no_acccount(app)
+        self.helper_test_roll(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

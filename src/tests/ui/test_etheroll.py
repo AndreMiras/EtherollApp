@@ -5,8 +5,10 @@ import time
 import unittest
 from functools import partial
 from tempfile import mkdtemp
+from unittest import mock
 
 from kivy.clock import Clock
+from tests import test_pyetheroll
 
 import etheroll
 from utils import Dialog
@@ -316,6 +318,52 @@ class UITestCase(unittest.TestCase):
         chances_slider.value = 70
         self.assertEqual(chances_input.text, '70')
 
+    def helper_test_roll_history(self, app):
+        """
+        Roll history screen should display recent rolls, refs #61.
+        """
+        bet_results_logs = test_pyetheroll.TestEtheroll.bet_results_logs
+        bet_logs = test_pyetheroll.TestEtheroll.bet_logs
+        merged_logs = [
+            {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
+            {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
+            # not yet resolved (no `LogResult`)
+            {'bet_log': bet_logs[2], 'bet_result': None},
+        ]
+        controller = app.root
+        switch_account_screen = controller.switch_account_screen
+        # makes sure an account is selected
+        self.assertIsNotNone(switch_account_screen.current_account)
+        screen_manager = controller.ids.screen_manager_id
+        # patches library with fake recent rolls
+        with mock.patch('pyetheroll.Etheroll.get_merged_logs') \
+                as m_get_merged_logs:
+            m_get_merged_logs.return_value = merged_logs
+            screen_manager.current = 'roll_results_screen'
+            # rolls should be pulled from a thread
+            self.assertEqual(len(threading.enumerate()), 2)
+            get_last_results_thread = threading.enumerate()[1]
+            self.assertEqual(type(get_last_results_thread), threading.Thread)
+            self.assertTrue(
+                'function RollResultsScreen.get_last_results'
+                in str(get_last_results_thread._target))
+            # waits for the end of the thread
+            get_last_results_thread.join()
+            self.advance_frames_for_screen()
+            # thread has ended and the main thread is running alone again
+            self.assertEqual(len(threading.enumerate()), 1)
+            main_thread = threading.enumerate()[0]
+            self.assertEqual(type(main_thread), threading._MainThread)
+        # verifies recent rolls appear
+        roll_results_screen = controller.roll_results_screen
+        roll_list = roll_results_screen.ids.roll_list_id
+        # roll results items should be displayed
+        items = roll_list.children
+        self.assertEqual(len(items), len(merged_logs))
+        # loads back the default screen
+        screen_manager.current = 'roll_screen'
+        self.advance_frames_for_screen()
+
     def helper_test_roll_history_no_tx(self, app):
         """
         When going to the roll history screen with an account selected that has
@@ -335,6 +383,9 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(len(dialogs), 1)
         dialog = dialogs[0]
         self.assertEqual(dialog.title, 'No transaction found')
+        # loads back the default screen
+        screen_manager.current = 'roll_screen'
+        self.advance_frames_for_screen()
 
     def helper_test_roll_history_no_acccount(self, app):
         """
@@ -347,6 +398,7 @@ class UITestCase(unittest.TestCase):
         switch_account_screen.current_account = None
         screen_manager = controller.ids.screen_manager_id
         screen_manager.current = 'roll_results_screen'
+        self.advance_frames_for_screen()
         dialogs = Dialog.dialogs
         self.assertEqual(len(dialogs), 1)
         dialog = dialogs[0]
@@ -368,6 +420,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_create_first_account(app)
         self.helper_test_create_account_form(app)
         self.helper_test_chances_input_binding(app)
+        self.helper_test_roll_history(app)
         self.helper_test_roll_history_no_tx(app)
         self.helper_test_roll_history_no_acccount(app)
         # Comment out if you are editing the test, it'll leave the

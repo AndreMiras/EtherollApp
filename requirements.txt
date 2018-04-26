@@ -16,3 +16,5 @@ raven==6.6.0
 requests-cache
 kivyunittest==0.1.8
 qrcode==5.3
+eth-rlp==0.1.2
+rlp==0.6.0

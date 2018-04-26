@@ -16,7 +16,7 @@ virtualenv:
 	# downgrade to setuptools 37, see:
 	# https://github.com/ethereum/pyethereum/pull/831
 	$(PIP) install setuptools==37.0.0
-	$(PIP) install -r requirements.txt
+	$(PIP) install --timeout 120 -r requirements.txt
 
 system_dependencies:
 ifeq ($(OS), Ubuntu)

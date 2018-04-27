@@ -22,8 +22,8 @@ from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
 import constants
-from utils import (Dialog, SubScreen, patch_find_library_android,
-                   patch_typing_python351, run_in_thread)
+from etheroll.utils import (Dialog, SubScreen, patch_find_library_android,
+                   patch_typing_python351, run_in_thread, load_kv_from_py)
 from version import __version__
 
 patch_find_library_android()
@@ -32,6 +32,8 @@ patch_typing_python351()
 from ethereum_utils import AccountUtils  # noqa: E402, isort:skip
 import pyetheroll  # noqa: E402, isort:skip
 
+
+load_kv_from_py(__file__)
 
 class PasswordForm(BoxLayout):
     password = StringProperty()

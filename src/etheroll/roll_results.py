@@ -7,7 +7,7 @@ from kivymd.spinner import MDSpinner
 
 import constants
 from pyetheroll import Etheroll
-from utils import SubScreen, load_kv_from_py, run_in_thread
+from etheroll.utils import SubScreen, load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
 

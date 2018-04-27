@@ -11,8 +11,8 @@ from hexbytes import HexBytes
 from kivy.clock import Clock
 from tests import test_pyetheroll
 
-import etheroll
-from utils import Dialog
+from etheroll.controller import EtherollApp
+from etheroll.utils import Dialog
 
 
 class UITestCase(unittest.TestCase):
@@ -55,7 +55,8 @@ class UITestCase(unittest.TestCase):
         self.advance_frames_for_screen()
 
     def helper_setup(self, app):
-        etheroll.SCREEN_SWITCH_DELAY = 0.001
+        pass
+        # etheroll.SCREEN_SWITCH_DELAY = 0.001
 
     def helper_test_empty_account(self, app):
         """
@@ -487,7 +488,7 @@ class UITestCase(unittest.TestCase):
 
     # same named function as the filename(!)
     def test_ui_base(self):
-        app = etheroll.EtherollApp()
+        app = EtherollApp()
         p = partial(self.run_test, app)
         Clock.schedule_once(p, 0.000001)
         app.run()

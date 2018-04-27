@@ -22,8 +22,9 @@ from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
 import constants
-from etheroll.utils import (Dialog, SubScreen, patch_find_library_android,
-                   patch_typing_python351, run_in_thread, load_kv_from_py)
+from etheroll.utils import (Dialog, SubScreen, load_kv_from_py,
+                            patch_find_library_android, patch_typing_python351,
+                            run_in_thread)
 from version import __version__
 
 patch_find_library_android()
@@ -34,6 +35,7 @@ import pyetheroll  # noqa: E402, isort:skip
 
 
 load_kv_from_py(__file__)
+
 
 class PasswordForm(BoxLayout):
     password = StringProperty()
@@ -286,24 +288,6 @@ class SettingsScreen(SubScreen):
 
     def is_testnet(self):
         return self.ids.testnet_checkbox_id.active
-
-
-class AboutScreen(SubScreen):
-    project_page_property = StringProperty(
-        "https://github.com/AndreMiras/EtherollApp")
-    about_text_property = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(AboutScreen, self).__init__(**kwargs)
-        Clock.schedule_once(lambda dt: self.load_about())
-
-    def load_about(self):
-        self.about_text_property = "" + \
-            "EtherollApp version: %s\n" % (__version__) + \
-            "Project source code and info available on GitHub at:\n" + \
-            "[color=00BFFF][ref=github]" + \
-            self.project_page_property + \
-            "[/ref][/color]"
 
 
 class RollUnderRecap(BoxLayout):

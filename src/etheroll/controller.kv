@@ -1,4 +1,3 @@
-#:import webbrowser webbrowser
 #:import MDSeparator kivymd.card.MDSeparator
 #:import MDList kivymd.list.MDList
 #:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
@@ -10,6 +9,7 @@
 #:import Toolbar kivymd.toolbar.Toolbar
 #:import AddressButton etheroll.addressbutton.AddressButton
 #:import RollResultsScreen etheroll.roll_results.RollResultsScreen
+#:import AboutScreen etheroll.about.AboutScreen
 #:import ROUND_DIGITS constants.ROUND_DIGITS
 
 
@@ -131,16 +131,6 @@
             MDLabel:
                 text: 'Testnet'
         PushUp:
-
-
-<AboutScreen>:
-    BoxLayout:
-        orientation: "vertical"
-        MDLabel:
-            markup: True
-            text: root.about_text_property
-            theme_text_color: "Primary"
-            on_ref_press: webbrowser.open(root.project_page_property)
 
 
 <BetSize>:

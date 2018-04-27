@@ -10,6 +10,7 @@
 #:import AddressButton etheroll.addressbutton.AddressButton
 #:import RollResultsScreen etheroll.roll_results.RollResultsScreen
 #:import AboutScreen etheroll.about.AboutScreen
+#:import SwitchAccountScreen etheroll.switchaccount.SwitchAccountScreen
 #:import ROUND_DIGITS constants.ROUND_DIGITS
 
 
@@ -29,13 +30,6 @@
         text: root.password
         password: True
         on_text: root.password = args[1]
-
-
-<SwitchAccount>:
-    orientation: 'vertical'
-    ScrollView:
-        MDList:
-            id: account_list_id
 
 
 <ImportKeystore>:
@@ -73,34 +67,6 @@
             text: "Create account"
             on_release: root.create_account()
     PushUp:
-
-
-<SwitchAccountScreen>:
-    name: 'switch_account'
-    on_pre_enter:
-        switch_account_id.load_account_list()
-        # workaround for broken MDBottomNavigation, refs
-        # https://github.com/AndreMiras/PyWallet/issues/38
-        Window.dispatch('on_resize', *Window.size)
-    MDBottomNavigation:
-        MDBottomNavigationItem:
-            name: "select"
-            text: "Select"
-            icon: "format-list-bulleted"
-            SwitchAccount:
-                id: switch_account_id
-        MDBottomNavigationItem:
-            id: create_new_account_nav_item_id
-            name: "create"
-            text: "Create"
-            icon: "plus"
-            CreateNewAccount:
-                id: create_new_account_id
-        MDBottomNavigationItem:
-            name: "import"
-            text: "Import"
-            icon: "download"
-            ImportKeystore:
 
 
 <SettingsScreen>:

@@ -1,0 +1,79 @@
+#:import MDSeparator kivymd.card.MDSeparator
+#:import MDTextField kivymd.textfields.MDTextField
+#:import MDSlider kivymd.slider.MDSlider
+#:import AddressButton etheroll.addressbutton.AddressButton
+#:import ROUND_DIGITS constants.ROUND_DIGITS
+
+
+<BetSize>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Bet size"
+        font_style: 'Title'
+    BoxLayout:
+        orientation: "horizontal"
+        MDTextField:
+            id: bet_size_input_id
+            text: "0.1"
+            input_filter: 'float'
+            width: dp(50)
+            size_hint_x: None
+        MDSlider:
+            id: bet_size_slider_id
+            range: 0, 10
+            step: 0.1
+
+<ChanceOfWinning>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Chance of winning"
+        font_style: 'Title'
+    BoxLayout:
+        orientation: "horizontal"
+        MDTextField:
+            id: chances_input_id
+            text: "50"
+            input_filter: 'int'
+            width: dp(50)
+            size_hint_x: None
+        MDSlider:
+            id: chances_slider_id
+            range: 0, 100
+            step: 1
+
+
+<RollUnderRecap>:
+    orientation: "vertical"
+    MDLabel:
+        text: "Roll under %s" % int(root.roll_under_property)
+        font_style: 'Headline'
+    MDLabel:
+        text: "With a wager of {0:.{1}f} ETH".format(root.wager_property, ROUND_DIGITS)
+    MDLabel:
+    MDLabel:
+        text: "For a profit of {0:.{1}f} ETH".format(root.profit_property, ROUND_DIGITS)
+
+
+<RollScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        AddressButton:
+            text: root.current_account_string or 'No account selected'
+            on_release: app.root.open_address_options()
+        MDLabel:
+            text: "Place your bet"
+            font_style: 'Headline'
+        BetSize:
+            id: bet_size_id
+        ChanceOfWinning:
+            id: chance_of_winning_id
+        MDSeparator:
+            height: dp(1)
+        PushUp:
+        RollUnderRecap:
+            id: roll_under_recap_id
+        PushUp:
+        AnchorLayout:
+            MDRaisedButton:
+                id: roll_button_id
+                text: "Roll"

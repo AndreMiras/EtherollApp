@@ -1,12 +1,19 @@
 # Change Log
 
+## [Unreleased]
+
+  - File split & refactoring, refs #43
+  - Spinner animation on roll history fetching, refs #50
+  - Pull to refresh roll history, refs #55
+  - UI testing, refs #61, #64
+  - Ubuntu Bionic 18.04 support, refs #70
+
+
 ## [v20180418]
 
   - Per account bet history, refs #16
-  - Spinner animation on roll history fetching, refs #50
+  - Remove topic3 workaround, refs #48
   - Handle unresolved bets, refs #51
-  - Pull to refresh roll history, refs #55
-  - UI testing sending rolls, refs #64
 
 
 ## [v20180414]

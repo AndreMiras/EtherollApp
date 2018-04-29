@@ -1,5 +1,3 @@
-# https://github.com/golemfactory/golem-messages/pull/112/files
---find-links https://builds.golem.network/simple/pyelliptic
 web3==4.0.0b11
 eth-testrpc==1.3.3
 https://github.com/corpetty/py-etherscan-api/archive/a783f720a6175b227cdfe8dc3040ebad3022d79f.zip#egg=py-etherscan-api
@@ -24,4 +22,4 @@ eth-rlp==0.1.2
 rlp==0.6.0
 # compatible with libcrypto.so.1.1
 # https://github.com/golemfactory/golem-messages/pull/112/files
-pyelliptic==1.5.10
+https://github.com/mfranciszkiewicz/pyelliptic/archive/1.5.10.tar.gz#pyelliptic

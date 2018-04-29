@@ -8,8 +8,6 @@ from kivy.core.clipboard import Clipboard
 from kivy.garden.qrcode import QRCodeWidget
 from kivy.logger import LOG_LEVELS, Logger
 from kivy.metrics import dp
-from kivy.properties import StringProperty
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.utils import platform
 from kivymd.bottomsheet import MDListBottomSheet
@@ -33,21 +31,6 @@ import pyetheroll  # noqa: E402, isort:skip
 
 
 load_kv_from_py(__file__)
-
-
-class ImportKeystore(BoxLayout):
-    keystore_path = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(ImportKeystore, self).__init__(**kwargs)
-        Clock.schedule_once(self._after_init)
-
-    def _after_init(self, dt):
-        """
-        Sets keystore_path.
-        """
-        controller = App.get_running_app().root
-        self.keystore_path = controller.get_keystore_path()
 
 
 class SettingsScreen(SubScreen):

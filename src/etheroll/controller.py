@@ -18,7 +18,7 @@ from raven.handlers.logging import SentryHandler
 
 import constants
 from etheroll.passwordform import PasswordForm
-from etheroll.utils import (Dialog, SubScreen, load_kv_from_py,
+from etheroll.utils import (Dialog, load_kv_from_py,
                             patch_find_library_android, patch_typing_python351,
                             run_in_thread)
 from version import __version__
@@ -31,30 +31,6 @@ import pyetheroll  # noqa: E402, isort:skip
 
 
 load_kv_from_py(__file__)
-
-
-class SettingsScreen(SubScreen):
-    """
-    Screen for configuring network, gas price...
-    """
-
-    def __init__(self, **kwargs):
-        super(SettingsScreen, self).__init__(**kwargs)
-
-    @property
-    def network(self):
-        """
-        Returns selected network.
-        """
-        if self.is_mainnet():
-            return pyetheroll.ChainID.MAINNET
-        return pyetheroll.ChainID.ROPSTEN
-
-    def is_mainnet(self):
-        return self.ids.mainnet_checkbox_id.active
-
-    def is_testnet(self):
-        return self.ids.testnet_checkbox_id.active
 
 
 class Controller(FloatLayout):

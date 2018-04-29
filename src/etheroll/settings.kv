@@ -1,0 +1,31 @@
+#:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
+
+
+<SettingsScreen>:
+    name: 'settings_screen'
+    BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'horizontal'
+            MDCheckbox:
+                id: mainnet_checkbox_id
+                group: 'network'
+                size_hint: None, None
+                size: dp(48), dp(48)
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                active: True
+                on_release:
+                    print(root.network)
+            MDLabel:
+                text: 'Mainnet'
+        BoxLayout:
+            orientation: 'horizontal'
+            MDCheckbox:
+                id: testnet_checkbox_id
+                group: 'network'
+                size_hint: None, None
+                size: dp(48), dp(48)
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            MDLabel:
+                text: 'Testnet'
+        PushUp:

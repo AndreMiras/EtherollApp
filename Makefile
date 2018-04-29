@@ -2,6 +2,7 @@ VENV_NAME="venv"
 ACTIVATE_PATH="$(VENV_NAME)/bin/activate"
 PIP=`. $(ACTIVATE_PATH); which pip`
 TOX=`. $(ACTIVATE_PATH); which tox`
+GARDEN=`. $(ACTIVATE_PATH); which garden`
 PYTHON="$(VENV_NAME)/bin/python"
 SYSTEM_DEPENDENCIES=python3-dev virtualenv build-essential libssl-dev \
     libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
@@ -18,6 +19,7 @@ virtualenv:
 	# https://github.com/ethereum/pyethereum/pull/831
 	$(PIP) install setuptools==37.0.0
 	$(PIP) install --timeout 120 -r requirements.txt
+	$(GARDEN) install qrcode
 
 system_dependencies:
 ifeq ($(OS), Ubuntu)

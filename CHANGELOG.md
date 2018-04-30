@@ -6,7 +6,7 @@
   - Spinner animation on roll history fetching, refs #50
   - Pull to refresh roll history, refs #55
   - UI testing, refs #61, #64
-  - Ubuntu Bionic 18.04 support, refs #70
+  - Ubuntu Bionic 18.04 support, refs #70, #71
 
 
 ## [v20180418]

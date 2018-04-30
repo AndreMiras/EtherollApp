@@ -38,8 +38,8 @@ version.filename = %(source.dir)s/version.py
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
 requirements =
-    hostpython3crystax,
-    python3crystax,
+    hostpython3crystax==3.6,
+    python3crystax==3.6,
     setuptools,
     kivy,
     android,

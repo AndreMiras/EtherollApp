@@ -34,7 +34,6 @@ class RollResultsScreen(SubScreen):
         """
         Binds events.
         """
-        self.controller = App.get_running_app().root
         self.update_roll_list()
 
     # TODO: create a dedicated PullRefreshScrollView that handle all this
@@ -72,7 +71,8 @@ class RollResultsScreen(SubScreen):
         each time, because it recreates the Etheroll object on chain_id
         changes.
         """
-        return self.controller.pyetheroll
+        controller = App.get_running_app().root
+        return controller.pyetheroll
 
     @mainthread
     def on_roll_logs(self, instance, value):
@@ -87,7 +87,7 @@ class RollResultsScreen(SubScreen):
         Gets last rolls & results using pyetheroll lib and updates `roll_logs`
         list property.
         """
-        controller = self.controller
+        controller = App.get_running_app().root
         account = controller.switch_account_screen.current_account
         if not account:
             controller.on_account_none()

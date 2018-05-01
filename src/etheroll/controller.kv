@@ -1,7 +1,6 @@
 #:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
-#:import RollResultsScreen etheroll.roll_results.RollResultsScreen
-#:import AboutScreen etheroll.about.AboutScreen
 #:import CustomToolbar etheroll.customtoolbar.CustomToolbar
+#:import LazyScreenManager etheroll.lazyscreenmanager.LazyScreenManager
 #:import RollScreen etheroll.roll.RollScreen
 #:import SettingsScreen etheroll.settings.SettingsScreen
 #:import SwitchAccountScreen etheroll.switchaccount.SwitchAccountScreen
@@ -52,20 +51,11 @@
             orientation: "vertical"
             CustomToolbar:
                 id: toolbar_id
-            ScreenManager:
+            LazyScreenManager:
                 id: screen_manager_id
                 RollScreen:
-                    id: roll_screen_id
                     name: "roll_screen"
-                RollResultsScreen:
-                    id: roll_results_screen_id
-                    name: "roll_results_screen"
                 SwitchAccountScreen:
-                    id: switch_account_screen_id
                     name: "switch_account_screen"
                 SettingsScreen:
-                    id: settings_screen_id
                     name: "settings_screen"
-                AboutScreen:
-                    id: about_screen_id
-                    name: "about_screen"

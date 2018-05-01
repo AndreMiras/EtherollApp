@@ -17,7 +17,11 @@ from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
 import constants
+from etheroll.about import AboutScreen
 from etheroll.passwordform import PasswordForm
+from etheroll.roll_results import RollResultsScreen
+from etheroll.settings import SettingsScreen
+# from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.utils import (Dialog, load_kv_from_py,
                             patch_find_library_android, patch_typing_python351,
                             run_in_thread)
@@ -50,6 +54,7 @@ class Controller(FloatLayout):
         self.bind_chances_roll_under()
         self.bind_wager_property()
         self.bind_profit_property()
+        self.register_screens()
 
     def _init_pyethapp(self, keystore_dir=None):
         if keystore_dir is None:
@@ -140,6 +145,17 @@ class Controller(FloatLayout):
         # synchro once now
         self.update_profit_property()
 
+    def register_screens(self):
+        screen_dicts = {
+            # "roll_screen": RollScreen,
+            "roll_results_screen": RollResultsScreen,
+            # "switch_account_screen": SwitchAccountScreen,
+            "settings_screen": SettingsScreen,
+            "about_screen": AboutScreen,
+        }
+        for screen_name, screen_type in screen_dicts.items():
+            self.screen_manager.register_screen(screen_type, screen_name)
+
     def update_profit_property(self):
         house_edge = 1.0 / 100
         bet_size = self.roll_screen.ids.bet_size_id.value
@@ -162,23 +178,23 @@ class Controller(FloatLayout):
 
     @property
     def roll_screen(self):
-        return self.ids.roll_screen_id
+        return self.screen_manager.get_screen('roll_screen')
 
     @property
     def switch_account_screen(self):
-        return self.ids.switch_account_screen_id
+        return self.screen_manager.get_screen('switch_account_screen')
 
     @property
     def roll_results_screen(self):
-        return self.ids.roll_results_screen_id
+        return self.screen_manager.get_screen('roll_results_screen')
 
     @property
     def settings_screen(self):
-        return self.ids.settings_screen_id
+        return self.screen_manager.get_screen('settings_screen')
 
     @property
     def about_screen(self):
-        return self.ids.about_screen_id
+        return self.screen_manager.get_screen('about_screen')
 
     def on_unlock_clicked(self, dialog, account, password):
         """

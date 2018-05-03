@@ -8,6 +8,7 @@ from kivy.core.clipboard import Clipboard
 from kivy.garden.qrcode import QRCodeWidget
 from kivy.logger import LOG_LEVELS, Logger
 from kivy.metrics import dp
+from kivy.properties import ObjectProperty
 from kivy.uix.floatlayout import FloatLayout
 from kivy.utils import platform
 from kivymd.bottomsheet import MDListBottomSheet
@@ -21,7 +22,7 @@ from etheroll.about import AboutScreen
 from etheroll.passwordform import PasswordForm
 from etheroll.roll_results import RollResultsScreen
 from etheroll.settings import SettingsScreen
-# from etheroll.switchaccount import SwitchAccountScreen
+from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.utils import (Dialog, load_kv_from_py,
                             patch_find_library_android, patch_typing_python351,
                             run_in_thread)
@@ -39,6 +40,8 @@ load_kv_from_py(__file__)
 
 class Controller(FloatLayout):
 
+    current_account = ObjectProperty(allownone=True)
+
     def __init__(self, **kwargs):
         super(Controller, self).__init__(**kwargs)
         Clock.schedule_once(self._after_init)
@@ -54,6 +57,7 @@ class Controller(FloatLayout):
         self.bind_chances_roll_under()
         self.bind_wager_property()
         self.bind_profit_property()
+        self.bind_screen_manager_on_current_screen()
         self.register_screens()
 
     def _init_pyethapp(self, keystore_dir=None):
@@ -145,11 +149,25 @@ class Controller(FloatLayout):
         # synchro once now
         self.update_profit_property()
 
+    def bind_screen_manager_on_current_screen(self):
+        """
+        Binds SwitchAccountScreen.current_account -> self.current_account.
+        """
+        def on_current_screen(screen_manager, screen):
+            """
+            Makes sure the binding is made once by unbinding itself.
+            """
+            if type(screen) is SwitchAccountScreen:
+                screen.bind(current_account=self.setter('current_account'))
+                # makes sure the above doesn't get rebinded over and over again
+                self.screen_manager.unbind(current_screen=on_current_screen)
+        self.screen_manager.bind(current_screen=on_current_screen)
+
     def register_screens(self):
         screen_dicts = {
             # "roll_screen": RollScreen,
             "roll_results_screen": RollResultsScreen,
-            # "switch_account_screen": SwitchAccountScreen,
+            "switch_account_screen": SwitchAccountScreen,
             "settings_screen": SettingsScreen,
             "about_screen": AboutScreen,
         }
@@ -289,7 +307,7 @@ class Controller(FloatLayout):
         roll_input = roll_screen.get_roll_input()
         bet_size = roll_input['bet_size']
         chances = roll_input['chances']
-        account = self.switch_account_screen.current_account
+        account = self.current_account
         if account is None:
             self.on_account_none()
             return

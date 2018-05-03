@@ -11,9 +11,6 @@ class LazyScreenManager(ScreenManager):
         self._screen_types[name] = cls
 
     def on_current(self, instance, value):
-        """
-        TODO
-        """
         # creates the Screen object if it doesn't exist
         if not self.has_screen(value):
             screen = self._screen_types[value](name=value)

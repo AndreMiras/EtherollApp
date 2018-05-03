@@ -108,12 +108,10 @@ class RollScreen(Screen):
 
     def _after_init(self, dt):
         """
-        Binds `SwitchAccountScreen.current_account` ->
-        `RollScreen.current_account`.
+        Binds `Controller.current_account` -> `RollScreen.current_account`.
         """
         controller = App.get_running_app().root
-        controller.switch_account_screen.bind(
-            current_account=self.on_current_account)
+        controller.bind(current_account=self.on_current_account)
 
     def on_current_account(self, instance, account):
         """

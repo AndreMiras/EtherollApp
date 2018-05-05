@@ -7,6 +7,7 @@
   - Pull to refresh roll history, refs #55
   - UI testing, refs #61, #64
   - Ubuntu Bionic 18.04 support, refs #70, #71
+  - Show changelog from the app, refs #73
 
 
 ## [v20180418]

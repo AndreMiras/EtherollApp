@@ -1,10 +1,13 @@
 import os
+import unittest
 
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
 from kivy.properties import StringProperty
 from kivy.uix.boxlayout import BoxLayout
 
-from etheroll.utils import SubScreen, load_kv_from_py
+from etheroll.utils import (StringIOCBWrite, SubScreen, load_kv_from_py,
+                            run_in_thread)
+from testsuite import suite
 from version import __version__
 
 load_kv_from_py(__file__)
@@ -44,6 +47,29 @@ class AboutChangelog(BoxLayout):
         with open(changelog_path, 'r') as f:
             self.changelog_text_property = f.read()
         f.close()
+
+
+class AboutDiagnostic(BoxLayout):
+    stream_property = StringProperty()
+
+    @mainthread
+    def callback_write(self, s):
+        """
+        Updates the UI with test progress.
+        """
+        self.stream_property += s
+
+    @run_in_thread
+    def run_tests(self):
+        """
+        Loads the test suite and hook the callback for reporting progress.
+        """
+        test_suite = suite()
+        self.stream_property = ""
+        stream = StringIOCBWrite(callback_write=self.callback_write)
+        verbosity = 2
+        unittest.TextTestRunner(
+                stream=stream, verbosity=verbosity).run(test_suite)
 
 
 class AboutScreen(SubScreen):

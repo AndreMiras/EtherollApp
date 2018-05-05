@@ -18,6 +18,20 @@
         text: root.changelog_text_property
 
 
+<AboutDiagnostic>:
+    orientation: 'vertical'
+    ScrollView:
+        MDTextField:
+            multiline: True
+            readonly: True
+            text: root.stream_property
+    AnchorLayout:
+        size_hint_y: None
+        MDRaisedButton:
+            text: "Run diagnostic"
+            on_release: root.run_tests()
+
+
 <About@MDBottomNavigation>:
     MDBottomNavigationItem:
         name: "about_overview"
@@ -29,6 +43,11 @@
         text: "Changelog"
         icon: 'format-list-bulleted'
         AboutChangelog:
+    MDBottomNavigationItem:
+        name: "about_diagnostic"
+        text: "Diagnostic"
+        icon: 'bug'
+        AboutDiagnostic:
 
 
 <AboutScreen>:

@@ -3,7 +3,7 @@
 ## [Unreleased]
 
   - File split & refactoring, refs #43
-  - Spinner animation on roll history fetching, refs #50
+  - Lazy screen loading, refs #47
   - Pull to refresh roll history, refs #55
   - UI testing, refs #61, #64
   - Ubuntu Bionic 18.04 support, refs #70, #71

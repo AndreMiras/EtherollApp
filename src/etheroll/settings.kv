@@ -13,9 +13,8 @@
                 size_hint: None, None
                 size: dp(48), dp(48)
                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                active: True
-                on_release:
-                    print(root.network)
+                active: root.is_stored_mainnet()
+                on_release: root.store_network()
             MDLabel:
                 text: 'Mainnet'
         BoxLayout:
@@ -26,6 +25,8 @@
                 size_hint: None, None
                 size: dp(48), dp(48)
                 pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                active: root.is_stored_testnet()
+                on_release: root.store_network()
             MDLabel:
                 text: 'Testnet'
         PushUp:

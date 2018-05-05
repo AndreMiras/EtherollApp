@@ -71,7 +71,7 @@ class Controller(FloatLayout):
         Gets or creates the Etheroll object.
         Also recreates the object if the chain_id changed.
         """
-        chain_id = self.settings_screen.network
+        chain_id = SettingsScreen.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
             self._pyetheroll = pyetheroll.Etheroll(chain_id)
         return self._pyetheroll

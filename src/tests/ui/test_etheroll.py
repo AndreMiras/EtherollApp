@@ -111,7 +111,7 @@ class UITestCase(unittest.TestCase):
         about_item.dispatch('on_release')
         self.advance_frames_for_drawer()
         self.assertEqual(
-            controller.ids.screen_manager_id.current, 'about_screen')
+            controller.screen_manager.current, 'about_screen')
         # toolbar should now be loaded with the back button
         left_action_items = toolbar.left_action_items
         self.assertEqual(len(left_action_items), 1)
@@ -122,14 +122,14 @@ class UITestCase(unittest.TestCase):
         left_actions.children[0].dispatch('on_release')
         self.advance_frames_for_screen()
         self.assertEqual(
-            controller.ids.screen_manager_id.current, 'roll_screen')
+            controller.screen_manager.current, 'roll_screen')
 
     def helper_test_about_screen(self, app):
         """
         Verifies the about screen loads and shows infos.
         """
         controller = app.root
-        screen_manager = controller.ids.screen_manager_id
+        screen_manager = controller.screen_manager
         # verify the landing screen is loaded by default
         screen = screen_manager.children[0]
         self.assertEqual(screen.name, 'roll_screen')
@@ -152,13 +152,14 @@ class UITestCase(unittest.TestCase):
         Helper method for checking widget are in expected state on no account.
         """
         controller = app.root
-        screen_manager = controller.ids.screen_manager_id
+        screen_manager = controller.screen_manager
         account_utils = controller.account_utils
         # makes sure no account are loaded
         self.assertEqual(len(account_utils.get_account_list()), 0)
         # loads the switch account screen
+        screen_manager.current = 'switch_account_screen'
+        self.advance_frames_for_screen()
         switch_account_screen = controller.switch_account_screen
-        screen_manager.current = switch_account_screen.name
         self.advance_frames_for_screen()
         # it should open the warning dialog
         dialogs = Dialog.dialogs
@@ -180,6 +181,15 @@ class UITestCase(unittest.TestCase):
         """
         controller = app.root
         account_utils = controller.account_utils
+        screen_manager = controller.screen_manager
+        screen_manager.current = 'switch_account_screen'
+        self.advance_frames_for_screen()
+        # makes sure it still complains for no account
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'No account found')
+        dialog.dismiss()
         switch_account_screen = controller.switch_account_screen
         # retrieves the create_new_account widget
         create_new_account = switch_account_screen.ids.create_new_account_id
@@ -238,6 +248,9 @@ class UITestCase(unittest.TestCase):
         Testing both not matching and empty passwords.
         """
         controller = app.root
+        screen_manager = controller.screen_manager
+        screen_manager.current = 'switch_account_screen'
+        self.advance_frames_for_screen()
         switch_account_screen = controller.switch_account_screen
         account_utils = controller.account_utils
         # number of existing accounts before the test
@@ -333,10 +346,9 @@ class UITestCase(unittest.TestCase):
             {'bet_log': bet_logs[2], 'bet_result': None},
         ]
         controller = app.root
-        switch_account_screen = controller.switch_account_screen
         # makes sure an account is selected
-        self.assertIsNotNone(switch_account_screen.current_account)
-        screen_manager = controller.ids.screen_manager_id
+        self.assertIsNotNone(controller.current_account)
+        screen_manager = controller.screen_manager
         # patches library with fake recent rolls
         with mock.patch('pyetheroll.Etheroll.get_merged_logs') \
                 as m_get_merged_logs:
@@ -375,10 +387,9 @@ class UITestCase(unittest.TestCase):
         # https://github.com/AndreMiras/EtherollApp/issues/67
         return
         controller = app.root
-        switch_account_screen = controller.switch_account_screen
         # makes sure an account is selected
-        self.assertIsNotNone(switch_account_screen.current_account)
-        screen_manager = controller.ids.screen_manager_id
+        self.assertIsNotNone(controller.current_account)
+        screen_manager = controller.screen_manager
         screen_manager.current = 'roll_results_screen'
         # make sure the application is not complaining
         dialogs = Dialog.dialogs
@@ -395,10 +406,13 @@ class UITestCase(unittest.TestCase):
         the application should complain and bring back to the main screen.
         """
         controller = app.root
+        screen_manager = controller.screen_manager
+        screen_manager.current = 'switch_account_screen'
+        self.advance_frames_for_screen()
         switch_account_screen = controller.switch_account_screen
         # makes sure no account is selected
         switch_account_screen.current_account = None
-        screen_manager = controller.ids.screen_manager_id
+        screen_manager = controller.screen_manager
         screen_manager.current = 'roll_results_screen'
         self.advance_frames_for_screen()
         dialogs = Dialog.dialogs
@@ -417,7 +431,8 @@ class UITestCase(unittest.TestCase):
         controller = app.root
         # makes sure an account is selected
         switch_account_screen = controller.switch_account_screen
-        switch_account_screen.current_account = \
+        # TODO: do it the proper way by clicking the UI
+        controller.current_account = switch_account_screen.current_account = \
             controller.account_utils.get_account_list()[0]
         # retrieving the roll button, to click it
         roll_screen = controller.roll_screen
@@ -462,7 +477,7 @@ class UITestCase(unittest.TestCase):
         dialog = dialogs[0]
         self.assertEqual(dialog.title, 'Rolled successfully')
         # loads back the default screen
-        screen_manager = controller.ids.screen_manager_id
+        screen_manager = controller.screen_manager
         screen_manager.current = 'roll_screen'
         self.advance_frames_for_screen()
 

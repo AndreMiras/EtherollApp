@@ -1,5 +1,5 @@
 from kivy.app import App
-from kivy.clock import Clock, mainthread
+from kivy.clock import mainthread
 from kivy.properties import StringProperty
 from kivy.uix.boxlayout import BoxLayout
 
@@ -15,17 +15,6 @@ class CreateNewAccount(BoxLayout):
 
     new_password1 = StringProperty()
     new_password2 = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(CreateNewAccount, self).__init__(**kwargs)
-        Clock.schedule_once(lambda dt: self.setup())
-
-    def setup(self):
-        """
-        Sets security vs speed default values.
-        Plus hides the advanced widgets.
-        """
-        self.controller = App.get_running_app().root
 
     def verify_password_field(self):
         """
@@ -66,7 +55,8 @@ class CreateNewAccount(BoxLayout):
         Switches to the newly created account.
         Clears the form.
         """
-        self.controller.switch_account_screen.current_account = account
+        controller = App.get_running_app().root
+        controller.switch_account_screen.current_account = account
         self.new_password1 = ''
         self.new_password2 = ''
 
@@ -90,7 +80,8 @@ class CreateNewAccount(BoxLayout):
         """
         Returns to the landing page.
         """
-        screen_manager = self.controller.screen_manager
+        controller = App.get_running_app().root
+        screen_manager = controller.screen_manager
         screen_manager.transition.direction = 'right'
         screen_manager.current = 'roll_screen'
 
@@ -109,7 +100,8 @@ class CreateNewAccount(BoxLayout):
             return
         password = self.new_password1
         Dialog.snackbar_message("Creating account...")
-        account = self.controller.account_utils.new_account(password=password)
+        controller = App.get_running_app().root
+        account = controller.account_utils.new_account(password=password)
         Dialog.snackbar_message("Created!")
         self.toggle_widgets(True)
         self.on_account_created(account)

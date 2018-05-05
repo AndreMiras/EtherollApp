@@ -139,7 +139,9 @@ class UITestCase(unittest.TestCase):
         screen = screen_manager.children[0]
         self.assertEqual(screen.name, 'about_screen')
         # checks about screen content
-        about_content = screen.children[0].children[0].text
+        about_screen_manager = screen.children[0].children[1]
+        about_overview = about_screen_manager.get_screen('about_overview')
+        about_content = about_overview.children[0].children[0].text
         self.assertTrue('EtherollApp version: ' in about_content)
         self.assertTrue(
             'https://github.com/AndreMiras/EtherollApp' in about_content)

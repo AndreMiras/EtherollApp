@@ -528,7 +528,7 @@ class TestEtheroll(unittest.TestCase):
             'gas': 310000,
             'value': 100000000000000000, 'gasPrice': 4000000000
         }
-        expected_call = ((expected_transaction, account.privkey),)
+        expected_call = mock.call(expected_transaction, account.privkey)
         # the method should have been called only once
         expected_calls = [expected_call]
         self.assertEqual(m_signTransaction.call_args_list, expected_calls)

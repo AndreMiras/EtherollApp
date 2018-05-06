@@ -10,6 +10,7 @@
   - Ubuntu Bionic 18.04 support, refs #70, #71
   - Show changelog from the app, refs #73
   - Fix scrypt support, refs #76
+  - Fix ETH to wei conversion, refs #77
 
 
 ## [v20180418]

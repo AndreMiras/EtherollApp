@@ -360,7 +360,10 @@ class Etheroll:
         Returns transaction hash.
         """
         roll_under = chances
-        value_wei = w3.toWei(bet_size_ether, 'ether')
+        # `w3.toWei` one has some issues on Android, see:
+        # https://github.com/AndreMiras/EtherollApp/issues/77
+        # value_wei = w3.toWei(bet_size_ether, 'ether')
+        value_wei = bet_size_ether * 1e18
         gas = 310000
         gas_price = w3.toWei(4, 'gwei')
         # since Account.load is hanging while decrypting the password

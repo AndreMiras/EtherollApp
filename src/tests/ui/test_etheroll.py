@@ -402,18 +402,14 @@ class UITestCase(unittest.TestCase):
         screen_manager.current = 'roll_screen'
         self.advance_frames_for_screen()
 
-    def helper_test_roll_history_no_acccount(self, app):
+    def helper_test_roll_history_no_account(self, app):
         """
         When going to the roll history screen with no account selected,
         the application should complain and bring back to the main screen.
         """
         controller = app.root
         screen_manager = controller.screen_manager
-        screen_manager.current = 'switch_account_screen'
-        self.advance_frames_for_screen()
-        switch_account_screen = controller.switch_account_screen
-        # makes sure no account is selected
-        switch_account_screen.current_account = None
+        controller.current_account = None
         screen_manager = controller.screen_manager
         screen_manager.current = 'roll_results_screen'
         self.advance_frames_for_screen()
@@ -497,7 +493,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_chances_input_binding(app)
         self.helper_test_roll_history(app)
         self.helper_test_roll_history_no_tx(app)
-        self.helper_test_roll_history_no_acccount(app)
+        self.helper_test_roll_history_no_account(app)
         self.helper_test_roll(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.

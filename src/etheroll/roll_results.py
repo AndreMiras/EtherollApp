@@ -88,7 +88,7 @@ class RollResultsScreen(SubScreen):
         list property.
         """
         controller = App.get_running_app().root
-        account = controller.switch_account_screen.current_account
+        account = controller.current_account
         if not account:
             controller.on_account_none()
             self.on_back()

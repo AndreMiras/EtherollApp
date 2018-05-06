@@ -9,6 +9,7 @@
   - Run tests from UI, refs #69
   - Ubuntu Bionic 18.04 support, refs #70, #71
   - Show changelog from the app, refs #73
+  - Fix scrypt support, refs #76
 
 
 ## [v20180418]

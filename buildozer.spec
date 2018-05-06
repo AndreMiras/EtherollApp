@@ -57,6 +57,7 @@ requirements =
     py-ecc==1.4.2,
     pysha3==1.0.2,
     pyyaml==3.12,
+    scrypt==0.8.6,
     ethereum==2.1.1,
     ptyprocess==0.5.2,
     pexpect==4.4.0,

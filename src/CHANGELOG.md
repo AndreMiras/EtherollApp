@@ -11,6 +11,7 @@
   - Show changelog from the app, refs #73
   - Fix scrypt support, refs #76
   - Fix ETH to wei conversion, refs #77
+  - Fix test timestamp overflow, refs #78
 
 
 ## [v20180418]

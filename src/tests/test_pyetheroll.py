@@ -577,7 +577,7 @@ class TestEtheroll(unittest.TestCase):
                 'input': (
                         '0xdc6dd152000000000000000000000000000'
                         '000000000000000000000000000000000000e'),
-                'timeStamp': '1523060626',
+                'timeStamp': '0x5ac80f92',
                 'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
                 'value': '500000000000000000',
             },
@@ -593,7 +593,7 @@ class TestEtheroll(unittest.TestCase):
                 'input': (
                         '0xdc6dd152000000000000000000000000000'
                         '0000000000000000000000000000000000002'),
-                'timeStamp': '1523060494',
+                'timeStamp': '0x5ac80f0e',
                 'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
                 'value': '450000000000000000',
             },
@@ -615,8 +615,8 @@ class TestEtheroll(unittest.TestCase):
                     'bet_size_ether': 0.5,
                     'roll_under': 14,
                     'block_number': '5394094',
-                    'timestamp': '1523060626',
-                    'datetime': datetime(4846, 10, 6, 13, 22, 46),
+                    'timestamp': '0x5ac80f92',
+                    'datetime': datetime(2018, 4, 7, 0, 23, 46),
                     'transaction_hash': (
                         '0x0440f1013a5eafd88f16be6b5612b6e'
                         '051a4eb1b0b91a160c680295e7fab5bfe'),
@@ -625,8 +625,8 @@ class TestEtheroll(unittest.TestCase):
                     'bet_size_ether': 0.45,
                     'roll_under': 2,
                     'block_number': '5394085',
-                    'timestamp': '1523060494',
-                    'datetime': datetime(4846, 10, 6, 13, 16, 4),
+                    'timestamp': '0x5ac80f0e',
+                    'datetime': datetime(2018, 4, 7, 0, 21, 34),
                     'transaction_hash': (
                         '0x72def66d60ecc85268c714e71929953'
                         'ef94fd4fae37632a5f56ea49bee44dd59'),

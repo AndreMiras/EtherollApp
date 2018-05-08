@@ -6,6 +6,7 @@ from datetime import datetime
 from tempfile import mkdtemp
 from unittest import mock
 
+from eth_account.internal.transactions import assert_valid_fields
 from ethereum.tools.keys import PBKDF2_CONSTANTS
 from hexbytes.main import HexBytes
 from pyethapp.accounts import Account
@@ -532,6 +533,18 @@ class TestEtheroll(unittest.TestCase):
         # the method should have been called only once
         expected_calls = [expected_call]
         self.assertEqual(m_signTransaction.call_args_list, expected_calls)
+        # also make sure the transaction dict is passing the validation
+        # e.g. scientific notation 1e+17 is not accepted
+        transaction_dict = m_signTransaction.call_args[0][0]
+        assert_valid_fields(transaction_dict)
+        # even though below values are equal
+        self.assertTrue(transaction_dict['value'] == 0.1 * 1e18 == 1e17)
+        # this is not accepted by `assert_valid_fields()`
+        transaction_dict['value'] = 0.1 * 1e18
+        with self.assertRaises(TypeError):
+            assert_valid_fields(transaction_dict)
+        # because float are not accepted
+        self.assertEqual(type(transaction_dict['value']), float)
 
     def test_get_last_bets_transactions(self):
         """

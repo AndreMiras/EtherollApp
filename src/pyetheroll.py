@@ -251,7 +251,7 @@ class Etheroll:
 
     CONTRACT_ADDRESSES = {
         ChainID.MAINNET: '0x048717Ea892F23Fb0126F00640e2b18072efd9D2',
-        ChainID.ROPSTEN: '0xFE8a5f3a7Bb446e1cB4566717691cD3139289ED4',
+        ChainID.ROPSTEN: '0xe12c6dEb59f37011d2D9FdeC77A6f1A8f3B8B1e8',
     }
 
     def __init__(self, chain_id=ChainID.MAINNET, contract_address=None):

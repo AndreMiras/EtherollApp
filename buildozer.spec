@@ -79,7 +79,7 @@ requirements =
     rlp==0.6.0,
     eth-rlp==0.1.2,
     attrdict==2.0.0,
-    eth-account==0.1.0a2,
+    eth-account==0.2.2,
     hexbytes==0.1.0,
     lru-dict==1.1.5,
     web3==4.0.0b11,

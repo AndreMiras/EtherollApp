@@ -4,6 +4,7 @@
 
   - File split & refactoring, refs #43
   - Lazy screen loading, refs #47, #75
+  - Updated contract deployment doc, refs #52
   - Pull to refresh roll history, refs #55
   - UI testing, refs #61, #64
   - Run tests from UI, refs #69

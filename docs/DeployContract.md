@@ -1,11 +1,11 @@
 # Deploy Etheroll contract
 
-This is the instructions to deploy the Etheroll contract on the Testnet.
+Instructions to deploy the Etheroll contract on the Testnet.
 
 ## Prepare
 1. copy the [source code of the Etheroll contract](https://etherscan.io/address/0x048717ea892f23fb0126f00640e2b18072efd9d2#code)
 2. past it to the [online Remix Solidity IDE](https://remix.ethereum.org/#optimize=true&version=soljson-v0.4.18+commit.9cf6e910.js)
-3. edit `queryString1` to update ramdom.org `apiKey` with yours, see [random.org API key](#random.org-API-key) below for details
+3. edit `queryString1` to update ramdom.org `apiKey` with yours, see [random.org API key](#randomorg-api-key) below for details
 
 ## Compile
 1. make sure compiler version matches the contract one and enable optimizations

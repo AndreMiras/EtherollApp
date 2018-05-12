@@ -537,14 +537,8 @@ class Etheroll:
         """
         Returns a block range containing the "last" bets.
         """
-        requests_cache_params = REQUESTS_CACHE_PARAMS.copy()
-        # this request is OK to be cached during some time since it's just
-        # mean to retrieve some recent-ish blocks, so the block height should
-        # not vary that much in x minutes
-        requests_cache_params.update({'expire_after': 5*60})
-        with requests_cache.enabled(**requests_cache_params):
-            # retrieves recent `playerRollDice` transactions
-            transactions = self.get_player_roll_dice_tx(address)
+        # retrieves recent `playerRollDice` transactions
+        transactions = self.get_player_roll_dice_tx(address)
         # take the oldest block of the recent transactions
         oldest_tx = transactions[-1]
         from_block = int(oldest_tx['blockNumber'])

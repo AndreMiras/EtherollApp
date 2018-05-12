@@ -1,3 +1,4 @@
+import constants
 import pyetheroll
 from etheroll.utils import Store, SubScreen, load_kv_from_py
 
@@ -62,3 +63,30 @@ class SettingsScreen(SubScreen):
     def is_stored_testnet(cls):
         network = cls.get_stored_network()
         return network == pyetheroll.ChainID.ROPSTEN
+
+    def get_ui_gas_price(self):
+        return self.ids.gas_price_slider_id.value
+
+    def store_gas_price(self):
+        """
+        Saves gas price value to the store.
+        """
+        store = Store.get_store()
+        gas_price = self.get_ui_gas_price()
+        store.put('gas_price', value=gas_price)
+
+    @staticmethod
+    def get_stored_gas_price():
+        """
+        Retrieves stored gas price value, defaults to DEFAULT_GAS_PRICE_GWEI.
+        """
+        store = Store.get_store()
+        try:
+            gas_price_dict = store['gas_price']
+        except KeyError:
+            # creates store if doesn't yet exist
+            store.put('gas_price')
+        gas_price_dict = store['gas_price']
+        gas_price = gas_price_dict.get(
+            'value', constants.DEFAULT_GAS_PRICE_GWEI)
+        return gas_price

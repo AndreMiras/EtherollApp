@@ -279,7 +279,8 @@ class Controller(FloatLayout):
         dialog.open()
 
     @run_in_thread
-    def player_roll_dice(self, bet_size, chances, wallet_path, password):
+    def player_roll_dice(
+            self, bet_size, chances, wallet_path, password, gas_price):
         """
         Sending the bet to the smart contract requires signing a transaction
         which requires CPU computation to unlock the account, hence this
@@ -290,7 +291,7 @@ class Controller(FloatLayout):
             Dialog.snackbar_message("Sending bet...")
             roll_screen.toggle_widgets(False)
             tx_hash = self.pyetheroll.player_roll_dice(
-                bet_size, chances, wallet_path, password)
+                bet_size, chances, wallet_path, password, gas_price)
         except ValueError as exception:
             roll_screen.toggle_widgets(True)
             self.dialog_roll_error(exception)
@@ -307,6 +308,7 @@ class Controller(FloatLayout):
         roll_input = roll_screen.get_roll_input()
         bet_size = roll_input['bet_size']
         chances = roll_input['chances']
+        gas_price = SettingsScreen.get_stored_gas_price()
         account = self.current_account
         if account is None:
             self.on_account_none()
@@ -314,7 +316,8 @@ class Controller(FloatLayout):
         wallet_path = account.path
         password = self.get_account_password(account)
         if password is not None:
-            self.player_roll_dice(bet_size, chances, wallet_path, password)
+            self.player_roll_dice(
+                bet_size, chances, wallet_path, password, gas_price)
 
     def load_switch_account(self):
         """

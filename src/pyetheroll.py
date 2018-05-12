@@ -354,7 +354,8 @@ class Etheroll:
         return events_logs
 
     def player_roll_dice(
-            self, bet_size_ether, chances, wallet_path, wallet_password):
+            self, bet_size_ether, chances, wallet_path, wallet_password,
+            gas_price_gwei=constants.DEFAULT_GAS_PRICE_GWEI):
         """
         Signs and broadcasts `playerRollDice` transaction.
         Returns transaction hash.
@@ -365,7 +366,7 @@ class Etheroll:
         # value_wei = w3.toWei(bet_size_ether, 'ether')
         value_wei = int(bet_size_ether * 1e18)
         gas = 310000
-        gas_price = w3.toWei(4, 'gwei')
+        gas_price = w3.toWei(gas_price_gwei, 'gwei')
         # since Account.load is hanging while decrypting the password
         # we set password to None and use `w3.eth.account.decrypt` instead
         account = Account.load(wallet_path, password=None)

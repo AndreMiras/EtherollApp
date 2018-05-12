@@ -1,10 +1,16 @@
 #:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
+#:import MDSlider kivymd.slider.MDSlider
 
 
 <SettingsScreen>:
+    on_pre_leave:
+        root.store_gas_price()
     name: 'settings_screen'
     BoxLayout:
         orientation: 'vertical'
+        MDLabel:
+            text: 'Network'
+            font_style: 'Title'
         BoxLayout:
             orientation: 'horizontal'
             MDCheckbox:
@@ -29,4 +35,21 @@
                 on_release: root.store_network()
             MDLabel:
                 text: 'Testnet'
+        BoxLayout:
+            orientation: 'vertical'
+            MDLabel:
+                text: 'Gas price (gwei)'
+                font_style: 'Title'
+            BoxLayout:
+                orientation: 'horizontal'
+                MDLabel:
+                    id: gas_price_label_id
+                    text: "{}".format(int(gas_price_slider_id.value))
+                    width: dp(50)
+                    size_hint_x: None
+                MDSlider:
+                    id: gas_price_slider_id
+                    range: 0, 50
+                    value: root.get_stored_gas_price()
+                    step: 1
         PushUp:

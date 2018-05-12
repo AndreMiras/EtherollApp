@@ -64,6 +64,7 @@
             on_release: app.root.open_address_options()
         MDLabel:
             text: "Balance: {} ETH".format(root.balance_property)
+            text: "Balance: {0:.{1}f} ETH".format(root.balance_property, ROUND_DIGITS)
             font_style: 'Headline'
         MDLabel:
             text: "Place your bet"

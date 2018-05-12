@@ -513,14 +513,20 @@ class TestEtheroll(unittest.TestCase):
             m_getTransactionCount.return_value = 0
             transaction = etheroll.player_roll_dice(
                 bet_size_ether, chances, wallet_path, wallet_password)
-        # the method should return a transaction hash
-        self.assertIsNotNone(transaction)
+            # the method should return a transaction hash
+            self.assertIsNotNone(transaction)
+            # a second one with custom gas (in gwei), refs #23
+            gas_price_gwei = 12
+            transaction = etheroll.player_roll_dice(
+                bet_size_ether, chances, wallet_path, wallet_password,
+                gas_price_gwei)
+            self.assertIsNotNone(transaction)
         # the nonce was retrieved
         self.assertTrue(m_getTransactionCount.called)
         # the transaction was sent
         self.assertTrue(m_sendRawTransaction.called)
         # the transaction should be built that way
-        expected_transaction = {
+        expected_transaction1 = {
             'nonce': 0, 'chainId': 1,
             'to': Etheroll.CONTRACT_ADDRESSES[ChainID.MAINNET],
             'data': (
@@ -529,9 +535,12 @@ class TestEtheroll(unittest.TestCase):
             'gas': 310000,
             'value': 100000000000000000, 'gasPrice': 4000000000
         }
-        expected_call = mock.call(expected_transaction, account.privkey)
+        expected_transaction2 = expected_transaction1.copy()
+        expected_transaction2['gasPrice'] = 12*1e9
+        expected_call1 = mock.call(expected_transaction1, account.privkey)
+        expected_call2 = mock.call(expected_transaction2, account.privkey)
         # the method should have been called only once
-        expected_calls = [expected_call]
+        expected_calls = [expected_call1, expected_call2]
         self.assertEqual(m_signTransaction.call_args_list, expected_calls)
         # also make sure the transaction dict is passing the validation
         # e.g. scientific notation 1e+17 is not accepted

@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+  - Show account balance, refs #8
   - Configurable gas price, refs #23
   - File split & refactoring, refs #43
   - Lazy screen loading, refs #47, #75

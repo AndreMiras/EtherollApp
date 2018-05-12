@@ -5,7 +5,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 
 import constants
-from etheroll.utils import load_kv_from_py
+from etheroll.utils import load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
 
@@ -101,6 +101,7 @@ class ChanceOfWinning(BoxLayout):
 class RollScreen(Screen):
 
     current_account_string = StringProperty()
+    balance_property = NumericProperty()
 
     def __init__(self, **kwargs):
         super(RollScreen, self).__init__(**kwargs)
@@ -138,3 +139,31 @@ class RollScreen(Screen):
         Enables/disables widgets (useful during roll).
         """
         self.disabled = not enabled
+
+    @property
+    def pyetheroll(self):
+        """
+        We want to make sure we go through the `Controller.pyetheroll` property
+        each time, because it recreates the Etheroll object on chain_id
+        changes.
+        """
+        controller = App.get_running_app().root
+        return controller.pyetheroll
+
+    @mainthread
+    def update_balance(self, balance):
+        """
+        Updates the property from main thread.
+        """
+        self.balance_property = balance
+
+    @run_in_thread
+    def fetch_update_balance(self):
+        """
+        Retrieves the balance and updates the property.
+        """
+        address = self.current_account_string
+        if not address:
+            return
+        balance = self.pyetheroll.get_balance(address)
+        self.update_balance(balance)

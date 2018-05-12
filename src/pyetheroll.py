@@ -720,3 +720,14 @@ class Etheroll:
         profit = payout - bet_size
         profit = round(profit, constants.ROUND_DIGITS)
         return profit
+
+    def get_balance(self, address):
+        """
+        Retrieves the Ether balance of the given account, refs:
+        https://github.com/AndreMiras/EtherollApp/issues/8
+        """
+        etherscan_account_api = self.ChainEtherscanAccount(
+            address=address, api_key=self.etherscan_api_key)
+        balance_wei = int(etherscan_account_api.get_balance())
+        balance_eth = round(balance_wei / 1e18, constants.ROUND_DIGITS)
+        return balance_eth

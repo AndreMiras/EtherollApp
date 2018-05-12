@@ -1173,3 +1173,35 @@ class TestEtheroll(unittest.TestCase):
             # but this crashes the library with an exit
             with self.assertRaises(SystemExit):
                 etheroll.get_merged_logs(address)
+
+    def test_get_balance(self):
+        """
+        Makes sure proper Etherscan API call is made.
+        https://github.com/AndreMiras/EtherollApp/issues/67
+        """
+        contract_abi = []
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll(contract_address=contract_address)
+        address = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B'
+        with mock.patch('requests.sessions.Session.get') as m_get:
+            # this is what etherscan.io would return on empty tx history
+            m_get.return_value.status_code = 200
+            m_get.return_value.text = (
+                '{"status":"1","message":"OK",'
+                '"result":"365003278106457867877843"}')
+            m_get.return_value.json.return_value = json.loads(
+                m_get.return_value.text)
+            # but this crashes the library with an exit
+            balance = etheroll.get_balance(address)
+        # makes sure the Etherscan API was called and parsed properly
+        expected_url = (
+            'https://api.etherscan.io/api?module=account'
+            '&address=0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B'
+            '&tag=latest&apikey=E9K4A1AC8H1V3ZIR1DAIKZ6B961CRXF2DR'
+            '&action=balance')
+        expected_call = mock.call(expected_url)
+        expected_calls = [expected_call]
+        self.assertEqual(m_get.call_args_list, expected_calls)
+        self.assertEqual(balance, 365003.28)

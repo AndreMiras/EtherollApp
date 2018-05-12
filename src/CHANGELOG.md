@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+  - Configurable gas price, refs #23
   - File split & refactoring, refs #43
   - Lazy screen loading, refs #47, #75
   - Updated contract deployment doc, refs #52

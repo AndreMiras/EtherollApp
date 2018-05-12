@@ -55,11 +55,16 @@
 
 
 <RollScreen>:
+    on_pre_enter:
+        root.fetch_update_balance()
     BoxLayout:
         orientation: "vertical"
         AddressButton:
             text: root.current_account_string or 'No account selected'
             on_release: app.root.open_address_options()
+        MDLabel:
+            text: "Balance: {} ETH".format(root.balance_property)
+            font_style: 'Headline'
         MDLabel:
             text: "Place your bet"
             font_style: 'Headline'

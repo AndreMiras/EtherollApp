@@ -21,6 +21,21 @@ class SettingsScreen(SubScreen):
         network = self.get_ui_network()
         store.put('network', value=network.name)
 
+    def store_gas_price(self):
+        """
+        Saves gas price value to the store.
+        """
+        store = Store.get_store()
+        gas_price = self.get_ui_gas_price()
+        store.put('gas_price', value=gas_price)
+
+    def store_settings(self):
+        """
+        Stores settings to json store.
+        """
+        self.store_gas_price()
+        self.store_network()
+
     def get_ui_network(self):
         """
         Retrieves network values from UI.
@@ -66,14 +81,6 @@ class SettingsScreen(SubScreen):
 
     def get_ui_gas_price(self):
         return self.ids.gas_price_slider_id.value
-
-    def store_gas_price(self):
-        """
-        Saves gas price value to the store.
-        """
-        store = Store.get_store()
-        gas_price = self.get_ui_gas_price()
-        store.put('gas_price', value=gas_price)
 
     @staticmethod
     def get_stored_gas_price():

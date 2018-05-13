@@ -213,16 +213,69 @@ class TestUtils(unittest.TestCase):
         )
         contract_abi = json.loads(json_abi)
         call_data = (
-            'a9059cbb000000000000000000000000'
-            '67fa2c06c9c6d4332f330e14a66bdf18'
-            '73ef3d2b000000000000000000000000'
-            '0000000000000000000000000de0b6b3'
+            'a9059cbb00000000000000000000000067fa2c06c9c6d4332f330e14a66bdf18'
+            '73ef3d2b0000000000000000000000000000000000000000000000000de0b6b3'
             'a7640000')
         method_name, args = decode_contract_call(contract_abi, call_data)
         self.assertEqual(method_name, 'transfer')
         self.assertEqual(
             args,
             ['0x67fa2c06c9c6d4332f330e14a66bdf1873ef3d2b', 1000000000000000000]
+        )
+
+    def test_decode_contract_call_callback(self):
+        """
+        Decode `__callback()` method call.
+        Uses actual data from:
+        https://etherscan.io/tx/
+        0xf6d291b2de12db618aafc5fd9f40a37384b4a7ac41d14463a1d707a4f43137c3
+        In its simplified form for tests.
+        """
+        contract_abi = [
+            {
+                "constant": False,
+                "inputs": [
+                    {"name": "myid", "type": "bytes32"},
+                    {"name": "result", "type": "string"}
+                ],
+                "name": "__callback", "outputs": [], "payable": False,
+                "stateMutability": "nonpayable", "type": "function"
+            },
+            {
+                "constant": False,
+                "inputs": [
+                    {"name": "myid", "type": "bytes32"},
+                    {"name": "result", "type": "string"},
+                    {"name": "proof", "type": "bytes"}
+                ],
+                "name": "__callback", "outputs": [], "payable": False,
+                "stateMutability": "nonpayable", "type": "function"
+            }
+        ]
+        call_data = (
+            '38bbfa5010369b11d06269122229ec4088d4bf42fbf629b0d40432ffc40cc638'
+            'd938f1e800000000000000000000000000000000000000000000000000000000'
+            '0000006000000000000000000000000000000000000000000000000000000000'
+            '0000008000000000000000000000000000000000000000000000000000000000'
+            '0000000000000000000000000000000000000000000000000000000000000000'
+            '000000221220ba7237d9ed277fdd4bf2b358049b1c5e971b2bc5fa0edd47b334'
+            '5d3890e415fc0000000000000000000000000000000000000000000000000000'
+            '00000000')
+        method_name, args = decode_contract_call(contract_abi, call_data)
+        self.assertEqual(method_name, '__callback')
+        myid = bytes.fromhex(
+            '10369b11d06269122229ec4088d4bf42fbf629b0d40432ffc40cc638d938f1e8')
+        result = b''
+        proof = bytes.fromhex(
+            '1220ba7237d9ed277fdd4bf2b358049b1c5e971b2bc5fa0edd47b3345d3890e4'
+            '15fc')
+        self.assertEqual(
+            args,
+            [
+                myid,
+                result,
+                proof,
+            ]
         )
 
 

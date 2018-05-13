@@ -233,8 +233,6 @@ class TransactionDebugger:
     def decode_transaction_logs(cls, chain_id, transaction_hash):
         """
         Given a transaction hash, reads and decode the event log.
-        Params:
-        eth: web3.eth.Eth instance
         """
         decoded_methods = []
         provider = HTTPProviderFactory.create(chain_id)

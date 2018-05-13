@@ -1205,7 +1205,7 @@ class TestEtheroll(unittest.TestCase):
         ]
         self.assertEqual(merged_logs, expected_merged_logs)
 
-    def test_get_merged_logs_empty(self):
+    def test_get_merged_logs_empty_tx(self):
         """
         Empty transaction history crashes the application, refs:
         https://github.com/AndreMiras/EtherollApp/issues/67
@@ -1226,6 +1226,38 @@ class TestEtheroll(unittest.TestCase):
             # but this crashes the library with an exit
             with self.assertRaises(SystemExit):
                 etheroll.get_merged_logs(address)
+
+    def test_get_merged_logs_no_matching_tx(self):
+        """
+        Makes sure no matching transactions doesn't crash the app, refs:
+        https://github.com/AndreMiras/EtherollApp/issues/87
+        """
+        contract_abi = [self.player_roll_dice_abi]
+        contract_address = '0xe12c6dEb59f37011d2D9FdeC77A6f1A8f3B8B1e8'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll(
+                chain_id=ChainID.ROPSTEN, contract_address=contract_address)
+        address = '0x4F4b934af9Bb3656daDD4c7C7d8dD348AC4f787A'
+        with mock.patch('requests.sessions.Session.get') as m_get:
+            # there's a transaction, but it's not matching the expected ones
+            m_get.return_value.status_code = 200
+            m_get.return_value.text = (
+                '{"status":"1","message":"OK","result":[{"blockNumber":"306526'
+                '5","timeStamp":"1524087170","hash":"0x93bf3cff2c334d15e96b07e'
+                '362240e09255b9e8728d855741e5970110d5a8a6d","nonce":"13","bloc'
+                'kHash":"0x9625ece7c2bbca90c15628a970d962b8d0f1e57221e1f3ded6c'
+                '24f25df834d62","transactionIndex":"51","from":"0x66d4bacfe61d'
+                'f23be813089a7a6d1a749a5c936a","to":"0x4f4b934af9bb3656dadd4c7'
+                'c7d8dd348ac4f787a","value":"2000000000000000000","gas":"21000'
+                '","gasPrice":"1000000000","isError":"0","txreceipt_status":"1'
+                '","input":"0x","contractAddress":"","cumulativeGasUsed":"1871'
+                '849","gasUsed":"21000","confirmations":"161389"}]}')
+            m_get.return_value.json.return_value = json.loads(
+                m_get.return_value.text)
+            merged_logs = etheroll.get_merged_logs(address)
+        # merged logs should simply be empty
+        self.assertEqual(merged_logs, [])
 
     def test_get_balance(self):
         """

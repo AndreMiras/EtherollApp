@@ -537,6 +537,8 @@ class Etheroll:
         """
         # retrieves recent `playerRollDice` transactions
         transactions = self.get_player_roll_dice_tx(address)
+        if not transactions:
+            return None
         # take the oldest block of the recent transactions
         oldest_tx = transactions[-1]
         from_block = int(oldest_tx['blockNumber'])
@@ -552,26 +554,6 @@ class Etheroll:
             'to_block': to_block,
         }
         return ret
-
-    def get_last_bet_results_logs(self, address):
-        """
-        Retrieves most recent bet results from event logs.
-        """
-        last_bets_blocks = self.get_last_bets_blocks(address)
-        from_block = last_bets_blocks['from_block']
-        to_block = last_bets_blocks['to_block']
-        results = self.get_bet_results_logs(address, from_block, to_block)
-        return results
-
-    def get_last_bets_logs(self, address):
-        """
-        Retrieves most recent bets from event logs.
-        """
-        last_bets_blocks = self.get_last_bets_blocks(address)
-        from_block = last_bets_blocks['from_block']
-        to_block = last_bets_blocks['to_block']
-        bets = self.get_bets_logs(address, from_block, to_block)
-        return bets
 
     @staticmethod
     def merge_logs(bet_logs, bet_results_logs):
@@ -598,6 +580,8 @@ class Etheroll:
 
     def get_merged_logs(self, address):
         last_bets_blocks = self.get_last_bets_blocks(address)
+        if last_bets_blocks is None:
+            return []
         from_block = last_bets_blocks['from_block']
         to_block = last_bets_blocks['to_block']
         bet_logs = self.get_bets_logs(address, from_block, to_block)

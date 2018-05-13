@@ -15,6 +15,7 @@
   - Fix scrypt support, refs #76
   - Fix ETH to wei conversion, refs #77
   - Fix test timestamp overflow, refs #78
+  - Fix history error on no matching tx, refs #87
 
 
 ## [v20180418]

@@ -5,6 +5,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 
 import constants
+from etheroll.layout_mixins import Add_Margin, MarginLayout
 from etheroll.utils import load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
@@ -96,6 +97,14 @@ class ChanceOfWinning(BoxLayout):
             return int(chances)
         except ValueError:
             return 0
+
+
+class BoxLayoutMarginLayout(MarginLayout, BoxLayout):
+    pass
+
+
+class BoxLayoutAddMargin(Add_Margin, BoxLayout):
+    pass
 
 
 class RollScreen(Screen):

@@ -62,31 +62,34 @@
 <RollScreen>:
     on_pre_enter:
         root.fetch_update_balance()
-    BoxLayout:
+    BoxLayoutMarginLayout:
         orientation: "vertical"
         AddressButton:
             text: root.current_account_string or 'No account selected'
             on_release: app.root.open_address_options()
-        MDLabel:
-            text: "Balance: {} ETH".format(root.balance_property)
-            text: "Balance: {0:.{1}f} ETH".format(root.balance_property, ROUND_DIGITS)
-            font_style: 'Headline'
-            theme_text_color: 'Primary'
-        MDLabel:
-            text: "Place your bet"
-            font_style: 'Headline'
-            theme_text_color: 'Primary'
-        BetSize:
-            id: bet_size_id
-        ChanceOfWinning:
-            id: chance_of_winning_id
-        MDSeparator:
-            height: dp(1)
-        PushUp:
-        RollUnderRecap:
-            id: roll_under_recap_id
-        PushUp:
-        AnchorLayout:
-            MDRaisedButton:
-                id: roll_button_id
-                text: "Roll"
+        BoxLayoutAddMargin:
+            orientation: "vertical"
+            margin: (30, 10, 30, 10)
+            MDLabel:
+                text: "Balance: {} ETH".format(root.balance_property)
+                text: "Balance: {0:.{1}f} ETH".format(root.balance_property, ROUND_DIGITS)
+                font_style: 'Headline'
+                theme_text_color: 'Primary'
+            MDLabel:
+                text: "Place your bet"
+                font_style: 'Headline'
+                theme_text_color: 'Primary'
+            BetSize:
+                id: bet_size_id
+            ChanceOfWinning:
+                id: chance_of_winning_id
+            MDSeparator:
+                height: dp(1)
+            PushUp:
+            RollUnderRecap:
+                id: roll_under_recap_id
+            PushUp:
+            AnchorLayout:
+                MDRaisedButton:
+                    id: roll_button_id
+                    text: "Roll"

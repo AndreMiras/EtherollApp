@@ -5,7 +5,6 @@ from typing import NamedTuple
 ###  PyPi  ###
 from kivy.properties import AliasProperty, ObjectProperty
 
-
 ########################################################################################################################################################################################################################################################################################################~{#
 #//////|   Add_Margin   |///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////g2#
 ########################################################################################################################################################################################################################################################################################################~}#
@@ -153,4 +152,3 @@ class MarginLayout:
       position=widget.y,  position_Hint=y_Hint, lastPosition=widget._last_Y,  lastPosition_Key="_last_Y",
       size=widget.height, size_Hint=h_Hint,     lastSize=widget._last_Height, lastSize_Key="_last_Height",
     )
-

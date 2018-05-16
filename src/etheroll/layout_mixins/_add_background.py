@@ -1,3 +1,4 @@
+# flake8: noqa
 ###  PyPi  ###
 from kivy.properties import ObjectProperty
 from kivy.graphics   import Rectangle, Color

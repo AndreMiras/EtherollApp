@@ -1,3 +1,4 @@
+# flake8: noqa
 ###  StdLib  ###
 from typing import NamedTuple
 

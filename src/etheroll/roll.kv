@@ -10,6 +10,7 @@
     MDLabel:
         text: "Bet size"
         font_style: 'Title'
+        theme_text_color: 'Primary'
     BoxLayout:
         orientation: "horizontal"
         MDTextField:
@@ -28,6 +29,7 @@
     MDLabel:
         text: "Chance of winning"
         font_style: 'Title'
+        theme_text_color: 'Primary'
     BoxLayout:
         orientation: "horizontal"
         MDTextField:
@@ -47,11 +49,14 @@
     MDLabel:
         text: "Roll under %s" % int(root.roll_under_property)
         font_style: 'Headline'
+        theme_text_color: 'Primary'
     MDLabel:
         text: "With a wager of {0:.{1}f} ETH".format(root.wager_property, ROUND_DIGITS)
+        theme_text_color: 'Primary'
     MDLabel:
     MDLabel:
         text: "For a profit of {0:.{1}f} ETH".format(root.profit_property, ROUND_DIGITS)
+        theme_text_color: 'Primary'
 
 
 <RollScreen>:
@@ -66,9 +71,11 @@
             text: "Balance: {} ETH".format(root.balance_property)
             text: "Balance: {0:.{1}f} ETH".format(root.balance_property, ROUND_DIGITS)
             font_style: 'Headline'
+            theme_text_color: 'Primary'
         MDLabel:
             text: "Place your bet"
             font_style: 'Headline'
+            theme_text_color: 'Primary'
         BetSize:
             id: bet_size_id
         ChanceOfWinning:

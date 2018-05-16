@@ -3,9 +3,9 @@ from kivy.clock import Clock, mainthread
 from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
+from layoutmargin import AddMargin, MarginLayout
 
 import constants
-from etheroll.layout_mixins import Add_Margin, MarginLayout
 from etheroll.utils import load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
@@ -103,7 +103,7 @@ class BoxLayoutMarginLayout(MarginLayout, BoxLayout):
     pass
 
 
-class BoxLayoutAddMargin(Add_Margin, BoxLayout):
+class BoxLayoutAddMargin(AddMargin, BoxLayout):
     pass
 
 

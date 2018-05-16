@@ -4,6 +4,7 @@
 
   - Show account balance, refs #8
   - Configurable gas price, refs #23
+  - UI improvements, refs #34, #88
   - File split & refactoring, refs #43
   - Lazy screen loading, refs #47, #75
   - Updated contract deployment doc, refs #52

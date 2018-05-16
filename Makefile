@@ -29,7 +29,7 @@ endif
 clean:
 	rm -rf venv/ .tox/
 
-test: virtualenv
+test:
 	$(TOX)
 
 uitest: virtualenv

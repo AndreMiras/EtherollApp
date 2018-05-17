@@ -11,6 +11,7 @@
         MDLabel:
             text: 'Network'
             font_style: 'Title'
+            theme_text_color: 'Primary'
         BoxLayout:
             orientation: 'horizontal'
             MDCheckbox:
@@ -22,6 +23,7 @@
                 active: root.is_stored_mainnet()
             MDLabel:
                 text: 'Mainnet'
+                theme_text_color: 'Primary'
         BoxLayout:
             orientation: 'horizontal'
             MDCheckbox:
@@ -33,11 +35,13 @@
                 active: root.is_stored_testnet()
             MDLabel:
                 text: 'Testnet'
+                theme_text_color: 'Primary'
         BoxLayout:
             orientation: 'vertical'
             MDLabel:
                 text: 'Gas price (gwei)'
                 font_style: 'Title'
+                theme_text_color: 'Primary'
             BoxLayout:
                 orientation: 'horizontal'
                 MDLabel:
@@ -45,6 +49,7 @@
                     text: "{}".format(int(gas_price_slider_id.value))
                     width: dp(50)
                     size_hint_x: None
+                    theme_text_color: 'Primary'
                 MDSlider:
                     id: gas_price_slider_id
                     range: 0, 50

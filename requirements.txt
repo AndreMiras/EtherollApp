@@ -23,3 +23,4 @@ rlp==0.6.0
 # compatible with libcrypto.so.1.1
 # https://github.com/golemfactory/golem-messages/pull/112/files
 https://github.com/mfranciszkiewicz/pyelliptic/archive/1.5.10.tar.gz#egg=pyelliptic
+https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.zip#egg=layoutmargin

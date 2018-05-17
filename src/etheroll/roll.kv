@@ -10,13 +10,17 @@
     MDLabel:
         text: "Bet size"
         font_style: 'Title'
+        theme_text_color: 'Primary'
     BoxLayout:
         orientation: "horizontal"
+        height: dp(50)
+        size_hint_y: None
         MDTextField:
             id: bet_size_input_id
             text: "0.1"
+            font_size: dp(20)
             input_filter: 'float'
-            width: dp(50)
+            width: dp(40)
             size_hint_x: None
         MDSlider:
             id: bet_size_slider_id
@@ -28,13 +32,17 @@
     MDLabel:
         text: "Chance of winning"
         font_style: 'Title'
+        theme_text_color: 'Primary'
     BoxLayout:
         orientation: "horizontal"
+        height: dp(50)
+        size_hint_y: None
         MDTextField:
             id: chances_input_id
             text: "50"
+            font_size: dp(20)
             input_filter: 'int'
-            width: dp(50)
+            width: dp(40)
             size_hint_x: None
         MDSlider:
             id: chances_slider_id
@@ -43,43 +51,69 @@
 
 
 <RollUnderRecap>:
-    orientation: "vertical"
+    cols: 2
+    height: self.minimum_height
     MDLabel:
-        text: "Roll under %s" % int(root.roll_under_property)
+        text: 'Roll under'
         font_style: 'Headline'
+        theme_text_color: 'Primary'
+        size_hint_y: None
+        height: dp(70)
     MDLabel:
-        text: "With a wager of {0:.{1}f} ETH".format(root.wager_property, ROUND_DIGITS)
+        text: '{}'.format(int(root.roll_under_property))
+        font_style: 'Display3'
+        theme_text_color: 'Primary'
+        halign: 'right'
     MDLabel:
+        text: 'With a wager of'
+        theme_text_color: 'Primary'
+        size_hint_y: None
+        height: dp(20)
     MDLabel:
-        text: "For a profit of {0:.{1}f} ETH".format(root.profit_property, ROUND_DIGITS)
+        text: '{0:.{1}f} ETH'.format(root.wager_property, ROUND_DIGITS)
+        theme_text_color: 'Primary'
+        halign: 'right'
+    MDLabel:
+        text: 'For a profit'
+        theme_text_color: 'Primary'
+        size_hint_y: None
+        height: dp(20)
+    MDLabel:
+        text: '+{0:.{1}f} ETH'.format(root.profit_property, ROUND_DIGITS)
+        theme_text_color: 'Primary'
+        halign: 'right'
 
 
 <RollScreen>:
     on_pre_enter:
         root.fetch_update_balance()
-    BoxLayout:
+    BoxLayoutMarginLayout:
         orientation: "vertical"
         AddressButton:
             text: root.current_account_string or 'No account selected'
             on_release: app.root.open_address_options()
-        MDLabel:
-            text: "Balance: {} ETH".format(root.balance_property)
-            text: "Balance: {0:.{1}f} ETH".format(root.balance_property, ROUND_DIGITS)
-            font_style: 'Headline'
-        MDLabel:
-            text: "Place your bet"
-            font_style: 'Headline'
-        BetSize:
-            id: bet_size_id
-        ChanceOfWinning:
-            id: chance_of_winning_id
-        MDSeparator:
-            height: dp(1)
-        PushUp:
-        RollUnderRecap:
-            id: roll_under_recap_id
-        PushUp:
-        AnchorLayout:
-            MDRaisedButton:
-                id: roll_button_id
-                text: "Roll"
+        BoxLayoutAddMargin:
+            orientation: "vertical"
+            margin: 30, 10, 30, 10
+            MDLabel:
+                text: "Balance: {} ETH".format(root.balance_property)
+                text: "Balance: {0:.{1}f} ETH".format(root.balance_property, ROUND_DIGITS)
+                font_style: 'Headline'
+                theme_text_color: 'Primary'
+            MDLabel:
+                text: "Place your bet"
+                font_style: 'Headline'
+                theme_text_color: 'Primary'
+            BetSize:
+                id: bet_size_id
+            ChanceOfWinning:
+                id: chance_of_winning_id
+            PushUp:
+            RollUnderRecap:
+                id: roll_under_recap_id
+            PushUp:
+            AnchorLayout:
+                MDRaisedButton:
+                    id: roll_button_id
+                    text: "Roll"
+                    size_hint_x: 0.7

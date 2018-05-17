@@ -2,7 +2,9 @@ from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen
+from layoutmargin import AddMargin, MarginLayout
 
 import constants
 from etheroll.utils import load_kv_from_py, run_in_thread
@@ -10,7 +12,7 @@ from etheroll.utils import load_kv_from_py, run_in_thread
 load_kv_from_py(__file__)
 
 
-class RollUnderRecap(BoxLayout):
+class RollUnderRecap(GridLayout):
     roll_under_property = NumericProperty()
     profit_property = NumericProperty()
     wager_property = NumericProperty()
@@ -28,7 +30,10 @@ class BetSize(BoxLayout):
         """
         slider = self.ids.bet_size_slider_id
         inpt = self.ids.bet_size_input_id
-        BetSize.bind_slider_input(slider, inpt)
+        cast_to = float
+        # shows less digits than the constant default to keep the input tiny
+        round_digits = 1
+        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits)
 
     @staticmethod
     def bind_slider_input(
@@ -78,7 +83,8 @@ class ChanceOfWinning(BoxLayout):
         slider = self.ids.chances_slider_id
         inpt = self.ids.chances_input_id
         cast_to = self.cast_to
-        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits=0)
+        round_digits = 0
+        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits)
 
     @staticmethod
     def cast_to(value):
@@ -96,6 +102,14 @@ class ChanceOfWinning(BoxLayout):
             return int(chances)
         except ValueError:
             return 0
+
+
+class BoxLayoutMarginLayout(MarginLayout, BoxLayout):
+    pass
+
+
+class BoxLayoutAddMargin(AddMargin, BoxLayout):
+    pass
 
 
 class RollScreen(Screen):

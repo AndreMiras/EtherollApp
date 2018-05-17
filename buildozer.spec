@@ -97,7 +97,8 @@ requirements =
     eth-utils==1.0.1,
     raven==6.6.0,
     requests-cache==0.4.13,
-    qrcode
+    qrcode,
+    https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.zip
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

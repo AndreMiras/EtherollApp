@@ -430,6 +430,8 @@ class EtherollApp(App):
 
     def build(self):
         self.icon = "docs/images/icon.png"
+        self.theme_cls.theme_style = 'Dark'
+        self.theme_cls.primary_palette = 'Indigo'
         return Controller()
 
 

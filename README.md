@@ -4,7 +4,7 @@
 
 Cross platform Etheroll app built with Python and Kivy. Uses an Ethereum smart contract to place bets on the blockchain.
 
-<img src="https://i.imgur.com/ela5rp5.png" alt="Screenshot mainscreen" width="200"> <img src="https://i.imgur.com/Ve0vzym.png" alt="Screenshot roll history" width="200">
+<img src="https://i.imgur.com/cEtWlwc.png" alt="Screenshot mainscreen" width="200"> <img src="https://i.imgur.com/f89O7kh.png" alt="Screenshot roll history" width="200">
 
 ## Run
 ```

@@ -2,6 +2,7 @@ from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen
 from layoutmargin import AddMargin, MarginLayout
 
@@ -11,7 +12,7 @@ from etheroll.utils import load_kv_from_py, run_in_thread
 load_kv_from_py(__file__)
 
 
-class RollUnderRecap(BoxLayout):
+class RollUnderRecap(GridLayout):
     roll_under_property = NumericProperty()
     profit_property = NumericProperty()
     wager_property = NumericProperty()

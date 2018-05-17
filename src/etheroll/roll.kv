@@ -51,18 +51,37 @@
 
 
 <RollUnderRecap>:
-    orientation: "vertical"
+    cols: 2
+    height: self.minimum_height
     MDLabel:
-        text: "Roll under %s" % int(root.roll_under_property)
+        text: 'Roll under'
         font_style: 'Headline'
         theme_text_color: 'Primary'
+        size_hint_y: None
+        height: dp(70)
     MDLabel:
-        text: "With a wager of {0:.{1}f} ETH".format(root.wager_property, ROUND_DIGITS)
+        text: '{}'.format(int(root.roll_under_property))
+        font_style: 'Display3'
         theme_text_color: 'Primary'
+        halign: 'right'
     MDLabel:
-    MDLabel:
-        text: "For a profit of {0:.{1}f} ETH".format(root.profit_property, ROUND_DIGITS)
+        text: 'With a wager of'
         theme_text_color: 'Primary'
+        size_hint_y: None
+        height: dp(20)
+    MDLabel:
+        text: '{0:.{1}f} ETH'.format(root.wager_property, ROUND_DIGITS)
+        theme_text_color: 'Primary'
+        halign: 'right'
+    MDLabel:
+        text: 'For a profit'
+        theme_text_color: 'Primary'
+        size_hint_y: None
+        height: dp(20)
+    MDLabel:
+        text: '+{0:.{1}f} ETH'.format(root.profit_property, ROUND_DIGITS)
+        theme_text_color: 'Primary'
+        halign: 'right'
 
 
 <RollScreen>:
@@ -89,8 +108,6 @@
                 id: bet_size_id
             ChanceOfWinning:
                 id: chance_of_winning_id
-            MDSeparator:
-                height: dp(1)
             PushUp:
             RollUnderRecap:
                 id: roll_under_recap_id

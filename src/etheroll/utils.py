@@ -10,11 +10,13 @@ from kivy.clock import mainthread
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.storage.jsonstore import JsonStore
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 from kivy.utils import platform
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 from kivymd.snackbar import Snackbar
+from layoutmargin import AddMargin, MarginLayout
 
 
 def run_in_thread(fn):
@@ -256,3 +258,11 @@ class Store:
         store_path = cls.get_store_path()
         store = JsonStore(store_path)
         return store
+
+
+class BoxLayoutMarginLayout(MarginLayout, BoxLayout):
+    pass
+
+
+class BoxLayoutAddMargin(AddMargin, BoxLayout):
+    pass

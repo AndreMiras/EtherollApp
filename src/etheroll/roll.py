@@ -4,7 +4,6 @@ from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen
-from layoutmargin import AddMargin, MarginLayout
 
 import constants
 from etheroll.utils import load_kv_from_py, run_in_thread
@@ -102,14 +101,6 @@ class ChanceOfWinning(BoxLayout):
             return int(chances)
         except ValueError:
             return 0
-
-
-class BoxLayoutMarginLayout(MarginLayout, BoxLayout):
-    pass
-
-
-class BoxLayoutAddMargin(AddMargin, BoxLayout):
-    pass
 
 
 class RollScreen(Screen):

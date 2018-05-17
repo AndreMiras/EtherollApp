@@ -36,6 +36,7 @@
             MDLabel:
                 text: 'Testnet'
                 theme_text_color: 'Primary'
+        PushUp:
         BoxLayout:
             orientation: 'vertical'
             MDLabel:
@@ -47,7 +48,8 @@
                 MDLabel:
                     id: gas_price_label_id
                     text: "{}".format(int(gas_price_slider_id.value))
-                    width: dp(50)
+                    font_size: dp(20)
+                    width: dp(40)
                     size_hint_x: None
                     theme_text_color: 'Primary'
                 MDSlider:

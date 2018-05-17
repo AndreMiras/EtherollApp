@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [v20180517]
 
   - Show account balance, refs #8
   - Configurable gas price, refs #23

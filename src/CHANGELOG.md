@@ -7,8 +7,8 @@
   - UI improvements, refs #34, #88
   - File split & refactoring, refs #43
   - Lazy screen loading, refs #47, #75
+  - Pull to refresh roll history, refs #50, #55
   - Updated contract deployment doc, refs #52
-  - Pull to refresh roll history, refs #55
   - UI testing, refs #61, #64
   - Reduce APK size from 26M to 20M, refs #68
   - Run tests from UI, refs #69

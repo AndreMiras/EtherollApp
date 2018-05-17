@@ -6,6 +6,7 @@ from datetime import datetime
 from tempfile import mkdtemp
 from unittest import mock
 
+from eth_account.internal.transactions import assert_valid_fields
 from ethereum.tools.keys import PBKDF2_CONSTANTS
 from hexbytes.main import HexBytes
 from pyethapp.accounts import Account
@@ -86,8 +87,8 @@ class TestUtils(unittest.TestCase):
             "3a312c226d6178223a3130302c227265706c6163656d656e74223a747275652c"
             "2262617365223a3130247b5b6964656e746974795d20227d227d2c226964223a"
             "31247b5b6964656e746974795d20227d227d275d000000000000000000000000")
-        decoded_method = TransactionDebugger.decode_method(
-            contract_abi, topics, log_data)
+        transaction_debugger = TransactionDebugger(contract_abi)
+        decoded_method = transaction_debugger.decode_method(topics, log_data)
         # TODO: simplify that arg call for unit testing
         self.assertEqual(
             decoded_method['call'],
@@ -178,8 +179,8 @@ class TestUtils(unittest.TestCase):
             '0000000000000000000000000000000000000000000000000007533f2ecb6c34'
             '000000000000000000000000000000000000000000000000016345785d8a0000'
             '0000000000000000000000000000000000000000000000000000000000000062')
-        decoded_method = TransactionDebugger.decode_method(
-            contract_abi, topics, log_data)
+        transaction_debugger = TransactionDebugger(contract_abi)
+        decoded_method = transaction_debugger.decode_method(topics, log_data)
         self.assertEqual(
             decoded_method['call'],
             {'BetID': (
@@ -212,16 +213,69 @@ class TestUtils(unittest.TestCase):
         )
         contract_abi = json.loads(json_abi)
         call_data = (
-            'a9059cbb000000000000000000000000'
-            '67fa2c06c9c6d4332f330e14a66bdf18'
-            '73ef3d2b000000000000000000000000'
-            '0000000000000000000000000de0b6b3'
+            'a9059cbb00000000000000000000000067fa2c06c9c6d4332f330e14a66bdf18'
+            '73ef3d2b0000000000000000000000000000000000000000000000000de0b6b3'
             'a7640000')
         method_name, args = decode_contract_call(contract_abi, call_data)
         self.assertEqual(method_name, 'transfer')
         self.assertEqual(
             args,
             ['0x67fa2c06c9c6d4332f330e14a66bdf1873ef3d2b', 1000000000000000000]
+        )
+
+    def test_decode_contract_call_callback(self):
+        """
+        Decode `__callback()` method call.
+        Uses actual data from:
+        https://etherscan.io/tx/
+        0xf6d291b2de12db618aafc5fd9f40a37384b4a7ac41d14463a1d707a4f43137c3
+        In its simplified form for tests.
+        """
+        contract_abi = [
+            {
+                "constant": False,
+                "inputs": [
+                    {"name": "myid", "type": "bytes32"},
+                    {"name": "result", "type": "string"}
+                ],
+                "name": "__callback", "outputs": [], "payable": False,
+                "stateMutability": "nonpayable", "type": "function"
+            },
+            {
+                "constant": False,
+                "inputs": [
+                    {"name": "myid", "type": "bytes32"},
+                    {"name": "result", "type": "string"},
+                    {"name": "proof", "type": "bytes"}
+                ],
+                "name": "__callback", "outputs": [], "payable": False,
+                "stateMutability": "nonpayable", "type": "function"
+            }
+        ]
+        call_data = (
+            '38bbfa5010369b11d06269122229ec4088d4bf42fbf629b0d40432ffc40cc638'
+            'd938f1e800000000000000000000000000000000000000000000000000000000'
+            '0000006000000000000000000000000000000000000000000000000000000000'
+            '0000008000000000000000000000000000000000000000000000000000000000'
+            '0000000000000000000000000000000000000000000000000000000000000000'
+            '000000221220ba7237d9ed277fdd4bf2b358049b1c5e971b2bc5fa0edd47b334'
+            '5d3890e415fc0000000000000000000000000000000000000000000000000000'
+            '00000000')
+        method_name, args = decode_contract_call(contract_abi, call_data)
+        self.assertEqual(method_name, '__callback')
+        myid = bytes.fromhex(
+            '10369b11d06269122229ec4088d4bf42fbf629b0d40432ffc40cc638d938f1e8')
+        result = b''
+        proof = bytes.fromhex(
+            '1220ba7237d9ed277fdd4bf2b358049b1c5e971b2bc5fa0edd47b3345d3890e4'
+            '15fc')
+        self.assertEqual(
+            args,
+            [
+                myid,
+                result,
+                proof,
+            ]
         )
 
 
@@ -320,7 +374,6 @@ class TestTransactionDebugger(unittest.TestCase):
           })
         ]
         chain_id = ChainID.ROPSTEN
-        transaction_debugger = TransactionDebugger(chain_id)
         transaction_hash = (
           "0x330df22df6543c9816d80e582a4213b1fc11992f317be71775f49c3d853ed5be")
         with \
@@ -330,8 +383,8 @@ class TestTransactionDebugger(unittest.TestCase):
                     'etherscan.contracts.Contract.get_abi',
                     side_effect=self.m_get_abi, autospec=True):
             m_getTransactionReceipt.return_value.logs = mocked_logs
-            decoded_methods = transaction_debugger.decode_transaction_logs(
-                transaction_hash)
+            decoded_methods = TransactionDebugger.decode_transaction_logs(
+                chain_id, transaction_hash)
         self.assertEqual(len(decoded_methods), 2)
         decoded_method = decoded_methods[0]
         self.assertEqual(
@@ -384,6 +437,81 @@ class TestEtheroll(unittest.TestCase):
         'stateMutability': 'payable',
         'type': 'function',
     }
+
+    bet_logs = [
+        {
+            'bet_id': (
+                '15e007148ec621d996c886de0f2b88a0'
+                '3af083aa819e851a51133dc17b6e0e5b'),
+            'bet_value_ether': 0.45,
+            'datetime': datetime(2018, 4, 7, 0, 17, 6),
+            'profit_value_ether': 44.1,
+            'reward_value_ether': 44.55,
+            'roll_under': 2,
+            'timestamp': '0x5ac80e02',
+            'transaction_hash': (
+                '0xf363906a9278c4dd300c50a3c9a2790'
+                '0bb85df60596c49f7833c232f2944d1cb')
+        },
+        {
+            'bet_id': (
+                '14bae6b4711bdc5e3db19983307a9208'
+                '1e2e7c1d45161117bdf7b8b509d1abbe'),
+            'bet_value_ether': 0.45,
+            'datetime': datetime(2018, 4, 7, 0, 20, 14),
+            'profit_value_ether': 6.97,
+            'reward_value_ether': 7.42,
+            'roll_under': 7,
+            'timestamp': '0x5ac80ebe',
+            'transaction_hash': (
+                '0x0df8789552248edf1dd9d06a7a90726'
+                'f1bc83a9c39f315b04efb6128f0d02146')
+        },
+        {
+            # that one would not have been yet resolved (no `LogResult`)
+            'bet_id': (
+                'c2997a1bad35841b2c30ca95eea9cb08'
+                'c7b101bc14d5aa8b1b8a0facea793e05'),
+            'bet_value_ether': 0.5,
+            'datetime': datetime(2018, 4, 7, 0, 23, 46),
+            'profit_value_ether': 3.31,
+            'reward_value_ether': 3.81,
+            'roll_under': 14,
+            'timestamp': '0x5ac80f92',
+            'transaction_hash': (
+                '0x0440f1013a5eafd88f16be6b5612b6e'
+                '051a4eb1b0b91a160c680295e7fab5bfe')
+        }
+    ]
+
+    bet_results_logs = [
+        {
+            'bet_id': (
+                '15e007148ec621d996c886de0f2b88a0'
+                '3af083aa819e851a51133dc17b6e0e5b'),
+            'bet_value_ether': 0.45,
+            'datetime': datetime(2018, 4, 7, 0, 17, 55),
+            'dice_result': 86,
+            'roll_under': 2,
+            'timestamp': '0x5ac80e33',
+            'transaction_hash': (
+                '0x3505de688dc20748eb5f6b3efd6e6d3'
+                '66ea7f0737b4ab17035c6b60ab4329f2a')
+        },
+        {
+            'bet_id': (
+                '14bae6b4711bdc5e3db19983307a9208'
+                '1e2e7c1d45161117bdf7b8b509d1abbe'),
+            'bet_value_ether': 0.45,
+            'datetime': datetime(2018, 4, 7, 0, 20, 54),
+            'dice_result': 51,
+            'roll_under': 7,
+            'timestamp': '0x5ac80ee6',
+            'transaction_hash': (
+                '0x42df3e3136957bcc64226206ed177d5'
+                '7ac9c31e116290c8778c97474226d3092')
+        },
+    ]
 
     def setUp(self):
         self.keystore_dir = mkdtemp()
@@ -438,14 +566,20 @@ class TestEtheroll(unittest.TestCase):
             m_getTransactionCount.return_value = 0
             transaction = etheroll.player_roll_dice(
                 bet_size_ether, chances, wallet_path, wallet_password)
-        # the method should return a transaction hash
-        self.assertIsNotNone(transaction)
+            # the method should return a transaction hash
+            self.assertIsNotNone(transaction)
+            # a second one with custom gas (in gwei), refs #23
+            gas_price_gwei = 12
+            transaction = etheroll.player_roll_dice(
+                bet_size_ether, chances, wallet_path, wallet_password,
+                gas_price_gwei)
+            self.assertIsNotNone(transaction)
         # the nonce was retrieved
         self.assertTrue(m_getTransactionCount.called)
         # the transaction was sent
         self.assertTrue(m_sendRawTransaction.called)
         # the transaction should be built that way
-        expected_transaction = {
+        expected_transaction1 = {
             'nonce': 0, 'chainId': 1,
             'to': Etheroll.CONTRACT_ADDRESSES[ChainID.MAINNET],
             'data': (
@@ -454,10 +588,25 @@ class TestEtheroll(unittest.TestCase):
             'gas': 310000,
             'value': 100000000000000000, 'gasPrice': 4000000000
         }
-        expected_call = ((expected_transaction, account.privkey),)
+        expected_transaction2 = expected_transaction1.copy()
+        expected_transaction2['gasPrice'] = 12*1e9
+        expected_call1 = mock.call(expected_transaction1, account.privkey)
+        expected_call2 = mock.call(expected_transaction2, account.privkey)
         # the method should have been called only once
-        expected_calls = [expected_call]
+        expected_calls = [expected_call1, expected_call2]
         self.assertEqual(m_signTransaction.call_args_list, expected_calls)
+        # also make sure the transaction dict is passing the validation
+        # e.g. scientific notation 1e+17 is not accepted
+        transaction_dict = m_signTransaction.call_args[0][0]
+        assert_valid_fields(transaction_dict)
+        # even though below values are equal
+        self.assertTrue(transaction_dict['value'] == 0.1 * 1e18 == 1e17)
+        # this is not accepted by `assert_valid_fields()`
+        transaction_dict['value'] = 0.1 * 1e18
+        with self.assertRaises(TypeError):
+            assert_valid_fields(transaction_dict)
+        # because float are not accepted
+        self.assertEqual(type(transaction_dict['value']), float)
 
     def test_get_last_bets_transactions(self):
         """
@@ -503,7 +652,7 @@ class TestEtheroll(unittest.TestCase):
                 'input': (
                         '0xdc6dd152000000000000000000000000000'
                         '000000000000000000000000000000000000e'),
-                'timeStamp': '1523060626',
+                'timeStamp': '0x5ac80f92',
                 'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
                 'value': '500000000000000000',
             },
@@ -519,7 +668,7 @@ class TestEtheroll(unittest.TestCase):
                 'input': (
                         '0xdc6dd152000000000000000000000000000'
                         '0000000000000000000000000000000000002'),
-                'timeStamp': '1523060494',
+                'timeStamp': '0x5ac80f0e',
                 'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
                 'value': '450000000000000000',
             },
@@ -541,8 +690,8 @@ class TestEtheroll(unittest.TestCase):
                     'bet_size_ether': 0.5,
                     'roll_under': 14,
                     'block_number': '5394094',
-                    'timestamp': '1523060626',
-                    'datetime': datetime(4846, 10, 6, 13, 22, 46),
+                    'timestamp': '0x5ac80f92',
+                    'datetime': datetime(2018, 4, 7, 0, 23, 46),
                     'transaction_hash': (
                         '0x0440f1013a5eafd88f16be6b5612b6e'
                         '051a4eb1b0b91a160c680295e7fab5bfe'),
@@ -551,8 +700,8 @@ class TestEtheroll(unittest.TestCase):
                     'bet_size_ether': 0.45,
                     'roll_under': 2,
                     'block_number': '5394085',
-                    'timestamp': '1523060494',
-                    'datetime': datetime(4846, 10, 6, 13, 16, 4),
+                    'timestamp': '0x5ac80f0e',
+                    'datetime': datetime(2018, 4, 7, 0, 21, 34),
                     'transaction_hash': (
                         '0x72def66d60ecc85268c714e71929953'
                         'ef94fd4fae37632a5f56ea49bee44dd59'),
@@ -931,24 +1080,84 @@ class TestEtheroll(unittest.TestCase):
         ]
         self.assertEqual(results, expected_results)
 
-    def test_get_last_bet_results_logs(self):
-        # TODO
-        # etheroll = Etheroll()
-        # address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
-        # results = etheroll.get_last_bet_results_logs(address)
-        pass
-
     def test_get_last_bets_blocks(self):
-        # TODO
-        # etheroll = Etheroll()
-        # address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
-        # last_bets_blocks = etheroll.get_last_bets_blocks(address)
-        pass
+        transactions = [
+            {
+                'blockHash': (
+                    '0x9814be792821e5d98b639e211fbe8f4'
+                    'b1930b8f12fa28aeb9ecf4737e749626b'),
+                'blockNumber': '5394094',
+                'confirmations': '81252',
+                'contractAddress': '',
+                'cumulativeGasUsed': '2619957',
+                'from': '0x46044beaa1e985c67767e04de58181de5daaa00f',
+                'gas': '250000',
+                'gasPrice': '2000000000',
+                'gasUsed': '177773',
+                'hash': (
+                    '0x0440f1013a5eafd88f16be6b5612b6e'
+                    '051a4eb1b0b91a160c680295e7fab5bfe'),
+                'input': (
+                    '0xdc6dd152000000000000000000000000000'
+                    '000000000000000000000000000000000000e'),
+                'isError': '0',
+                'nonce': '9485',
+                'timeStamp': '1523060626',
+                'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+                'transactionIndex': '42',
+                'txreceipt_status': '1',
+                'value': '500000000000000000'},
+            {
+                'blockHash': (
+                    '0x0f74b07fe04dd447b2a48c7aee6998a'
+                    'c97cf7c12b4fd46ef781f00652abe4642'),
+                'blockNumber': '5394068',
+                'confirmations': '81278',
+                'contractAddress': '',
+                'cumulativeGasUsed': '4388802',
+                'from': '0x46044beaa1e985c67767e04de58181de5daaa00f',
+                'gas': '250000',
+                'gasPrice': '2200000000',
+                'gasUsed': '177773',
+                'hash': (
+                    '0xf363906a9278c4dd300c50a3c9a2790'
+                    '0bb85df60596c49f7833c232f2944d1cb'),
+                'input': (
+                    '0xdc6dd152000000000000000000000000000'
+                    '0000000000000000000000000000000000002'),
+                'isError': '0',
+                'nonce': '9481',
+                'timeStamp': '1523060226',
+                'to': '0x048717ea892f23fb0126f00640e2b18072efd9d2',
+                'transactionIndex': '150',
+                'txreceipt_status': '1',
+                'value': '450000000000000000'
+            }
+        ]
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        contract_abi = []
+        address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll(contract_address=contract_address)
+        with mock.patch('pyetheroll.Etheroll.get_player_roll_dice_tx') \
+                as m_get_player_roll_dice_tx:
+            m_get_player_roll_dice_tx.return_value = transactions
+            last_bets_blocks = etheroll.get_last_bets_blocks(address)
+        self.assertEqual(
+            last_bets_blocks, {'from_block': 5394067, 'to_block': 5394194})
 
     def test_merge_logs(self):
-        # TODO
-        # Etheroll.merge_logs(bet_logs, bet_results_logs)
-        pass
+        bet_logs = self.bet_logs
+        bet_results_logs = self.bet_results_logs
+        expected_merged_logs = [
+            {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
+            {'bet_log': bet_logs[1], 'bet_result': bet_results_logs[1]},
+            # not yet resolved (no `LogResult`)
+            {'bet_log': bet_logs[2], 'bet_result': None},
+        ]
+        merged_logs = Etheroll.merge_logs(bet_logs, bet_results_logs)
+        self.assertEqual(merged_logs, expected_merged_logs)
 
     def test_compute_profit(self):
         bet_size = 0.10
@@ -971,79 +1180,8 @@ class TestEtheroll(unittest.TestCase):
             self.log_bet_abi, self.log_result_abi, self.player_roll_dice_abi]
         contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
         last_bets_blocks = {'from_block': 5394067, 'to_block': 5394194}
-        bet_logs = [
-            {
-                'bet_id': (
-                    '15e007148ec621d996c886de0f2b88a0'
-                    '3af083aa819e851a51133dc17b6e0e5b'),
-                'bet_value_ether': 0.45,
-                'datetime': datetime(2018, 4, 7, 0, 17, 6),
-                'profit_value_ether': 44.1,
-                'reward_value_ether': 44.55,
-                'roll_under': 2,
-                'timestamp': '0x5ac80e02',
-                'transaction_hash': (
-                    '0xf363906a9278c4dd300c50a3c9a2790'
-                    '0bb85df60596c49f7833c232f2944d1cb')
-            },
-            {
-                'bet_id': (
-                    '14bae6b4711bdc5e3db19983307a9208'
-                    '1e2e7c1d45161117bdf7b8b509d1abbe'),
-                'bet_value_ether': 0.45,
-                'datetime': datetime(2018, 4, 7, 0, 20, 14),
-                'profit_value_ether': 6.97,
-                'reward_value_ether': 7.42,
-                'roll_under': 7,
-                'timestamp': '0x5ac80ebe',
-                'transaction_hash': (
-                    '0x0df8789552248edf1dd9d06a7a90726'
-                    'f1bc83a9c39f315b04efb6128f0d02146')
-            },
-            {
-                # that one would not have been yet resolved (no `LogResult`)
-                'bet_id': (
-                    'c2997a1bad35841b2c30ca95eea9cb08'
-                    'c7b101bc14d5aa8b1b8a0facea793e05'),
-                'bet_value_ether': 0.5,
-                'datetime': datetime(2018, 4, 7, 0, 23, 46),
-                'profit_value_ether': 3.31,
-                'reward_value_ether': 3.81,
-                'roll_under': 14,
-                'timestamp': '0x5ac80f92',
-                'transaction_hash': (
-                    '0x0440f1013a5eafd88f16be6b5612b6e'
-                    '051a4eb1b0b91a160c680295e7fab5bfe')
-            }
-        ]
-        bet_results_logs = [
-            {
-                'bet_id': (
-                    '15e007148ec621d996c886de0f2b88a0'
-                    '3af083aa819e851a51133dc17b6e0e5b'),
-                'bet_value_ether': 0.45,
-                'datetime': datetime(2018, 4, 7, 0, 17, 55),
-                'dice_result': 86,
-                'roll_under': 2,
-                'timestamp': '0x5ac80e33',
-                'transaction_hash': (
-                    '0x3505de688dc20748eb5f6b3efd6e6d3'
-                    '66ea7f0737b4ab17035c6b60ab4329f2a')
-            },
-            {
-                'bet_id': (
-                    '14bae6b4711bdc5e3db19983307a9208'
-                    '1e2e7c1d45161117bdf7b8b509d1abbe'),
-                'bet_value_ether': 0.45,
-                'datetime': datetime(2018, 4, 7, 0, 20, 54),
-                'dice_result': 51,
-                'roll_under': 7,
-                'timestamp': '0x5ac80ee6',
-                'transaction_hash': (
-                    '0x42df3e3136957bcc64226206ed177d5'
-                    '7ac9c31e116290c8778c97474226d3092')
-            },
-        ]
+        bet_logs = self.bet_logs
+        bet_results_logs = self.bet_results_logs
         with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
             m_get_abi.return_value = json.dumps(contract_abi)
             etheroll = Etheroll(contract_address=contract_address)
@@ -1066,3 +1204,89 @@ class TestEtheroll(unittest.TestCase):
             {'bet_log': bet_logs[2], 'bet_result': None},
         ]
         self.assertEqual(merged_logs, expected_merged_logs)
+
+    def test_get_merged_logs_empty_tx(self):
+        """
+        Empty transaction history crashes the application, refs:
+        https://github.com/AndreMiras/EtherollApp/issues/67
+        """
+        contract_abi = []
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll(contract_address=contract_address)
+        address = '0x7aBE7DdD94DB8feb6BE426e53cA090b94F15d73E'
+        with mock.patch('requests.sessions.Session.get') as m_get:
+            # this is what etherscan.io would return on empty tx history
+            m_get.return_value.status_code = 200
+            m_get.return_value.text = (
+                '{"status":"0","message":"No transactions found","result":[]}')
+            m_get.return_value.json.return_value = json.loads(
+                m_get.return_value.text)
+            # but this crashes the library with an exit
+            with self.assertRaises(SystemExit):
+                etheroll.get_merged_logs(address)
+
+    def test_get_merged_logs_no_matching_tx(self):
+        """
+        Makes sure no matching transactions doesn't crash the app, refs:
+        https://github.com/AndreMiras/EtherollApp/issues/87
+        """
+        contract_abi = [self.player_roll_dice_abi]
+        contract_address = '0xe12c6dEb59f37011d2D9FdeC77A6f1A8f3B8B1e8'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll(
+                chain_id=ChainID.ROPSTEN, contract_address=contract_address)
+        address = '0x4F4b934af9Bb3656daDD4c7C7d8dD348AC4f787A'
+        with mock.patch('requests.sessions.Session.get') as m_get:
+            # there's a transaction, but it's not matching the expected ones
+            m_get.return_value.status_code = 200
+            m_get.return_value.text = (
+                '{"status":"1","message":"OK","result":[{"blockNumber":"306526'
+                '5","timeStamp":"1524087170","hash":"0x93bf3cff2c334d15e96b07e'
+                '362240e09255b9e8728d855741e5970110d5a8a6d","nonce":"13","bloc'
+                'kHash":"0x9625ece7c2bbca90c15628a970d962b8d0f1e57221e1f3ded6c'
+                '24f25df834d62","transactionIndex":"51","from":"0x66d4bacfe61d'
+                'f23be813089a7a6d1a749a5c936a","to":"0x4f4b934af9bb3656dadd4c7'
+                'c7d8dd348ac4f787a","value":"2000000000000000000","gas":"21000'
+                '","gasPrice":"1000000000","isError":"0","txreceipt_status":"1'
+                '","input":"0x","contractAddress":"","cumulativeGasUsed":"1871'
+                '849","gasUsed":"21000","confirmations":"161389"}]}')
+            m_get.return_value.json.return_value = json.loads(
+                m_get.return_value.text)
+            merged_logs = etheroll.get_merged_logs(address)
+        # merged logs should simply be empty
+        self.assertEqual(merged_logs, [])
+
+    def test_get_balance(self):
+        """
+        Makes sure proper Etherscan API call is made.
+        https://github.com/AndreMiras/EtherollApp/issues/67
+        """
+        contract_abi = []
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+            m_get_abi.return_value = json.dumps(contract_abi)
+            etheroll = Etheroll(contract_address=contract_address)
+        address = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B'
+        with mock.patch('requests.sessions.Session.get') as m_get:
+            # this is what etherscan.io would return on empty tx history
+            m_get.return_value.status_code = 200
+            m_get.return_value.text = (
+                '{"status":"1","message":"OK",'
+                '"result":"365003278106457867877843"}')
+            m_get.return_value.json.return_value = json.loads(
+                m_get.return_value.text)
+            # but this crashes the library with an exit
+            balance = etheroll.get_balance(address)
+        # makes sure the Etherscan API was called and parsed properly
+        expected_url = (
+            'https://api.etherscan.io/api?module=account'
+            '&address=0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B'
+            '&tag=latest&apikey=E9K4A1AC8H1V3ZIR1DAIKZ6B961CRXF2DR'
+            '&action=balance')
+        expected_call = mock.call(expected_url)
+        expected_calls = [expected_call]
+        self.assertEqual(m_get.call_args_list, expected_calls)
+        self.assertEqual(balance, 365003.28)

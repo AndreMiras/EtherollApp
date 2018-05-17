@@ -38,8 +38,8 @@ version.filename = %(source.dir)s/version.py
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
 requirements =
-    hostpython3crystax,
-    python3crystax,
+    hostpython3crystax==3.6,
+    python3crystax==3.6,
     setuptools,
     kivy,
     android,
@@ -48,7 +48,6 @@ requirements =
     https://gitlab.com/kivymd/KivyMD/repository/archive.zip?ref=19e587e6,
     openssl,
     pyelliptic==1.5.7,
-    rlp,
     asn1crypto==0.24.0,
     coincurve==7.1.0,
     bitcoin==1.1.42,
@@ -58,6 +57,7 @@ requirements =
     py-ecc==1.4.2,
     pysha3==1.0.2,
     pyyaml==3.12,
+    scrypt==0.8.6,
     ethereum==2.1.1,
     ptyprocess==0.5.2,
     pexpect==4.4.0,
@@ -77,9 +77,9 @@ requirements =
     eth-keys==0.2.0b3,
     eth-keyfile==0.5.1,
     rlp==0.6.0,
-    eth-rlp==0.1.0,
+    eth-rlp==0.1.2,
     attrdict==2.0.0,
-    eth-account==0.1.0a2,
+    eth-account==0.2.2,
     hexbytes==0.1.0,
     lru-dict==1.1.5,
     web3==4.0.0b11,
@@ -97,7 +97,8 @@ requirements =
     eth-utils==1.0.1,
     raven==6.6.0,
     requests-cache==0.4.13,
-    qrcode
+    qrcode,
+    https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.zip
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -195,7 +196,7 @@ android.ndk_path = ~/.buildozer/crystax-ndk
 
 # (str) Path to a custom blacklist file
 #android.blacklist_src =
-# android.blacklist_src = blacklist.txt
+android.blacklist_src = blacklist.txt
 
 # (list) List of Java .jar files to add to the libs so that pyjnius can access
 # their classes. Don't add jars that you do not need, since extra jars can slow
@@ -264,7 +265,7 @@ android.arch = armeabi-v7a
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
 #p4a.local_recipes =
-p4a.local_recipes = %(source.dir)s/src/python-for-android/recipes/
+p4a.local_recipes = %(source.dir)s/python-for-android/recipes/
 
 # (str) Filename to the hook for p4a
 #p4a.hook =

@@ -26,10 +26,13 @@ from web3.contract import Contract
 import constants
 from ethereum_utils import AccountUtils
 
-requests_cache_params = {
+REQUESTS_CACHE_PARAMS = {
     'cache_name': 'requests_cache',
     'backend': 'sqlite',
     'fast_save': True,
+    # we cache most of the request for a pretty long period, but not forever
+    # as we still want some very outdate data to get wiped at some point
+    'expire_after': 30*24*60*60,
 }
 
 
@@ -138,19 +141,18 @@ class HTTPProviderFactory:
 
 class TransactionDebugger:
 
-    def __init__(self, chain_id=ChainID.MAINNET):
-        self.chain_id = chain_id
-        self.provider = HTTPProviderFactory.create(chain_id)
-        self.web3 = Web3(self.provider)
+    def __init__(self, contract_abi):
+        self.contract_abi = contract_abi
+        self.methods_infos = None
 
-    def get_contract_abi(self, contract_address):
+    @staticmethod
+    def get_contract_abi(chain_id, contract_address):
         """
         Given a contract address returns the contract ABI from Etherscan,
         refs #2
         """
         key = get_etherscan_api_key()
-        ChainEtherscanContract = ChainEtherscanContractFactory.create(
-            self.chain_id)
+        ChainEtherscanContract = ChainEtherscanContractFactory.create(chain_id)
         api = ChainEtherscanContract(address=contract_address, api_key=key)
         json_abi = api.get_abi()
         abi = json.loads(json_abi)
@@ -179,8 +181,7 @@ class TransactionDebugger:
             methods_infos.update({method_name: method_info})
         return methods_infos
 
-    @classmethod
-    def decode_method(cls, contract_abi, topics, log_data):
+    def decode_method(self, topics, log_data):
         """
         Given a topic and log data, decode the event.
         """
@@ -193,9 +194,10 @@ class TransactionDebugger:
         log_data = log_data.lower().replace("0x", "")
         log_data = bytes.fromhex(log_data)
         topics_log_data += log_data
-        methods_infos = cls.get_methods_infos(contract_abi)
+        if self.methods_infos is None:
+            self.methods_infos = self.get_methods_infos(self.contract_abi)
         method_info = None
-        for event, info in methods_infos.items():
+        for event, info in self.methods_infos.items():
             if info['sha3'].lower() == topic.lower():
                 method_info = info
         event_inputs = method_info['abi']['inputs']
@@ -212,31 +214,34 @@ class TransactionDebugger:
         }
         return decoded_method
 
-    def decode_transaction_log(self, log):
+    @classmethod
+    def decode_transaction_log(cls, chain_id, log):
         """
         Given a transaction event log.
         1) downloads the ABI associated to the recipient address
         2) uses it to decode methods calls
         """
         contract_address = log.address
-        contract_abi = self.get_contract_abi(contract_address)
+        contract_abi = cls.get_contract_abi(chain_id, contract_address)
+        transaction_debugger = cls(contract_abi)
         topics = log.topics
         log_data = log.data
-        decoded_method = self.decode_method(contract_abi, topics, log_data)
+        decoded_method = transaction_debugger.decode_method(topics, log_data)
         return decoded_method
 
-    def decode_transaction_logs(self, transaction_hash):
+    @classmethod
+    def decode_transaction_logs(cls, chain_id, transaction_hash):
         """
         Given a transaction hash, reads and decode the event log.
-        Params:
-        eth: web3.eth.Eth instance
         """
         decoded_methods = []
-        transaction_receipt = self.web3.eth.getTransactionReceipt(
+        provider = HTTPProviderFactory.create(chain_id)
+        web3 = Web3(provider)
+        transaction_receipt = web3.eth.getTransactionReceipt(
             transaction_hash)
         logs = transaction_receipt.logs
         for log in logs:
-            decoded_methods.append(self.decode_transaction_log(log))
+            decoded_methods.append(cls.decode_transaction_log(chain_id, log))
         return decoded_methods
 
 
@@ -244,7 +249,7 @@ class Etheroll:
 
     CONTRACT_ADDRESSES = {
         ChainID.MAINNET: '0x048717Ea892F23Fb0126F00640e2b18072efd9D2',
-        ChainID.ROPSTEN: '0xFE8a5f3a7Bb446e1cB4566717691cD3139289ED4',
+        ChainID.ROPSTEN: '0xe12c6dEb59f37011d2D9FdeC77A6f1A8f3B8B1e8',
     }
 
     def __init__(self, chain_id=ChainID.MAINNET, contract_address=None):
@@ -265,7 +270,7 @@ class Etheroll:
         # object construction needs to be within the context manager because
         # the requests.Session object to be patched is initialized in the
         # constructor
-        with requests_cache.enabled(**requests_cache_params):
+        with requests_cache.enabled(**REQUESTS_CACHE_PARAMS):
             self.etherscan_contract_api = ChainEtherscanContract(
                 address=self.contract_address, api_key=self.etherscan_api_key)
             self.contract_abi = json.loads(
@@ -347,15 +352,19 @@ class Etheroll:
         return events_logs
 
     def player_roll_dice(
-            self, bet_size_ether, chances, wallet_path, wallet_password):
+            self, bet_size_ether, chances, wallet_path, wallet_password,
+            gas_price_gwei=constants.DEFAULT_GAS_PRICE_GWEI):
         """
         Signs and broadcasts `playerRollDice` transaction.
         Returns transaction hash.
         """
         roll_under = chances
-        value_wei = w3.toWei(bet_size_ether, 'ether')
+        # `w3.toWei` one has some issues on Android, see:
+        # https://github.com/AndreMiras/EtherollApp/issues/77
+        # value_wei = w3.toWei(bet_size_ether, 'ether')
+        value_wei = int(bet_size_ether * 1e18)
         gas = 310000
-        gas_price = w3.toWei(4, 'gwei')
+        gas_price = w3.toWei(gas_price_gwei, 'gwei')
         # since Account.load is hanging while decrypting the password
         # we set password to None and use `w3.eth.account.decrypt` instead
         account = Account.load(wallet_path, password=None)
@@ -452,13 +461,12 @@ class Etheroll:
         """
         bets = []
         bet_events = self.get_log_bet_events(address, from_block, to_block)
-        contract_abi = self.contract_abi
+        transaction_debugger = TransactionDebugger(self.contract_abi)
         for bet_event in bet_events:
-            # TODO: not so efficient to call that method in a loop this way
             topics = [HexBytes(topic) for topic in bet_event['topics']]
             log_data = bet_event['data']
-            decoded_method = TransactionDebugger.decode_method(
-                contract_abi, topics, log_data)
+            decoded_method = transaction_debugger.decode_method(
+                topics, log_data)
             call = decoded_method['call']
             bet_id = call['BetID'].hex()
             reward_value = call['RewardValue']
@@ -494,13 +502,12 @@ class Etheroll:
         results = []
         result_events = self.get_log_result_events(
             address, from_block, to_block)
-        contract_abi = self.contract_abi
+        transaction_debugger = TransactionDebugger(self.contract_abi)
         for result_event in result_events:
-            # TODO: not so efficient to call that method in a loop this way
             topics = [HexBytes(topic) for topic in result_event['topics']]
             log_data = result_event['data']
-            decoded_method = TransactionDebugger.decode_method(
-                contract_abi, topics, log_data)
+            decoded_method = transaction_debugger.decode_method(
+                topics, log_data)
             call = decoded_method['call']
             bet_id = call['BetID'].hex()
             roll_under = call['PlayerNumber']
@@ -530,6 +537,8 @@ class Etheroll:
         """
         # retrieves recent `playerRollDice` transactions
         transactions = self.get_player_roll_dice_tx(address)
+        if not transactions:
+            return None
         # take the oldest block of the recent transactions
         oldest_tx = transactions[-1]
         from_block = int(oldest_tx['blockNumber'])
@@ -545,26 +554,6 @@ class Etheroll:
             'to_block': to_block,
         }
         return ret
-
-    def get_last_bet_results_logs(self, address):
-        """
-        Retrieves most recent bet results from event logs.
-        """
-        last_bets_blocks = self.get_last_bets_blocks(address)
-        from_block = last_bets_blocks['from_block']
-        to_block = last_bets_blocks['to_block']
-        results = self.get_bet_results_logs(address, from_block, to_block)
-        return results
-
-    def get_last_bets_logs(self, address):
-        """
-        Retrieves most recent bets from event logs.
-        """
-        last_bets_blocks = self.get_last_bets_blocks(address)
-        from_block = last_bets_blocks['from_block']
-        to_block = last_bets_blocks['to_block']
-        bets = self.get_bets_logs(address, from_block, to_block)
-        return bets
 
     @staticmethod
     def merge_logs(bet_logs, bet_results_logs):
@@ -591,6 +580,8 @@ class Etheroll:
 
     def get_merged_logs(self, address):
         last_bets_blocks = self.get_last_bets_blocks(address)
+        if last_bets_blocks is None:
+            return []
         from_block = last_bets_blocks['from_block']
         to_block = last_bets_blocks['to_block']
         bet_logs = self.get_bets_logs(address, from_block, to_block)
@@ -711,3 +702,14 @@ class Etheroll:
         profit = payout - bet_size
         profit = round(profit, constants.ROUND_DIGITS)
         return profit
+
+    def get_balance(self, address):
+        """
+        Retrieves the Ether balance of the given account, refs:
+        https://github.com/AndreMiras/EtherollApp/issues/8
+        """
+        etherscan_account_api = self.ChainEtherscanAccount(
+            address=address, api_key=self.etherscan_api_key)
+        balance_wei = int(etherscan_account_api.get_balance())
+        balance_eth = round(balance_wei / 1e18, constants.ROUND_DIGITS)
+        return balance_eth

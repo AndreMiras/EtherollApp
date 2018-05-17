@@ -1,0 +1,30 @@
+#:import MDTextField kivymd.textfields.MDTextField
+
+
+<CreateNewAccount>:
+    orientation: 'vertical'
+    MDTextField:
+        id: new_password1_id
+        hint_text: "Password"
+        helper_text: "Enter the password for encrypting your new account"
+        helper_text_mode: "on_focus"
+        password: True
+        write_tab: False
+        text: root.new_password1
+        on_text: root.new_password1 = args[1]
+    MDTextField:
+        id: new_password2_id
+        # TODO: do validation as we type
+        hint_text: "Password (again)"
+        helper_text: "Retype your password"
+        helper_text_mode: "on_focus"
+        password: True
+        write_tab: False
+        text: root.new_password2
+        on_text: root.new_password2 = args[1]
+    AnchorLayout:
+        MDRaisedButton:
+            id: create_account_button_id
+            text: "Create account"
+            on_release: root.create_account()
+    PushUp:

@@ -9,11 +9,14 @@ from kivy.app import App
 from kivy.clock import mainthread
 from kivy.lang import Builder
 from kivy.metrics import dp
+from kivy.storage.jsonstore import JsonStore
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 from kivy.utils import platform
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 from kivymd.snackbar import Snackbar
+from layoutmargin import AddMargin, MarginLayout
 
 
 def run_in_thread(fn):
@@ -72,11 +75,9 @@ class StringIOCBWrite(StringIO):
         Calls the StringIO.write() method then the callback_write with
         given string parameter.
         """
-        # io.StringIO expects unicode
-        s_unicode = s.decode('utf-8')
-        super(StringIOCBWrite, self).write(s_unicode)
+        super(StringIOCBWrite, self).write(s)
         if self.callback_write is not None:
-            self.callback_write(s_unicode)
+            self.callback_write(s)
 
 
 class Dialog(object):
@@ -236,3 +237,32 @@ class SubScreen(Screen):
         """
         app = App.get_running_app()
         app.root.ids.toolbar_id.load_default_buttons()
+
+
+class Store:
+
+    @staticmethod
+    def get_store_path():
+        """
+        Returns the full user store path.
+        """
+        user_data_dir = App.get_running_app().user_data_dir
+        store_path = os.path.join(user_data_dir, 'store.json')
+        return store_path
+
+    @classmethod
+    def get_store(cls):
+        """
+        Returns the full user Store object instance.
+        """
+        store_path = cls.get_store_path()
+        store = JsonStore(store_path)
+        return store
+
+
+class BoxLayoutMarginLayout(MarginLayout, BoxLayout):
+    pass
+
+
+class BoxLayoutAddMargin(AddMargin, BoxLayout):
+    pass

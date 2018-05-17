@@ -8,22 +8,24 @@ from kivy.core.clipboard import Clipboard
 from kivy.garden.qrcode import QRCodeWidget
 from kivy.logger import LOG_LEVELS, Logger
 from kivy.metrics import dp
-from kivy.properties import NumericProperty, ObjectProperty, StringProperty
-from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import ObjectProperty
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.screenmanager import Screen
 from kivy.utils import platform
 from kivymd.bottomsheet import MDListBottomSheet
-from kivymd.list import OneLineListItem
 from kivymd.theming import ThemeManager
-from kivymd.toolbar import Toolbar
 from raven import Client
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
 import constants
-from utils import (Dialog, SubScreen, patch_find_library_android,
-                   patch_typing_python351, run_in_thread)
+from etheroll.about import AboutScreen
+from etheroll.passwordform import PasswordForm
+from etheroll.roll_results import RollResultsScreen
+from etheroll.settings import SettingsScreen
+from etheroll.switchaccount import SwitchAccountScreen
+from etheroll.utils import (Dialog, load_kv_from_py,
+                            patch_find_library_android, patch_typing_python351,
+                            run_in_thread)
 from version import __version__
 
 patch_find_library_android()
@@ -33,408 +35,12 @@ from ethereum_utils import AccountUtils  # noqa: E402, isort:skip
 import pyetheroll  # noqa: E402, isort:skip
 
 
-class PasswordForm(BoxLayout):
-    password = StringProperty()
-
-
-class SwitchAccount(BoxLayout):
-
-    def __init__(self, **kwargs):
-        super(SwitchAccount, self).__init__(**kwargs)
-        self.register_event_type('on_account_selected')
-
-    def on_release(self, list_item):
-        """
-        Fires on_account_selected() event.
-        """
-        self.dispatch('on_account_selected', list_item.account)
-
-    def on_account_selected(self, *args):
-        """
-        Default handler.
-        """
-        pass
-
-    def create_item(self, account):
-        """
-        Creates an account list item from given account.
-        """
-        address = "0x" + account.address.hex()
-        list_item = OneLineListItem(text=address)
-        # makes sure the address doesn't overlap on small screen
-        list_item.ids._lbl_primary.shorten = True
-        list_item.account = account
-        list_item.bind(on_release=lambda x: self.on_release(x))
-        return list_item
-
-    def load_account_list(self):
-        """
-        Fills account list widget from library account list.
-        """
-        self.controller = App.get_running_app().root
-        account_list_id = self.ids.account_list_id
-        account_list_id.clear_widgets()
-        accounts = self.controller.account_utils.get_account_list()
-        if len(accounts) == 0:
-            self.on_empty_account_list()
-        for account in accounts:
-            list_item = self.create_item(account)
-            account_list_id.add_widget(list_item)
-
-    @staticmethod
-    def on_empty_account_list():
-        controller = App.get_running_app().root
-        keystore_dir = controller.account_utils.keystore_dir
-        title = "No account found"
-        body = "No account found in:\n%s" % keystore_dir
-        dialog = Dialog.create_dialog(title, body)
-        dialog.open()
-
-
-class CreateNewAccount(BoxLayout):
-    """
-    Makes it possible to create json keyfiles.
-    """
-
-    new_password1 = StringProperty()
-    new_password2 = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(CreateNewAccount, self).__init__(**kwargs)
-        Clock.schedule_once(lambda dt: self.setup())
-
-    def setup(self):
-        """
-        Sets security vs speed default values.
-        Plus hides the advanced widgets.
-        """
-        self.controller = App.get_running_app().root
-
-    def verify_password_field(self):
-        """
-        Makes sure passwords are matching and are not void.
-        """
-        passwords_matching = self.new_password1 == self.new_password2
-        passwords_not_void = self.new_password1 != ''
-        return passwords_matching and passwords_not_void
-
-    def verify_fields(self):
-        """
-        Verifies password fields are valid.
-        """
-        return self.verify_password_field()
-
-    @staticmethod
-    def try_unlock(account, password):
-        """
-        Just as a security measure, verifies we can unlock
-        the newly created account with provided password.
-        """
-        # making sure it's locked first
-        account.lock()
-        try:
-            account.unlock(password)
-        except ValueError:
-            title = "Unlock error"
-            body = ""
-            body += "Couldn't unlock your account.\n"
-            body += "The issue should be reported."
-            dialog = Dialog.create_dialog(title, body)
-            dialog.open()
-            return
-
-    @mainthread
-    def on_account_created(self, account):
-        """
-        Switches to the newly created account.
-        Clears the form.
-        """
-        self.controller.switch_account_screen.current_account = account
-        self.new_password1 = ''
-        self.new_password2 = ''
-
-    @mainthread
-    def toggle_widgets(self, enabled):
-        """
-        Enables/disables account creation widgets.
-        """
-        self.disabled = not enabled
-
-    @mainthread
-    def show_redirect_dialog(self):
-        title = "Account created, redirecting..."
-        body = ""
-        body += "Your account was created, "
-        body += "you will be redirected to the overview."
-        dialog = Dialog.create_dialog(title, body)
-        dialog.open()
-
-    def load_landing_page(self):
-        """
-        Returns to the landing page.
-        """
-        screen_manager = self.controller.screen_manager
-        screen_manager.transition.direction = 'right'
-        screen_manager.current = 'roll_screen'
-
-    @run_in_thread
-    def create_account(self):
-        """
-        Creates an account from provided form.
-        Verify we can unlock it.
-        Disables widgets during the process, so the user doesn't try
-        to create another account during the process.
-        """
-        self.toggle_widgets(False)
-        if not self.verify_fields():
-            Dialog.show_invalid_form_dialog()
-            self.toggle_widgets(True)
-            return
-        password = self.new_password1
-        Dialog.snackbar_message("Creating account...")
-        account = self.controller.account_utils.new_account(password=password)
-        Dialog.snackbar_message("Created!")
-        self.toggle_widgets(True)
-        self.on_account_created(account)
-        # CreateNewAccount.try_unlock(account, password)
-        self.show_redirect_dialog()
-        self.load_landing_page()
-        return account
-
-
-class CustomToolbar(Toolbar):
-    """
-    Toolbar with helper method for loading default/back buttons.
-    """
-
-    def __init__(self, **kwargs):
-        super(CustomToolbar, self).__init__(**kwargs)
-        Clock.schedule_once(self.load_default_buttons)
-
-    def load_default_buttons(self, dt=None):
-        app = App.get_running_app()
-        self.left_action_items = [
-            ['menu', lambda x: app.root.navigation.toggle_nav_drawer()]]
-        self.right_action_items = [[
-                'dots-vertical',
-                lambda x: app.root.navigation.toggle_nav_drawer()]]
-
-    def load_back_button(self, function):
-        self.left_action_items = [['arrow-left', lambda x: function()]]
-
-
-class ImportKeystore(BoxLayout):
-    keystore_path = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(ImportKeystore, self).__init__(**kwargs)
-        Clock.schedule_once(self._after_init)
-
-    def _after_init(self, dt):
-        """
-        Sets keystore_path.
-        """
-        controller = App.get_running_app().root
-        self.keystore_path = controller.get_keystore_path()
-
-
-class SwitchAccountScreen(SubScreen):
-    current_account = ObjectProperty()
-
-    def __init__(self, **kwargs):
-        super(SwitchAccountScreen, self).__init__(**kwargs)
-        Clock.schedule_once(self._after_init)
-
-    def _after_init(self, dt):
-        """
-        Binds SwitchAccount.on_account_selected() event.
-        """
-        switch_account = self.ids.switch_account_id
-        switch_account.bind(
-            on_account_selected=lambda
-            instance, account: self.on_account_selected(account))
-
-    def on_account_selected(self, account):
-        """
-        Sets current account and loads previous screen.
-        """
-        self.current_account = account
-        self.on_back()
-
-
-class SettingsScreen(SubScreen):
-    """
-    Screen for configuring network, gas price...
-    """
-
-    def __init__(self, **kwargs):
-        super(SettingsScreen, self).__init__(**kwargs)
-
-    @property
-    def network(self):
-        """
-        Returns selected network.
-        """
-        if self.is_mainnet():
-            return pyetheroll.ChainID.MAINNET
-        return pyetheroll.ChainID.ROPSTEN
-
-    def is_mainnet(self):
-        return self.ids.mainnet_checkbox_id.active
-
-    def is_testnet(self):
-        return self.ids.testnet_checkbox_id.active
-
-
-class AboutScreen(SubScreen):
-    project_page_property = StringProperty(
-        "https://github.com/AndreMiras/EtherollApp")
-    about_text_property = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(AboutScreen, self).__init__(**kwargs)
-        Clock.schedule_once(lambda dt: self.load_about())
-
-    def load_about(self):
-        self.about_text_property = "" + \
-            "EtherollApp version: %s\n" % (__version__) + \
-            "Project source code and info available on GitHub at:\n" + \
-            "[color=00BFFF][ref=github]" + \
-            self.project_page_property + \
-            "[/ref][/color]"
-
-
-class RollUnderRecap(BoxLayout):
-    roll_under_property = NumericProperty()
-    profit_property = NumericProperty()
-    wager_property = NumericProperty()
-
-
-class BetSize(BoxLayout):
-
-    def __init__(self, **kwargs):
-        super(BetSize, self).__init__(**kwargs)
-        Clock.schedule_once(self._after_init)
-
-    def _after_init(self, dt):
-        """
-        Binds events.
-        """
-        slider = self.ids.bet_size_slider_id
-        inpt = self.ids.bet_size_input_id
-        BetSize.bind_slider_input(slider, inpt)
-
-    @staticmethod
-    def bind_slider_input(
-            slider, inpt, cast_to=float, round_digits=constants.ROUND_DIGITS):
-        """
-        Binds slider <-> input both ways.
-        """
-        # slider -> input
-        slider.bind(
-            value=lambda instance, value:
-            setattr(inpt, 'text', "{0:.{1}f}".format(
-                cast_to(value), round_digits)))
-        # input -> slider
-        inpt.bind(
-            on_text_validate=lambda instance:
-            setattr(slider, 'value', cast_to(inpt.text)))
-        # also when unfocused
-        inpt.bind(
-            focus=lambda instance, focused:
-            inpt.dispatch('on_text_validate')
-                if not focused else False)
-        # synchronises values slider <-> input once
-        inpt.dispatch('on_text_validate')
-
-    @property
-    def value(self):
-        """
-        Returns normalized bet size value.
-        """
-        try:
-            return round(
-                float(self.ids.bet_size_input_id.text), constants.ROUND_DIGITS)
-        except ValueError:
-            return 0
-
-
-class ChanceOfWinning(BoxLayout):
-
-    def __init__(self, **kwargs):
-        super(ChanceOfWinning, self).__init__(**kwargs)
-        Clock.schedule_once(self._after_init)
-
-    def _after_init(self, dt):
-        """
-        Binds events.
-        """
-        slider = self.ids.chances_slider_id
-        inpt = self.ids.chances_input_id
-        cast_to = self.cast_to
-        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits=0)
-
-    @staticmethod
-    def cast_to(value):
-        return int(float(value))
-
-    @property
-    def value(self):
-        """
-        Returns normalized chances value.
-        """
-        try:
-            # `input_filter: 'int'` only verifies that we have a number
-            # but doesn't convert to int
-            chances = float(self.ids.chances_input_id.text)
-            return int(chances)
-        except ValueError:
-            return 0
-
-
-class RollScreen(Screen):
-
-    current_account_string = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(RollScreen, self).__init__(**kwargs)
-        Clock.schedule_once(self._after_init)
-
-    def _after_init(self, dt):
-        """
-        Binds `SwitchAccountScreen.current_account` ->
-        `RollScreen.current_account`.
-        """
-        controller = App.get_running_app().root
-        controller.switch_account_screen.bind(
-            current_account=self.on_current_account)
-
-    def on_current_account(self, instance, account):
-        """
-        Sets current_account_string.
-        """
-        self.current_account_string = '0x' + account.address.hex()
-
-    def get_roll_input(self):
-        """
-        Returns bet size and chance of winning user input values.
-        """
-        bet_size = self.ids.bet_size_id
-        chance_of_winning = self.ids.chance_of_winning_id
-        return {
-            "bet_size": bet_size.value,
-            "chances": chance_of_winning.value,
-        }
-
-    @mainthread
-    def toggle_widgets(self, enabled):
-        """
-        Enables/disables widgets (useful during roll).
-        """
-        self.disabled = not enabled
+load_kv_from_py(__file__)
 
 
 class Controller(FloatLayout):
+
+    current_account = ObjectProperty(allownone=True)
 
     def __init__(self, **kwargs):
         super(Controller, self).__init__(**kwargs)
@@ -451,6 +57,8 @@ class Controller(FloatLayout):
         self.bind_chances_roll_under()
         self.bind_wager_property()
         self.bind_profit_property()
+        self.bind_screen_manager_on_current_screen()
+        self.register_screens()
 
     def _init_pyethapp(self, keystore_dir=None):
         if keystore_dir is None:
@@ -463,7 +71,7 @@ class Controller(FloatLayout):
         Gets or creates the Etheroll object.
         Also recreates the object if the chain_id changed.
         """
-        chain_id = self.settings_screen.network
+        chain_id = SettingsScreen.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
             self._pyetheroll = pyetheroll.Etheroll(chain_id)
         return self._pyetheroll
@@ -541,6 +149,31 @@ class Controller(FloatLayout):
         # synchro once now
         self.update_profit_property()
 
+    def bind_screen_manager_on_current_screen(self):
+        """
+        Binds SwitchAccountScreen.current_account -> self.current_account.
+        """
+        def on_current_screen(screen_manager, screen):
+            """
+            Makes sure the binding is made once by unbinding itself.
+            """
+            if type(screen) is SwitchAccountScreen:
+                screen.bind(current_account=self.setter('current_account'))
+                # makes sure the above doesn't get rebinded over and over again
+                self.screen_manager.unbind(current_screen=on_current_screen)
+        self.screen_manager.bind(current_screen=on_current_screen)
+
+    def register_screens(self):
+        screen_dicts = {
+            # "roll_screen": RollScreen,
+            "roll_results_screen": RollResultsScreen,
+            "switch_account_screen": SwitchAccountScreen,
+            "settings_screen": SettingsScreen,
+            "about_screen": AboutScreen,
+        }
+        for screen_name, screen_type in screen_dicts.items():
+            self.screen_manager.register_screen(screen_type, screen_name)
+
     def update_profit_property(self):
         house_edge = 1.0 / 100
         bet_size = self.roll_screen.ids.bet_size_id.value
@@ -563,19 +196,23 @@ class Controller(FloatLayout):
 
     @property
     def roll_screen(self):
-        return self.ids.roll_screen_id
+        return self.screen_manager.get_screen('roll_screen')
 
     @property
     def switch_account_screen(self):
-        return self.ids.switch_account_screen_id
+        return self.screen_manager.get_screen('switch_account_screen')
+
+    @property
+    def roll_results_screen(self):
+        return self.screen_manager.get_screen('roll_results_screen')
 
     @property
     def settings_screen(self):
-        return self.ids.settings_screen_id
+        return self.screen_manager.get_screen('settings_screen')
 
     @property
     def about_screen(self):
-        return self.ids.about_screen_id
+        return self.screen_manager.get_screen('about_screen')
 
     def on_unlock_clicked(self, dialog, account, password):
         """
@@ -642,7 +279,8 @@ class Controller(FloatLayout):
         dialog.open()
 
     @run_in_thread
-    def player_roll_dice(self, bet_size, chances, wallet_path, password):
+    def player_roll_dice(
+            self, bet_size, chances, wallet_path, password, gas_price):
         """
         Sending the bet to the smart contract requires signing a transaction
         which requires CPU computation to unlock the account, hence this
@@ -653,7 +291,7 @@ class Controller(FloatLayout):
             Dialog.snackbar_message("Sending bet...")
             roll_screen.toggle_widgets(False)
             tx_hash = self.pyetheroll.player_roll_dice(
-                bet_size, chances, wallet_path, password)
+                bet_size, chances, wallet_path, password, gas_price)
         except ValueError as exception:
             roll_screen.toggle_widgets(True)
             self.dialog_roll_error(exception)
@@ -670,14 +308,16 @@ class Controller(FloatLayout):
         roll_input = roll_screen.get_roll_input()
         bet_size = roll_input['bet_size']
         chances = roll_input['chances']
-        account = self.switch_account_screen.current_account
+        gas_price = SettingsScreen.get_stored_gas_price()
+        account = self.current_account
         if account is None:
             self.on_account_none()
             return
         wallet_path = account.path
         password = self.get_account_password(account)
         if password is not None:
-            self.player_roll_dice(bet_size, chances, wallet_path, password)
+            self.player_roll_dice(
+                bet_size, chances, wallet_path, password, gas_price)
 
     def load_switch_account(self):
         """
@@ -790,6 +430,8 @@ class EtherollApp(App):
 
     def build(self):
         self.icon = "docs/images/icon.png"
+        self.theme_cls.theme_style = 'Dark'
+        self.theme_cls.primary_palette = 'Indigo'
         return Controller()
 
 

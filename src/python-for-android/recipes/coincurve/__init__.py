@@ -18,7 +18,7 @@ class CoincurveRecipe(PythonRecipe):
         env['LDSHARED'] = env['CC'] + ' -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions'
         libsecp256k1 = self.get_recipe('libsecp256k1', self.ctx)
         libsecp256k1_dir = libsecp256k1.get_build_dir(arch.arch)
-        env['CFLAGS'] = ' -I' + os.path.join(libsecp256k1_dir, 'include')
+        env['CFLAGS'] += ' -I' + os.path.join(libsecp256k1_dir, 'include')
         # required additional library and path for Crystax
         if self.ctx.ndk == 'crystax':
             # only keeps major.minor (discards patch)

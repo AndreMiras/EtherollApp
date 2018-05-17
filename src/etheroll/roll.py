@@ -30,7 +30,10 @@ class BetSize(BoxLayout):
         """
         slider = self.ids.bet_size_slider_id
         inpt = self.ids.bet_size_input_id
-        BetSize.bind_slider_input(slider, inpt)
+        cast_to = float
+        # shows less digits than the constant default to keep the input tiny
+        round_digits = 1
+        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits)
 
     @staticmethod
     def bind_slider_input(
@@ -80,7 +83,8 @@ class ChanceOfWinning(BoxLayout):
         slider = self.ids.chances_slider_id
         inpt = self.ids.chances_input_id
         cast_to = self.cast_to
-        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits=0)
+        round_digits = 0
+        BetSize.bind_slider_input(slider, inpt, cast_to, round_digits)
 
     @staticmethod
     def cast_to(value):

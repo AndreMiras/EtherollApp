@@ -10,6 +10,7 @@
   - Updated contract deployment doc, refs #52
   - Pull to refresh roll history, refs #55
   - UI testing, refs #61, #64
+  - Reduce APK size from 26M to 20M, refs #68
   - Run tests from UI, refs #69
   - Ubuntu Bionic 18.04 support, refs #70, #71
   - Show changelog from the app, refs #73

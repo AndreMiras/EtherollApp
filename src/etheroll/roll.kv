@@ -13,9 +13,12 @@
         theme_text_color: 'Primary'
     BoxLayout:
         orientation: "horizontal"
+        height: dp(50)
+        size_hint_y: None
         MDTextField:
             id: bet_size_input_id
             text: "0.1"
+            font_size: 30
             input_filter: 'float'
             width: dp(50)
             size_hint_x: None
@@ -32,9 +35,12 @@
         theme_text_color: 'Primary'
     BoxLayout:
         orientation: "horizontal"
+        height: dp(50)
+        size_hint_y: None
         MDTextField:
             id: chances_input_id
             text: "50"
+            font_size: 30
             input_filter: 'int'
             width: dp(50)
             size_hint_x: None

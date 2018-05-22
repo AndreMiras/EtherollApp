@@ -1,5 +1,5 @@
 import os
-from pythonforandroid.toolchain import CythonRecipe
+from pythonforandroid.recipe import CythonRecipe
 
 
 class ScryptRecipe(CythonRecipe):

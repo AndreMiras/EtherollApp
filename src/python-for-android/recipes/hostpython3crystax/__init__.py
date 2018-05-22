@@ -1,4 +1,4 @@
-from pythonforandroid.toolchain import Recipe, shprint
+from pythonforandroid.recipe import Recipe, shprint
 from os.path import join
 import sh
 

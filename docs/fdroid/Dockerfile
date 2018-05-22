@@ -22,7 +22,7 @@ ENV CRYSTAX_NDK_HOME="${ANDROID_HOME}/crystax-ndk" \
     ANDROID_SDK_HOME="${ANDROID_HOME}/android/platform/android-sdk-20"
 ENV ANDROID_NDK_HOME="${ANDROID_SDK_HOME}/ndk-bundle" \
 	CRYSTAX_NDK_HOME_V="${CRYSTAX_NDK_HOME}-${CRYSTAX_NDK_VERSION}"
-ENV CRYSTAX_NDK_ARCHIVE="crystax-ndk-${CRYSTAX_NDK_VERSION}-linux-x86.tar.xz"
+ENV CRYSTAX_NDK_ARCHIVE="crystax-ndk-${CRYSTAX_NDK_VERSION}-linux-x86_64.tar.xz"
 ENV CRYSTAX_NDK_DL_URL="https://eu.crystax.net/download/${CRYSTAX_NDK_ARCHIVE}"
 ENV ANDROID_SDK="${ANDROID_SDK_HOME}" \
 	ANDROID_NDK="${CRYSTAX_NDK_HOME}"
@@ -81,6 +81,6 @@ RUN curl --location --progress-bar "${FDROIDDATA_DL_URL}" --output "${FDROIDDATA
     tar -xf "${FDROIDDATA_ARCHIVE}" --directory "${WORK_DIR}"
 
 # install buildozer and dependencies
-RUN pip install Cython==0.26.1 buildozer
+RUN pip install Cython==0.25.2 buildozer
 
 WORKDIR ${WORK_DIR}

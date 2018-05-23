@@ -12,7 +12,8 @@ ANDROID_SDK_TOOLS_DL_URL=https://dl.google.com/android/repository/$(ANDROID_SDK_
 all: download_android_sdk extract_android_sdk update_android_sdk
 
 download_android_sdk:
-	curl --location --progress-bar $(ANDROID_SDK_TOOLS_DL_URL) --output $(ANDROID_SDK_TOOLS_ARCHIVE)
+	curl --location --progress-bar --continue-at - \
+	$(ANDROID_SDK_TOOLS_DL_URL) --output $(ANDROID_SDK_TOOLS_ARCHIVE)
 
 extract_android_sdk:
 	mkdir --parents $(ANDROID_SDK_HOME)
@@ -23,5 +24,6 @@ update_android_sdk:
 	mkdir --parents $(HOME)/.android
 	echo '### User Sources for Android SDK Manager' > $(HOME)/.android/repositories.cfg
 	yes | $(ANDROID_SDK_HOME)/tools/bin/sdkmanager --licenses
+	$(ANDROID_SDK_HOME)/tools/bin/sdkmanager "platform-tools"
 	$(ANDROID_SDK_HOME)/tools/bin/sdkmanager "platforms;android-19"
 	$(ANDROID_SDK_HOME)/tools/bin/sdkmanager "build-tools;26.0.2"

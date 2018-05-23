@@ -13,7 +13,8 @@ CRYSTAX_NDK_DL_URL=https://eu.crystax.net/download/$(CRYSTAX_NDK_ARCHIVE)
 all: download_crystax_ndk extract_crystax_ndk
 
 download_crystax_ndk:
-	curl --location --progress-bar $(CRYSTAX_NDK_DL_URL) --output $(CRYSTAX_NDK_ARCHIVE)
+	curl --location --progress-bar --continue-at - \
+	$(CRYSTAX_NDK_DL_URL) --output $(CRYSTAX_NDK_ARCHIVE)
 
 extract_crystax_ndk:
 	mkdir -p $(ANDROID_HOME)

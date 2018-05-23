@@ -11,6 +11,9 @@ ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}" \
     PATH="${HOME_DIR}/.local/bin:${PATH}"
+ENV DOCKERFILES_VERSION="master"
+ENV DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
+ENV MAKEFILES_URL="${DOCKERFILES_URL}/${DOCKERFILES_VERSION}/buildozer_android_new"
 # currently needed because buildozer still uses `tools/android` binary
 # even though we have the new `tools/bin/sdkmanager` available
 ENV USE_SDK_WRAPPER=true
@@ -42,20 +45,23 @@ RUN usermod -append --groups sudo ${USER}
 RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 USER ${USER}
-
 WORKDIR ${WORK_DIR}
-COPY . ${WORK_DIR}
 
 # downloads and installs CrystaX NDK
-RUN make -f docs/android/crystax_ndk.mk
+RUN curl --location --progress-bar ${MAKEFILES_URL}/crystax_ndk.mk --output crystax_ndk.mk
+RUN make -f crystax_ndk.mk
 
 # downloads and installs Android SDK
-RUN make -f docs/android/android_sdk.mk
+RUN curl --location --progress-bar ${MAKEFILES_URL}/android_sdk.mk --output android_sdk.mk
+RUN make -f android_sdk.mk
 
 # install buildozer and dependencies
-RUN make -f docs/android/buildozer.mk
+RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output buildozer.mk
+RUN make -f buildozer.mk
 
 # links SDK and NDK to where buildozer is expecting to see them
 RUN mkdir -p ${HOME}/.buildozer/android/platform
 RUN ln -sfn ${HOME}/.android/android-sdk ${HOME}/.buildozer/android/platform/android-sdk-20
 RUN ln -sfn ${HOME}/.android/crystax-ndk ${HOME}/.buildozer/
+
+COPY . ${WORK_DIR}

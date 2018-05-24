@@ -11,8 +11,8 @@ ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}" \
     PATH="${HOME_DIR}/.local/bin:${PATH}"
-ENV DOCKERFILES_VERSION="master"
-ENV DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
+ENV DOCKERFILES_VERSION="master" \
+    DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
 ENV MAKEFILES_URL="${DOCKERFILES_URL}/${DOCKERFILES_VERSION}/buildozer_android_new"
 # currently needed because buildozer still uses `tools/android` binary
 # even though we have the new `tools/bin/sdkmanager` available

@@ -16,16 +16,11 @@ ENV FDROIDDATA_DL_URL="https://gitlab.com/fdroid/fdroiddata/-/archive/master/${F
 # currently needed because buildozer still uses `tools/android` binary
 # even though we have the new `tools/bin/sdkmanager` available
 ENV USE_SDK_WRAPPER=true
+# fdroid requires these two variables, see:
+# https://gitlab.com/fdroid/fdroidserver/merge_requests/290
+ENV ANDROID_HOME="${HOME_DIR}/.android" \
+    ANDROID_NDK="${HOME_DIR}/.buildozer/crystax-ndk"
 
-ENV ANDROID_HOME="${HOME_DIR}/.buildozer"
-ENV CRYSTAX_NDK_HOME="${ANDROID_HOME}/crystax-ndk" \
-    ANDROID_SDK_HOME="${ANDROID_HOME}/android/platform/android-sdk-20"
-ENV ANDROID_NDK_HOME="${ANDROID_SDK_HOME}/ndk-bundle" \
-	CRYSTAX_NDK_HOME_V="${CRYSTAX_NDK_HOME}-${CRYSTAX_NDK_VERSION}"
-ENV CRYSTAX_NDK_ARCHIVE="crystax-ndk-${CRYSTAX_NDK_VERSION}-linux-x86_64.tar.xz"
-ENV CRYSTAX_NDK_DL_URL="https://eu.crystax.net/download/${CRYSTAX_NDK_ARCHIVE}"
-ENV ANDROID_SDK="${ANDROID_SDK_HOME}" \
-	ANDROID_NDK="${CRYSTAX_NDK_HOME}"
 ENV DOCKERFILES_VERSION="master" \
     DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
 ENV MAKEFILES_URL="${DOCKERFILES_URL}/${DOCKERFILES_VERSION}/buildozer_android_new"
@@ -41,7 +36,7 @@ ENV LANG="en_US.UTF-8" \
 
 # install system dependencies (required to setup all the tools)
 RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
-    make curl ca-certificates xz-utils unzip openjdk-8-jdk sudo python-pip \
+    make curl wget ca-certificates xz-utils unzip openjdk-8-jdk sudo python-pip \
     python-setuptools
 
 # install build dependencies (required to successfully build the project)
@@ -63,14 +58,9 @@ RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 USER ${USER}
 WORKDIR ${WORK_DIR}
 
-# downloads and installs CrystaX NDK
-RUN curl --location --progress-bar ${MAKEFILES_URL}/crystax_ndk.mk --output crystax_ndk.mk
-RUN make -f crystax_ndk.mk ANDROID_HOME=${ANDROID_HOME}
-
 # downloads and installs Android SDK
-# TODO ~/.buildozer/android/platform/android-sdk-20/tools/android
 RUN curl --location --progress-bar ${MAKEFILES_URL}/android_sdk.mk --output android_sdk.mk
-RUN make -f android_sdk.mk ANDROID_SDK_HOME=${ANDROID_SDK_HOME}
+RUN make -f android_sdk.mk
 
 # install buildozer and dependencies
 RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output buildozer.mk

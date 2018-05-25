@@ -61,9 +61,7 @@ class SettingsScreen(SubScreen):
         try:
             network_dict = store['network']
         except KeyError:
-            # creates store if doesn't yet exist
-            store.put('network')
-        network_dict = store['network']
+            network_dict = {}
         network_name = network_dict.get(
             'value', pyetheroll.ChainID.MAINNET.name)
         network = pyetheroll.ChainID[network_name]
@@ -91,9 +89,7 @@ class SettingsScreen(SubScreen):
         try:
             gas_price_dict = store['gas_price']
         except KeyError:
-            # creates store if doesn't yet exist
-            store.put('gas_price')
-        gas_price_dict = store['gas_price']
+            gas_price_dict = {}
         gas_price = gas_price_dict.get(
             'value', constants.DEFAULT_GAS_PRICE_GWEI)
         return gas_price

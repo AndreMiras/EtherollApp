@@ -1,5 +1,9 @@
 # Change Log
 
+## [Unreleased]
+
+  - Fix settings race condition crash, refs #86
+
 ## [v20180517]
 
   - Show account balance, refs #8

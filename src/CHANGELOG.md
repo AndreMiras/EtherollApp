@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+  - Handle wrong password error, refs #9
   - Fix settings race condition crash, refs #86
 
 ## [v20180517]

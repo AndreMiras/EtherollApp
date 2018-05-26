@@ -3,6 +3,7 @@
 ## [Unreleased]
 
   - Handle wrong password error, refs #9
+  - Fix crash on empty roll history, refs #67
   - Fix settings race condition crash, refs #86
 
 ## [v20180517]

@@ -16,6 +16,7 @@ from ethereum.abi import method_id as get_abi_method_id
 from ethereum.abi import normalize_name as normalize_abi_method_name
 from ethereum.utils import checksum_encode, decode_hex, encode_int, zpad
 from etherscan.accounts import Account as EtherscanAccount
+from etherscan.client import EmptyResponse
 from etherscan.contracts import Contract as EtherscanContract
 from hexbytes.main import HexBytes
 from pyethapp.accounts import Account
@@ -398,8 +399,11 @@ class Etheroll:
         etherscan_account_api = self.ChainEtherscanAccount(
             address=address, api_key=self.etherscan_api_key)
         sort = 'desc'
-        transactions = etherscan_account_api.get_transaction_page(
-            page=page, offset=offset, sort=sort, internal=internal)
+        try:
+            transactions = etherscan_account_api.get_transaction_page(
+                page=page, offset=offset, sort=sort, internal=internal)
+        except EmptyResponse:
+            transactions = []
         return transactions
 
     def get_player_roll_dice_tx(self, address, page=1, offset=100):

@@ -87,7 +87,7 @@ requirements =
     chardet==3.0.4,
     urllib3==1.22,
     requests==2.18.4,
-    https://github.com/corpetty/py-etherscan-api/archive/a783f720a6175b227cdfe8dc3040ebad3022d79f.zip,
+    https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.zip,
     eth-testrpc==1.3.3,
     eth-hash==0.1.1,
     pyethash==0.1.27,

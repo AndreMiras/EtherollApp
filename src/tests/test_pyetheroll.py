@@ -1207,10 +1207,10 @@ class TestEtheroll(unittest.TestCase):
 
     def test_get_merged_logs_empty_tx(self):
         """
-        Empty transaction history crashes the application, refs:
+        Empty transaction history should not crash the application, refs:
         https://github.com/AndreMiras/EtherollApp/issues/67
         """
-        contract_abi = []
+        contract_abi = [self.player_roll_dice_abi]
         contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
         with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
             m_get_abi.return_value = json.dumps(contract_abi)
@@ -1223,9 +1223,9 @@ class TestEtheroll(unittest.TestCase):
                 '{"status":"0","message":"No transactions found","result":[]}')
             m_get.return_value.json.return_value = json.loads(
                 m_get.return_value.text)
-            # but this crashes the library with an exit
-            with self.assertRaises(SystemExit):
-                etheroll.get_merged_logs(address)
+            # the library should not crash but return an empty list
+            merged_logs = etheroll.get_merged_logs(address)
+        self.assertEqual(merged_logs, [])
 
     def test_get_merged_logs_no_matching_tx(self):
         """

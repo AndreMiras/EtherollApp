@@ -2,7 +2,8 @@
 
 [![Build Status](https://secure.travis-ci.org/AndreMiras/EtherollApp.png?branch=develop)](http://travis-ci.org/AndreMiras/EtherollApp)
 
-Cross platform Etheroll app built with Python and Kivy. Uses an Ethereum smart contract to place bets on the blockchain.
+Provably fair dice game running on the [Ethereum blockchain](https://etheroll.com/#/smart-contract).
+Built with Python, [Kivy](https://github.com/kivy/kivy) and love.
 
 <img src="https://i.imgur.com/ORa0iTG.png" alt="Screenshot mainscreen" width="300"> <img src="https://i.imgur.com/Imwuifi.png" alt="Screenshot roll history" width="300">
 

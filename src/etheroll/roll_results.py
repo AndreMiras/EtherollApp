@@ -1,3 +1,4 @@
+from etherscan.client import ConnectionRefused
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.properties import ListProperty
@@ -6,7 +7,7 @@ from kivymd.list import ILeftBody, ThreeLineAvatarListItem
 from kivymd.spinner import MDSpinner
 
 import constants
-from etheroll.utils import SubScreen, load_kv_from_py, run_in_thread
+from etheroll.utils import Dialog, SubScreen, load_kv_from_py, run_in_thread
 from pyetheroll import Etheroll
 
 load_kv_from_py(__file__)
@@ -81,6 +82,14 @@ class RollResultsScreen(SubScreen):
         """
         self.update_roll_list()
 
+    @staticmethod
+    @mainthread
+    def on_connection_refused():
+        title = 'No network'
+        body = 'No network, could not retrieve roll history.'
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
     @run_in_thread
     def get_last_results(self):
         """
@@ -96,11 +105,11 @@ class RollResultsScreen(SubScreen):
         self._fetching_results = True
         self.toggle_spinner(show=True)
         address = "0x" + account.address.hex()
-        # TODO: we should handle exceptions, but `py-etherscan-api` is not
-        # raising any at the moment, refs:
-        # https://github.com/corpetty/py-etherscan-api/pull/23
-        self.roll_logs = self.pyetheroll.get_merged_logs(
-            address=address)
+        try:
+            self.roll_logs = self.pyetheroll.get_merged_logs(
+                address=address)
+        except ConnectionRefused:
+            self.on_connection_refused()
         self.toggle_spinner(show=False)
         self._fetching_results = False
 

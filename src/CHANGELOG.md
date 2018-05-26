@@ -3,6 +3,7 @@
 ## [Unreleased]
 
   - Handle wrong password error, refs #9
+  - Prompt error dialog on no network, refs #59
   - Fix crash on empty roll history, refs #67
   - Fix settings race condition crash, refs #86
 

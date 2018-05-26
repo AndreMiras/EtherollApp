@@ -270,11 +270,21 @@ class Controller(FloatLayout):
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 
-    @staticmethod
     @mainthread
-    def dialog_roll_error(exception):
+    def dialog_roll_error(self, exception):
+        """
+        Shows different error message depending on the exception.
+        On "MAC mismatch" (wrong password), void the cached password so the
+        user can try again refs:
+        https://github.com/AndreMiras/EtherollApp/issues/9
+        """
         title = "Error rolling"
         body = str(exception)
+        if exception.args[0] == 'MAC mismatch':
+            title = "Wrong password"
+            body = "Can't unlock wallet, wrong password."
+            account = self.current_account
+            self._account_passwords.pop(account.address.hex())
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 

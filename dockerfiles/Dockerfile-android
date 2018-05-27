@@ -1,10 +1,10 @@
 # Docker image for building Android APKs via buildozer
 # Build with:
-# docker build --tag=buildozer .
+# docker build --tag=etheroll-android --file=dockerfiles/Dockerfile-android .
 # Run with:
-# docker run buildozer /bin/sh -c 'buildozer android debug'
+# docker run etheroll-android /bin/sh -c 'buildozer android debug'
 # Or for interactive shell:
-# docker run -it --rm buildozer
+# docker run -it --rm etheroll-android
 FROM ubuntu:18.04
 
 ENV USER="user"
@@ -33,7 +33,7 @@ RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends 
     python-setuptools
 
 # install build dependencies (required to successfully build the project)
-# TODO: should this go to a Makefile instead?
+# TODO: should this go to a Makefile instead so it can be shared/reused?
 RUN apt install -qq --yes --no-install-recommends \
     python3.6 libpython3.6-dev python3-setuptools \
     autoconf automake libtool libltdl-dev libffi-dev

@@ -36,7 +36,7 @@ RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends 
 # TODO: should this go to a Makefile instead so it can be shared/reused?
 RUN apt install -qq --yes --no-install-recommends \
     python3.6 libpython3.6-dev python3-setuptools \
-    autoconf automake libtool libltdl-dev libffi-dev
+    autoconf automake libtool libltdl-dev libffi-dev bsdtar
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}
@@ -49,7 +49,8 @@ WORKDIR ${WORK_DIR}
 
 # downloads and installs CrystaX NDK
 RUN curl --location --progress-bar ${MAKEFILES_URL}/crystax_ndk.mk --output crystax_ndk.mk
-RUN make -f crystax_ndk.mk
+# using `bsdtar` since `tar` is failing extracting it on Travis
+RUN make -f crystax_ndk.mk TAR=`which bsdtar`
 
 # downloads and installs Android SDK
 RUN curl --location --progress-bar ${MAKEFILES_URL}/android_sdk.mk --output android_sdk.mk

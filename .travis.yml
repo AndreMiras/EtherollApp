@@ -5,9 +5,16 @@ language: generic
 services:
   - docker
 
+env:
+  - TAG=etheroll-linux DOCKERFILE=dockerfiles/Dockerfile-linux COMMAND='make test'
+  - TAG=etheroll-android DOCKERFILE=dockerfiles/Dockerfile-android COMMAND='buildozer android debug'
+
 install:
+  - docker build --tag=$TAG --file=$DOCKERFILE .
   - docker build --tag=etheroll-linux --file=dockerfiles/Dockerfile-linux .
 
 script:
-  - docker run -e ETHERSCAN_API_KEY=$ETHERSCAN_API_KEY etheroll-linux
-    /bin/sh -c '. venv/bin/activate && make test'
+  # `travis_wait` also adds quotes, so we need to escape ours
+  # ETHERSCAN_API_KEY is currently only used for `etheroll-linux` tests
+  - travis_wait docker run -e ETHERSCAN_API_KEY=$ETHERSCAN_API_KEY $TAG
+    /bin/sh -c \"$COMMAND\"

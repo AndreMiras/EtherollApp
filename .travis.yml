@@ -19,10 +19,10 @@ before_install:
   # - if [[ -d $DOCKER_CACHE_DIR ]]; then ls $DOCKER_CACHE_DIR/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
 
 install:
-  - docker build --tag=etheroll .
+  - docker build --tag=etheroll-linux --file=dockerfiles/Dockerfile-linux .
 
 script:
-  - docker run -e ETHERSCAN_API_KEY=$ETHERSCAN_API_KEY etheroll
+  - docker run -e ETHERSCAN_API_KEY=$ETHERSCAN_API_KEY etheroll-linux
     /bin/sh -c '. venv/bin/activate && make test'
 
 before_cache:

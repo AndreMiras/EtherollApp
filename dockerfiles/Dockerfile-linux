@@ -2,7 +2,9 @@
 # Build with:
 # docker build --tag=etheroll-linux --file=dockerfiles/Dockerfile-linux .
 # Run with:
-# docker run etheroll-linux /bin/sh -c '. venv/bin/activate && make test'
+# docker run etheroll-linux /bin/sh -c 'make test'
+# Or using the entry point shortcut:
+# docker run etheroll-linux 'make test'
 # Or for interactive shell:
 # docker run -it --rm etheroll-linux
 # TODO:
@@ -30,4 +32,4 @@ RUN apt install --yes --no-install-recommends \
 
 WORKDIR /app
 COPY . /app
-RUN make virtualenv
+ENTRYPOINT ["./dockerfiles/start.sh"]

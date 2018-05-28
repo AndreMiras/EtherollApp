@@ -3,6 +3,8 @@
 # docker build --tag=fdroid --file=dockerfiles/Dockerfile-fdroid .
 # Run with:
 # docker run fdroid /bin/sh -c 'fdroid build -v -l com.github.andremiras.etheroll'
+# Or using the entry point shortcut:
+# docker run fdroid 'fdroid build -v -l com.github.andremiras.etheroll'
 # Or for interactive shell:
 # docker run -it --rm fdroid
 FROM ubuntu:18.04
@@ -72,3 +74,4 @@ RUN curl --location --progress-bar "${FDROIDDATA_DL_URL}" --output "${FDROIDDATA
     tar -xf "${FDROIDDATA_ARCHIVE}" --directory "${WORK_DIR}"
 
 WORKDIR ${WORK_DIR}
+ENTRYPOINT ["./dockerfiles/start.sh"]

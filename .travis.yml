@@ -14,7 +14,4 @@ install:
   - docker build --tag=etheroll-linux --file=dockerfiles/Dockerfile-linux .
 
 script:
-  # `travis_wait` also adds quotes, so we need to escape ours
-  # ETHERSCAN_API_KEY is currently only used for `etheroll-linux` tests
-  - travis_wait docker run -e ETHERSCAN_API_KEY=$ETHERSCAN_API_KEY $TAG
-    /bin/sh -c \"$COMMAND\"
+  - travis_wait docker run $TAG $COMMAND

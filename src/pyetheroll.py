@@ -4,6 +4,7 @@
 Python Etheroll library.
 """
 import json
+import logging
 import os
 from datetime import datetime
 from enum import Enum
@@ -27,6 +28,7 @@ from web3.contract import Contract
 import constants
 from ethereum_utils import AccountUtils
 
+logger = logging.getLogger(__name__)
 REQUESTS_CACHE_PARAMS = {
     'cache_name': 'requests_cache',
     'backend': 'sqlite',
@@ -46,8 +48,15 @@ def get_etherscan_api_key():
         location = os.path.realpath(
             os.path.join(os.getcwd(), os.path.dirname(__file__)))
         api_key_path = str(os.path.join(location, 'api_key.json'))
-        with open(api_key_path, mode='r') as key_file:
-            ETHERSCAN_API_KEY = json.loads(key_file.read())['key']
+        try:
+            with open(api_key_path, mode='r') as key_file:
+                ETHERSCAN_API_KEY = json.loads(key_file.read())['key']
+        except FileNotFoundError:
+            ETHERSCAN_API_KEY = 'YourApiKeyToken'
+            logger.warning(
+                'Cannot get Etherscan API key. '
+                'File {} not found, defaulting to `{}`.'.format(
+                    api_key_path, ETHERSCAN_API_KEY))
     return ETHERSCAN_API_KEY
 
 

@@ -13,7 +13,7 @@ from pyethapp.accounts import Account
 from web3.utils.datastructures import AttributeDict
 
 from pyetheroll import (ChainID, Etheroll, TransactionDebugger,
-                        decode_contract_call)
+                        decode_contract_call, get_etherscan_api_key)
 
 
 class TestUtils(unittest.TestCase):
@@ -277,6 +277,40 @@ class TestUtils(unittest.TestCase):
                 proof,
             ]
         )
+
+    def test_get_etherscan_api_key(self):
+        """
+        Verifies the key can be retrieved from either:
+        1) environment
+        2) file
+        3) or fallbacks on default key
+        """
+        expected_key = '0102030405060708091011121314151617'
+        # 1) environment
+        with mock.patch.dict(
+                'os.environ', {'ETHERSCAN_API_KEY': expected_key}):
+            actual_key = get_etherscan_api_key()
+        self.assertEqual(actual_key, expected_key)
+        # 2) file
+        read_data = '{ "key" : "%s" }' % (expected_key)
+        with mock.patch('builtins.open', mock.mock_open(read_data=read_data)) \
+                as m_open:
+            actual_key = get_etherscan_api_key()
+        self.assertEqual(expected_key, actual_key)
+        # verifies the file was read
+        self.assertTrue(
+            m_open.call_args_list[0][0][0].endswith('src/api_key.json'))
+        self.assertEqual(m_open.call_args_list[0][1], {'mode': 'r'})
+        # 3) or fallbacks on default key
+        with mock.patch('builtins.open') as m_open, \
+                mock.patch('pyetheroll.logger') as m_logger:
+            m_open.side_effect = FileNotFoundError
+            actual_key = get_etherscan_api_key()
+        self.assertEqual('YourApiKeyToken', actual_key)
+        # verifies the fallback warning was logged
+        self.assertTrue(
+            'Cannot get Etherscan API key.'
+            in m_logger.warning.call_args_list[0][0][0])
 
 
 class TestTransactionDebugger(unittest.TestCase):
@@ -1266,8 +1300,11 @@ class TestEtheroll(unittest.TestCase):
         """
         contract_abi = []
         contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
-        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi:
+        with mock.patch('etherscan.contracts.Contract.get_abi') as m_get_abi, \
+                mock.patch('pyetheroll.get_etherscan_api_key') \
+                as m_get_etherscan_api_key:
             m_get_abi.return_value = json.dumps(contract_abi)
+            m_get_etherscan_api_key.return_value = 'apikey'
             etheroll = Etheroll(contract_address=contract_address)
         address = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B'
         with mock.patch('requests.sessions.Session.get') as m_get:
@@ -1284,7 +1321,7 @@ class TestEtheroll(unittest.TestCase):
         expected_url = (
             'https://api.etherscan.io/api?module=account'
             '&address=0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B'
-            '&tag=latest&apikey=E9K4A1AC8H1V3ZIR1DAIKZ6B961CRXF2DR'
+            '&tag=latest&apikey=apikey'
             '&action=balance')
         expected_call = mock.call(expected_url)
         expected_calls = [expected_call]

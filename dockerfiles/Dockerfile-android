@@ -3,6 +3,8 @@
 # docker build --tag=etheroll-android --file=dockerfiles/Dockerfile-android .
 # Run with:
 # docker run etheroll-android /bin/sh -c 'buildozer android debug'
+# Or using the entry point shortcut:
+# docker run etheroll-android 'buildozer android debug'
 # Or for interactive shell:
 # docker run -it --rm etheroll-android
 FROM ubuntu:18.04
@@ -66,3 +68,4 @@ RUN ln -sfn ${HOME}/.android ${HOME}/.buildozer/android/platform/android-sdk-20
 RUN ln -sfn ${HOME}/.android/crystax-ndk ${HOME}/.buildozer/
 
 COPY . ${WORK_DIR}
+ENTRYPOINT ["./dockerfiles/start.sh"]

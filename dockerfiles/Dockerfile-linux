@@ -1,10 +1,10 @@
 # Docker image for installing dependencies on Linux and running tests.
 # Build with:
-# docker build --tag=etheroll .
+# docker build --tag=etheroll-linux --file=dockerfiles/Dockerfile-linux .
 # Run with:
-# docker run etheroll /bin/sh -c '. venv/bin/activate && make test'
+# docker run etheroll-linux /bin/sh -c '. venv/bin/activate && make test'
 # Or for interactive shell:
-# docker run -it --rm etheroll
+# docker run -it --rm etheroll-linux
 # TODO:
 #	- delete archives to keep small the container small
 #	- setup caching (for apt, and pip)

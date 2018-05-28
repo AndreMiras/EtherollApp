@@ -6,28 +6,15 @@ services:
   - docker
 
 env:
-  global:
-    - CACHE_DIR=$HOME/.cache
-    - DOCKER_CACHE_DIR=$CACHE_DIR/docker
-
-cache:
-  directories:
-    - $DOCKER_CACHE_DIR
-
-before_install:
-  # load cached Docker images
-  # - if [[ -d $DOCKER_CACHE_DIR ]]; then ls $DOCKER_CACHE_DIR/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
+  - TAG=etheroll-linux DOCKERFILE=dockerfiles/Dockerfile-linux COMMAND='make test'
+  - TAG=etheroll-android DOCKERFILE=dockerfiles/Dockerfile-android COMMAND='buildozer android debug'
 
 install:
-  - docker build --tag=etheroll .
+  - docker build --tag=$TAG --file=$DOCKERFILE .
+  - docker build --tag=etheroll-linux --file=dockerfiles/Dockerfile-linux .
 
 script:
-  - docker run -e ETHERSCAN_API_KEY=$ETHERSCAN_API_KEY etheroll
-    /bin/sh -c '. venv/bin/activate && make test'
-
-before_cache:
-  # save tagged Docker images
-  # https://github.com/travis-ci/travis-ci/issues/5358#issuecomment-248915326
-  # - >
-  #   mkdir -p $DOCKER_CACHE_DIR && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
-  #   | xargs -n 2 -t sh -c 'test -e $DOCKER_CACHE_DIR/$1.tar.gz || docker save $0 | gzip -2 > $DOCKER_CACHE_DIR/$1.tar.gz'
+  # `travis_wait` also adds quotes, so we need to escape ours
+  # ETHERSCAN_API_KEY is currently only used for `etheroll-linux` tests
+  - travis_wait docker run -e ETHERSCAN_API_KEY=$ETHERSCAN_API_KEY $TAG
+    /bin/sh -c \"$COMMAND\"

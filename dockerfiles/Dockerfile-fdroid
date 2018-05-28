@@ -1,6 +1,6 @@
 # Docker image for running F-Droid build scripts.
 # Build with:
-# docker build --tag=fdroid .
+# docker build --tag=fdroid --file=dockerfiles/Dockerfile-fdroid .
 # Run with:
 # docker run fdroid /bin/sh -c 'fdroid build -v -l com.github.andremiras.etheroll'
 # Or for interactive shell:

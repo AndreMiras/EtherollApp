@@ -17,8 +17,8 @@ from raven import Client
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
-import constants
 from etheroll.about import AboutScreen
+from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.passwordform import PasswordForm
 from etheroll.roll_results import RollResultsScreen
 from etheroll.settings import SettingsScreen
@@ -26,13 +26,13 @@ from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.utils import (Dialog, load_kv_from_py,
                             patch_find_library_android, patch_typing_python351,
                             run_in_thread)
+from pyetheroll.etheroll import Etheroll
 from version import __version__
 
 patch_find_library_android()
 patch_typing_python351()
 # must be imported after patching
 from ethereum_utils import AccountUtils  # noqa: E402, isort:skip
-import pyetheroll  # noqa: E402, isort:skip
 
 
 load_kv_from_py(__file__)
@@ -73,7 +73,7 @@ class Controller(FloatLayout):
         """
         chain_id = SettingsScreen.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
-            self._pyetheroll = pyetheroll.Etheroll(chain_id)
+            self._pyetheroll = Etheroll(chain_id)
         return self._pyetheroll
 
     @classmethod
@@ -97,7 +97,7 @@ class Controller(FloatLayout):
         if platform == "android":
             KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
         keystore_dir = os.path.join(
-            KEYSTORE_DIR_PREFIX, constants.KEYSTORE_DIR_SUFFIX)
+            KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
         return keystore_dir
 
     def bind_wager_property(self):

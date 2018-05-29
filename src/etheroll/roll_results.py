@@ -6,9 +6,9 @@ from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ThreeLineAvatarListItem
 from kivymd.spinner import MDSpinner
 
-import constants
 from etheroll.utils import Dialog, SubScreen, load_kv_from_py, run_in_thread
-from pyetheroll import Etheroll
+from pyetheroll.constants import ROUND_DIGITS
+from pyetheroll.utils import EtherollUtils
 
 load_kv_from_py(__file__)
 
@@ -139,13 +139,13 @@ class RollResultsScreen(SubScreen):
             sign = '<' if player_won else '>'
             text_color = win_color if player_won else loss_color
             chances_win = roll_under - 1
-            profit = Etheroll.compute_profit(bet_value_ether, chances_win)
+            profit = EtherollUtils.compute_profit(bet_value_ether, chances_win)
             profit_loss = profit if player_won else -bet_value_ether
             profit_loss_str = (
                 '{profit_loss:+.{round_digits}f}'
             ).format(**{
                 'profit_loss': profit_loss,
-                'round_digits': constants.ROUND_DIGITS})
+                'round_digits': ROUND_DIGITS})
         text = ('{0} ETH').format(profit_loss_str)
         secondary_text = '{0} {1} {2}'.format(
             dice_result, sign, roll_under)

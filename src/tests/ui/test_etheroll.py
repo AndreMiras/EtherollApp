@@ -9,7 +9,7 @@ from unittest import mock
 
 from hexbytes import HexBytes
 from kivy.clock import Clock
-from tests import test_pyetheroll
+from tests.pyetheroll import test_etheroll
 
 from etheroll.controller import EtherollApp
 from etheroll.utils import Dialog
@@ -339,8 +339,8 @@ class UITestCase(unittest.TestCase):
         """
         Roll history screen should display recent rolls, refs #61.
         """
-        bet_results_logs = test_pyetheroll.TestEtheroll.bet_results_logs
-        bet_logs = test_pyetheroll.TestEtheroll.bet_logs
+        bet_results_logs = test_etheroll.TestEtheroll.bet_results_logs
+        bet_logs = test_etheroll.TestEtheroll.bet_logs
         merged_logs = [
             {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
             {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
@@ -352,7 +352,7 @@ class UITestCase(unittest.TestCase):
         self.assertIsNotNone(controller.current_account)
         screen_manager = controller.screen_manager
         # patches library with fake recent rolls
-        with mock.patch('pyetheroll.Etheroll.get_merged_logs') \
+        with mock.patch('pyetheroll.etheroll.Etheroll.get_merged_logs') \
                 as m_get_merged_logs:
             m_get_merged_logs.return_value = merged_logs
             screen_manager.current = 'roll_results_screen'
@@ -444,7 +444,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(dialog.title, 'Enter your password')
         dialog.content.password = 'password'
         unlock_button = dialog._action_buttons[0]
-        with mock.patch('pyetheroll.Etheroll.player_roll_dice') \
+        with mock.patch('pyetheroll.etheroll.Etheroll.player_roll_dice') \
                 as m_player_roll_dice:
             m_player_roll_dice.return_value = HexBytes(
                 '0x7be6e37621eb12db7dc535954345f69'

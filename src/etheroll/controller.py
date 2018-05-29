@@ -345,7 +345,7 @@ class Controller(FloatLayout):
         # lazy loading
         from kivy.garden.qrcode import QRCodeWidget
         from kivy.metrics import dp
-        account = self.switch_account_screen.current_account
+        account = self.current_account
         if not account:
             return
         address = "0x" + account.address.hex()
@@ -370,7 +370,7 @@ class Controller(FloatLayout):
         """
         # lazy loading
         from kivy.core.clipboard import Clipboard
-        account = self.switch_account_screen.current_account
+        account = self.current_account
         if not account:
             return
         address = "0x" + account.address.hex()

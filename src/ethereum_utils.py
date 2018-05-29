@@ -1,11 +1,4 @@
 import os
-import shutil
-
-import eth_keyfile
-from ethereum.tools import keys
-from ethereum.utils import is_string, to_string
-from pyethapp.accounts import Account
-from web3.auto import w3
 
 
 class AccountUtils():
@@ -34,6 +27,8 @@ class AccountUtils():
         Made this way to workaround pyethapp slow account management:
         https://github.com/ethereum/pyethapp/issues/292
         """
+        # lazy loading
+        from web3.auto import w3
         encrypted_key = open(wallet_path).read()
         private_key = w3.eth.account.decrypt(encrypted_key, wallet_password)
         return private_key
@@ -42,6 +37,8 @@ class AccountUtils():
         """
         Creates an account on the disk and returns it.
         """
+        # lazy loading
+        from pyethapp.accounts import Account
         account = Account.new(password, uuid=None)
         account.path = os.path.join(
             self.app.services.accounts.keystore_dir,
@@ -55,6 +52,10 @@ class AccountUtils():
         Patches `make_keystore_json()` to use `create_keyfile_json()`, see:
         https://github.com/ethereum/pyethapp/issues/292
         """
+        # lazy loading
+        import eth_keyfile
+        from ethereum.tools import keys
+        from ethereum.utils import is_string, to_string
         keys.make_keystore_json = eth_keyfile.create_keyfile_json
 
         def decode_keyfile_json(raw_keyfile_json, password):
@@ -90,6 +91,8 @@ class AccountUtils():
         In fact, moves it to another location; another directory at the same
         level.
         """
+        # lazy loading
+        import shutil
         keystore_dir = self.app.services.accounts.keystore_dir
         deleted_keystore_dir = self.deleted_account_dir(keystore_dir)
         # create the deleted account dir if required

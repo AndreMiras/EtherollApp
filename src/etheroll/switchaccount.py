@@ -1,10 +1,10 @@
 from kivy.app import App
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivymd.list import OneLineListItem
 
-from etheroll.utils import Dialog, SubScreen, load_kv_from_py
+from etheroll.utils import Dialog, SubScreen, load_kv_from_py, run_in_thread
 
 load_kv_from_py(__file__)
 
@@ -39,19 +39,28 @@ class SwitchAccount(BoxLayout):
         list_item.bind(on_release=lambda x: self.on_release(x))
         return list_item
 
-    def load_account_list(self):
-        """
-        Fills account list widget from library account list.
-        """
-        self.controller = App.get_running_app().root
+    @mainthread
+    def update_account_list(self, accounts):
         account_list_id = self.ids.account_list_id
         account_list_id.clear_widgets()
-        accounts = self.controller.account_utils.get_account_list()
         if len(accounts) == 0:
             self.on_empty_account_list()
         for account in accounts:
             list_item = self.create_item(account)
             account_list_id.add_widget(list_item)
+
+    @run_in_thread
+    def load_account_list(self):
+        """
+        Fills account list widget from library account list.
+        This is running in a thread because first call to `account_utils` will
+        initialize it lazily which takes few seconds on Android devices.
+        """
+        self.controller = App.get_running_app().root
+        self.toggle_spinner(show=True)
+        accounts = self.controller.account_utils.get_account_list()
+        self.toggle_spinner(show=False)
+        self.update_account_list(accounts)
 
     @staticmethod
     def on_empty_account_list():
@@ -61,6 +70,10 @@ class SwitchAccount(BoxLayout):
         body = "No account found in:\n%s" % keystore_dir
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
+
+    def toggle_spinner(self, show):
+        spinner = self.ids.spinner_id
+        spinner.toggle(show)
 
 
 class SwitchAccountScreen(SubScreen):

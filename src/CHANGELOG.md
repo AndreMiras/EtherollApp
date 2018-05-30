@@ -5,6 +5,7 @@
   - Handle wrong password error, refs #9
   - Prompt error dialog on no network, refs #59
   - Fix crash on empty roll history, refs #67
+  - Load previous screen on back button, refs #84
   - Fix settings race condition crash, refs #86
   - Speed up application loading, refs #91
   - Optional Etherscan API key, refs #93

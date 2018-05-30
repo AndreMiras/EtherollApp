@@ -48,7 +48,26 @@ class Controller(FloatLayout):
         self.bind_wager_property()
         self.bind_profit_property()
         self.bind_screen_manager_on_current_screen()
+        self.bind_keyboard()
         self.register_screens()
+
+    def on_keyboard(self, window, key, *args):
+        """
+        Handles the back button (Android) and ESC key. Goes back to the
+        previous screen, dicards dialogs or exits the application if none left.
+        """
+        if key == 27:
+            if Dialog.dialogs:
+                Dialog.dismiss_all_dialogs()
+                return True
+            from etheroll.utils import SubScreen
+            current_screen = self.screen_manager.current_screen
+            # if is sub-screen loads previous and stops the propagation
+            # otherwise propagates the key to exit
+            if isinstance(current_screen, SubScreen):
+                current_screen.on_back()
+                return True
+        return False
 
     @property
     def pyetheroll(self):
@@ -135,10 +154,17 @@ class Controller(FloatLayout):
 
     def bind_roll_button(self):
         """
-        binds roll screen "Roll" button to controller roll()
+        Binds roll screen "Roll" button to controller roll().
         """
         roll_button = self.roll_screen.ids.roll_button_id
         roll_button.bind(on_release=lambda instance: self.roll())
+
+    def bind_keyboard(self):
+        """
+        Binds keyboard keys to actions.
+        """
+        from kivy.core.window import Window
+        Window.bind(on_keyboard=self.on_keyboard)
 
     def bind_profit_property(self):
         """

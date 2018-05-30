@@ -6,6 +6,7 @@
   - Prompt error dialog on no network, refs #59
   - Fix crash on empty roll history, refs #67
   - Fix settings race condition crash, refs #86
+  - Speed up application loading, refs #91
   - Optional Etherscan API key, refs #93
 
 ## [v20180517]

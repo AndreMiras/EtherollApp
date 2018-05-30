@@ -6,8 +6,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen
 
-import constants
 from etheroll.utils import Dialog, load_kv_from_py, run_in_thread
+from pyetheroll.constants import ROUND_DIGITS
 
 load_kv_from_py(__file__)
 
@@ -37,7 +37,7 @@ class BetSize(BoxLayout):
 
     @staticmethod
     def bind_slider_input(
-            slider, inpt, cast_to=float, round_digits=constants.ROUND_DIGITS):
+            slider, inpt, cast_to=float, round_digits=ROUND_DIGITS):
         """
         Binds slider <-> input both ways.
         """
@@ -65,7 +65,7 @@ class BetSize(BoxLayout):
         """
         try:
             return round(
-                float(self.ids.bet_size_input_id.text), constants.ROUND_DIGITS)
+                float(self.ids.bet_size_input_id.text), ROUND_DIGITS)
         except ValueError:
             return 0
 

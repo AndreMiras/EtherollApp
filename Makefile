@@ -27,7 +27,7 @@ ifeq ($(OS), Ubuntu)
 endif
 
 clean:
-	rm -rf venv/ .tox/
+	rm -rf venv/ .tox/ .pytest_cache/
 
 test:
 	$(TOX)

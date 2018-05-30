@@ -1,4 +1,3 @@
-from etherscan.client import ConnectionRefused
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.properties import ListProperty
@@ -6,9 +5,8 @@ from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ThreeLineAvatarListItem
 from kivymd.spinner import MDSpinner
 
-import constants
 from etheroll.utils import Dialog, SubScreen, load_kv_from_py, run_in_thread
-from pyetheroll import Etheroll
+from pyetheroll.constants import ROUND_DIGITS
 
 load_kv_from_py(__file__)
 
@@ -96,6 +94,8 @@ class RollResultsScreen(SubScreen):
         Gets last rolls & results using pyetheroll lib and updates `roll_logs`
         list property.
         """
+        # lazy loading
+        from etherscan.client import ConnectionRefused
         controller = App.get_running_app().root
         account = controller.current_account
         if not account:
@@ -118,6 +118,8 @@ class RollResultsScreen(SubScreen):
         """
         Creates a roll list item from a roll log dictionary.
         """
+        # lazy loading
+        from pyetheroll.utils import EtherollUtils
         bet_log = roll_log['bet_log']
         bet_result = roll_log['bet_result']
         bet_value_ether = bet_log['bet_value_ether']
@@ -139,13 +141,13 @@ class RollResultsScreen(SubScreen):
             sign = '<' if player_won else '>'
             text_color = win_color if player_won else loss_color
             chances_win = roll_under - 1
-            profit = Etheroll.compute_profit(bet_value_ether, chances_win)
+            profit = EtherollUtils.compute_profit(bet_value_ether, chances_win)
             profit_loss = profit if player_won else -bet_value_ether
             profit_loss_str = (
                 '{profit_loss:+.{round_digits}f}'
             ).format(**{
                 'profit_loss': profit_loss,
-                'round_digits': constants.ROUND_DIGITS})
+                'round_digits': ROUND_DIGITS})
         text = ('{0} ETH').format(profit_loss_str)
         secondary_text = '{0} {1} {2}'.format(
             dice_result, sign, roll_under)

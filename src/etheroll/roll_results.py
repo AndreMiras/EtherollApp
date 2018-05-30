@@ -1,4 +1,3 @@
-from etherscan.client import ConnectionRefused
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.properties import ListProperty
@@ -8,7 +7,6 @@ from kivymd.spinner import MDSpinner
 
 from etheroll.utils import Dialog, SubScreen, load_kv_from_py, run_in_thread
 from pyetheroll.constants import ROUND_DIGITS
-from pyetheroll.utils import EtherollUtils
 
 load_kv_from_py(__file__)
 
@@ -96,6 +94,8 @@ class RollResultsScreen(SubScreen):
         Gets last rolls & results using pyetheroll lib and updates `roll_logs`
         list property.
         """
+        # lazy loading
+        from etherscan.client import ConnectionRefused
         controller = App.get_running_app().root
         account = controller.current_account
         if not account:
@@ -118,6 +118,8 @@ class RollResultsScreen(SubScreen):
         """
         Creates a roll list item from a roll log dictionary.
         """
+        # lazy loading
+        from pyetheroll.utils import EtherollUtils
         bet_log = roll_log['bet_log']
         bet_result = roll_log['bet_result']
         bet_value_ether = bet_log['bet_value_ether']

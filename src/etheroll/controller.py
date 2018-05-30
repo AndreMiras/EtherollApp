@@ -42,6 +42,7 @@ class Controller(FloatLayout):
         """
         Inits pyethapp and binds events.
         """
+        Clock.schedule_once(self.preload_account_utils)
         self.bind_roll_button()
         self.bind_chances_roll_under()
         self.bind_wager_property()
@@ -71,6 +72,17 @@ class Controller(FloatLayout):
             keystore_dir = self.get_keystore_path()
             self._account_utils = AccountUtils(keystore_dir=keystore_dir)
         return self._account_utils
+
+    def preload_account_utils(self, dt):
+        """
+        Preloads `AccountUtils`, since it takes few seconds on Android.
+        """
+        # toggling doesn't seem to be picked up
+        self.roll_screen.toggle_widgets(False)
+        account_utils = self.account_utils
+        self.roll_screen.toggle_widgets(True)
+        # not using that returned value, but peaces linter
+        return account_utils
 
     @classmethod
     def get_keystore_path(cls):

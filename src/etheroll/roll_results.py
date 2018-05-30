@@ -3,16 +3,11 @@ from kivy.clock import Clock, mainthread
 from kivy.properties import ListProperty
 from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ThreeLineAvatarListItem
-from kivymd.spinner import MDSpinner
 
 from etheroll.utils import Dialog, SubScreen, load_kv_from_py, run_in_thread
 from pyetheroll.constants import ROUND_DIGITS
 
 load_kv_from_py(__file__)
-
-
-class ScrollViewSpinder(MDSpinner):
-    pass
 
 
 class DiceResultWidget(ILeftBody, MDLabel):
@@ -48,20 +43,8 @@ class RollResultsScreen(SubScreen):
                 self.get_last_results()
 
     def toggle_spinner(self, show):
-        """
-        Actually shrinking and hidding it.
-        """
         spinner = self.ids.spinner_id
-        # by default it's in "shown" mode and doesn't have attributes saved
-        if not hasattr(spinner, 'previous_size_hint'):
-            spinner.previous_size_hint = spinner.size_hint.copy()
-            spinner.previous_opacity = spinner.opacity
-        elif show:
-            spinner.size_hint = spinner.previous_size_hint
-            spinner.opacity = spinner.previous_opacity
-        else:
-            spinner.size_hint = (0, 0)
-            spinner.opacity = 0
+        spinner.toggle(show)
 
     @property
     def pyetheroll(self):

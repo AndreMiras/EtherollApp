@@ -54,10 +54,12 @@ class Controller(FloatLayout):
     def on_keyboard(self, window, key, *args):
         """
         Handles the back button (Android) and ESC key. Goes back to the
-        previous screen or exists the application if there's none left, refs:
-        https://github.com/AndreMiras/EtherollApp/issues/84
+        previous screen, dicards dialogs or exits the application if none left.
         """
         if key == 27:
+            if Dialog.dialogs:
+                Dialog.dismiss_all_dialogs()
+                return True
             from etheroll.utils import SubScreen
             current_screen = self.screen_manager.current_screen
             # if is sub-screen loads previous and stops the propagation

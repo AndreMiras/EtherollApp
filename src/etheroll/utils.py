@@ -119,7 +119,7 @@ class Dialog(object):
         # keeps a local copy since we're altering them as we iterate
         dialogs = cls.dialogs[:]
         for dialog in dialogs:
-            dialog.dispatch('on_dismiss')
+            dialog.dismiss()
 
     @classmethod
     def create_dialog_content_helper(cls, title, content):

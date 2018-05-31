@@ -28,7 +28,7 @@ class TestEtherscanlUtils(unittest.TestCase):
         # verifies the file was read
         self.assertTrue(
             m_open.call_args_list[0][0][0].endswith(
-                'src/pyetheroll/api_key.json'))
+                '/pyetheroll/api_key.json'))
         self.assertEqual(m_open.call_args_list[0][1], {'mode': 'r'})
         # 3) or fallbacks on default key
         with mock.patch('builtins.open') as m_open, \

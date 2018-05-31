@@ -33,6 +33,10 @@ class Controller(FloatLayout):
 
     def __init__(self, **kwargs):
         super(Controller, self).__init__(**kwargs)
+        # disables the roll screen until `preload_account_utils` is done
+        # disabling doesn't seem to work within the scheduled method
+        # self.roll_screen.toggle_widgets(False)
+        self.disabled = True
         Clock.schedule_once(self._after_init)
         self._account_passwords = {}
         self._pyetheroll = None
@@ -96,11 +100,9 @@ class Controller(FloatLayout):
         """
         Preloads `AccountUtils`, since it takes few seconds on Android.
         """
-        # toggling doesn't seem to be picked up
-        self.roll_screen.toggle_widgets(False)
         account_utils = self.account_utils
-        self.roll_screen.toggle_widgets(True)
-        # not using that returned value, but peaces linter
+        self.disabled = False
+        # not using that returned value, but it peaces linter
         return account_utils
 
     @classmethod

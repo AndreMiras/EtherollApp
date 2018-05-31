@@ -7,6 +7,7 @@
   - Fix crash on empty roll history, refs #67
   - Add xclip & xsel system dependencies, refs #81, #82
   - Load previous screen on back button, refs #84
+  - Validate password form on enter key, refs #85
   - Fix settings race condition crash, refs #86
   - Speed up application loading, refs #91
   - Optional Etherscan API key, refs #93

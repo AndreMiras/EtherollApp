@@ -1,0 +1,77 @@
+# Docker image for running F-Droid build scripts.
+# Build with:
+# docker build --tag=fdroid --file=dockerfiles/Dockerfile-fdroid .
+# Run with:
+# docker run fdroid /bin/sh -c 'fdroid build -v -l com.github.andremiras.etheroll'
+# Or using the entry point shortcut:
+# docker run fdroid 'fdroid build -v -l com.github.andremiras.etheroll'
+# Or for interactive shell:
+# docker run -it --rm fdroid
+FROM ubuntu:18.04
+
+ENV USER="user"
+ENV HOME_DIR="/home/${USER}"
+ENV WORK_DIR="${HOME_DIR}" \
+    PATH="${HOME_DIR}/.local/bin:${PATH}" \
+    FDROIDDATA_ARCHIVE="fdroiddata-master.tar.bz2"
+ENV FDROIDDATA_DL_URL="https://gitlab.com/fdroid/fdroiddata/-/archive/master/${FDROIDDATA_ARCHIVE}"
+# currently needed because buildozer still uses `tools/android` binary
+# even though we have the new `tools/bin/sdkmanager` available
+ENV USE_SDK_WRAPPER=true
+# fdroid requires these two variables, see:
+# https://gitlab.com/fdroid/fdroidserver/merge_requests/290
+ENV ANDROID_HOME="${HOME_DIR}/.android" \
+    ANDROID_NDK="${HOME_DIR}/.buildozer/crystax-ndk"
+
+ENV DOCKERFILES_VERSION="master" \
+    DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
+ENV MAKEFILES_URL="${DOCKERFILES_URL}/${DOCKERFILES_VERSION}/buildozer_android_new"
+
+
+# configure locale
+RUN apt update -qq > /dev/null && apt install --yes --no-install-recommends \
+    locales && \
+    locale-gen en_US.UTF-8
+ENV LANG="en_US.UTF-8" \
+    LANGUAGE="en_US.UTF-8" \
+    LC_ALL="en_US.UTF-8"
+
+# install system dependencies (required to setup all the tools)
+RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
+    make curl wget ca-certificates xz-utils unzip openjdk-8-jdk sudo python-pip \
+    python-setuptools
+
+# install build dependencies (required to successfully build the project)
+# TODO: should this go to a Makefile instead?
+RUN apt install -qq --yes --no-install-recommends \
+    python3.6 libpython3.6-dev python3-setuptools python3-pip \
+    autoconf automake libtool libltdl-dev libffi-dev
+
+# make python3 the default
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
+    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
+
+# prepare non root env
+RUN useradd --create-home --shell /bin/bash ${USER}
+# with sudo access and no password
+RUN usermod -append --groups sudo ${USER}
+RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+USER ${USER}
+WORKDIR ${WORK_DIR}
+
+# downloads and installs Android SDK
+RUN curl --location --progress-bar ${MAKEFILES_URL}/android_sdk.mk --output android_sdk.mk
+RUN make -f android_sdk.mk
+
+# install buildozer and dependencies
+RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output buildozer.mk
+RUN make -f buildozer.mk
+
+# install fdroidserver and fdroiddata
+RUN pip install fdroidserver
+RUN curl --location --progress-bar "${FDROIDDATA_DL_URL}" --output "${FDROIDDATA_ARCHIVE}" && \
+    tar -xf "${FDROIDDATA_ARCHIVE}" --directory "${WORK_DIR}"
+
+WORKDIR ${WORK_DIR}
+ENTRYPOINT ["./dockerfiles/start.sh"]

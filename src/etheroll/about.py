@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from kivy.clock import Clock, mainthread
 from kivy.properties import StringProperty
@@ -7,7 +6,6 @@ from kivy.uix.boxlayout import BoxLayout
 
 from etheroll.utils import (StringIOCBWrite, SubScreen, load_kv_from_py,
                             run_in_thread)
-from testsuite import suite
 from version import __version__
 
 load_kv_from_py(__file__)
@@ -64,6 +62,9 @@ class AboutDiagnostic(BoxLayout):
         """
         Loads the test suite and hook the callback for reporting progress.
         """
+        # lazy loading
+        import unittest
+        from testsuite import suite
         test_suite = suite()
         self.stream_property = ""
         stream = StringIOCBWrite(callback_write=self.callback_write)

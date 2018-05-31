@@ -1,5 +1,5 @@
 import os
-from pythonforandroid.toolchain import PythonRecipe
+from pythonforandroid.recipe import PythonRecipe
 
 
 class GreenletRecipe(PythonRecipe):

@@ -1,3 +1,4 @@
+from etherscan.client import ConnectionRefused
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.properties import NumericProperty, StringProperty
@@ -5,8 +6,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen
 
-import constants
-from etheroll.utils import load_kv_from_py, run_in_thread
+from etheroll.utils import Dialog, load_kv_from_py, run_in_thread
+from pyetheroll.constants import ROUND_DIGITS
 
 load_kv_from_py(__file__)
 
@@ -36,7 +37,7 @@ class BetSize(BoxLayout):
 
     @staticmethod
     def bind_slider_input(
-            slider, inpt, cast_to=float, round_digits=constants.ROUND_DIGITS):
+            slider, inpt, cast_to=float, round_digits=ROUND_DIGITS):
         """
         Binds slider <-> input both ways.
         """
@@ -64,7 +65,7 @@ class BetSize(BoxLayout):
         """
         try:
             return round(
-                float(self.ids.bet_size_input_id.text), constants.ROUND_DIGITS)
+                float(self.ids.bet_size_input_id.text), ROUND_DIGITS)
         except ValueError:
             return 0
 
@@ -162,6 +163,14 @@ class RollScreen(Screen):
         """
         self.balance_property = balance
 
+    @staticmethod
+    @mainthread
+    def on_connection_refused():
+        title = 'No network'
+        body = 'No network, could not retrieve account balance.'
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
     @run_in_thread
     def fetch_update_balance(self):
         """
@@ -170,5 +179,9 @@ class RollScreen(Screen):
         address = self.current_account_string
         if not address:
             return
-        balance = self.pyetheroll.get_balance(address)
+        try:
+            balance = self.pyetheroll.get_balance(address)
+        except ConnectionRefused:
+            self.on_connection_refused()
+            return
         self.update_balance(balance)

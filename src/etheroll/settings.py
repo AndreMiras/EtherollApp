@@ -1,6 +1,5 @@
-import constants
-import pyetheroll
 from etheroll.utils import Store, SubScreen, load_kv_from_py
+from pyetheroll.constants import DEFAULT_GAS_PRICE_GWEI, ChainID
 
 load_kv_from_py(__file__)
 
@@ -41,9 +40,9 @@ class SettingsScreen(SubScreen):
         Retrieves network values from UI.
         """
         if self.is_ui_mainnet():
-            network = pyetheroll.ChainID.MAINNET
+            network = ChainID.MAINNET
         else:
-            network = pyetheroll.ChainID.ROPSTEN
+            network = ChainID.ROPSTEN
         return network
 
     def is_ui_mainnet(self):
@@ -61,23 +60,21 @@ class SettingsScreen(SubScreen):
         try:
             network_dict = store['network']
         except KeyError:
-            # creates store if doesn't yet exist
-            store.put('network')
-        network_dict = store['network']
+            network_dict = {}
         network_name = network_dict.get(
-            'value', pyetheroll.ChainID.MAINNET.name)
-        network = pyetheroll.ChainID[network_name]
+            'value', ChainID.MAINNET.name)
+        network = ChainID[network_name]
         return network
 
     @classmethod
     def is_stored_mainnet(cls):
         network = cls.get_stored_network()
-        return network == pyetheroll.ChainID.MAINNET
+        return network == ChainID.MAINNET
 
     @classmethod
     def is_stored_testnet(cls):
         network = cls.get_stored_network()
-        return network == pyetheroll.ChainID.ROPSTEN
+        return network == ChainID.ROPSTEN
 
     def get_ui_gas_price(self):
         return self.ids.gas_price_slider_id.value
@@ -91,9 +88,7 @@ class SettingsScreen(SubScreen):
         try:
             gas_price_dict = store['gas_price']
         except KeyError:
-            # creates store if doesn't yet exist
-            store.put('gas_price')
-        gas_price_dict = store['gas_price']
+            gas_price_dict = {}
         gas_price = gas_price_dict.get(
-            'value', constants.DEFAULT_GAS_PRICE_GWEI)
+            'value', DEFAULT_GAS_PRICE_GWEI)
         return gas_price

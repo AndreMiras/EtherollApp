@@ -4,10 +4,7 @@ from os.path import expanduser
 
 from kivy.app import App
 from kivy.clock import Clock, mainthread
-from kivy.core.clipboard import Clipboard
-from kivy.garden.qrcode import QRCodeWidget
 from kivy.logger import LOG_LEVELS, Logger
-from kivy.metrics import dp
 from kivy.properties import ObjectProperty
 from kivy.uix.floatlayout import FloatLayout
 from kivy.utils import platform
@@ -17,10 +14,7 @@ from raven import Client
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
-import constants
-from etheroll.about import AboutScreen
-from etheroll.passwordform import PasswordForm
-from etheroll.roll_results import RollResultsScreen
+from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.utils import (Dialog, load_kv_from_py,
@@ -30,11 +24,6 @@ from version import __version__
 
 patch_find_library_android()
 patch_typing_python351()
-# must be imported after patching
-from ethereum_utils import AccountUtils  # noqa: E402, isort:skip
-import pyetheroll  # noqa: E402, isort:skip
-
-
 load_kv_from_py(__file__)
 
 
@@ -44,26 +33,45 @@ class Controller(FloatLayout):
 
     def __init__(self, **kwargs):
         super(Controller, self).__init__(**kwargs)
+        # disables the roll screen until `preload_account_utils` is done
+        # disabling doesn't seem to work within the scheduled method
+        # self.roll_screen.toggle_widgets(False)
+        self.disabled = True
         Clock.schedule_once(self._after_init)
-        self._init_pyethapp()
         self._account_passwords = {}
         self._pyetheroll = None
+        self._account_utils = None
 
     def _after_init(self, dt):
         """
-        Binds events.
+        Inits pyethapp and binds events.
         """
+        Clock.schedule_once(self.preload_account_utils)
         self.bind_roll_button()
         self.bind_chances_roll_under()
         self.bind_wager_property()
         self.bind_profit_property()
         self.bind_screen_manager_on_current_screen()
+        self.bind_keyboard()
         self.register_screens()
 
-    def _init_pyethapp(self, keystore_dir=None):
-        if keystore_dir is None:
-            keystore_dir = self.get_keystore_path()
-        self.account_utils = AccountUtils(keystore_dir=keystore_dir)
+    def on_keyboard(self, window, key, *args):
+        """
+        Handles the back button (Android) and ESC key. Goes back to the
+        previous screen, dicards dialogs or exits the application if none left.
+        """
+        if key == 27:
+            if Dialog.dialogs:
+                Dialog.dismiss_all_dialogs()
+                return True
+            from etheroll.utils import SubScreen
+            current_screen = self.screen_manager.current_screen
+            # if is sub-screen loads previous and stops the propagation
+            # otherwise propagates the key to exit
+            if isinstance(current_screen, SubScreen):
+                current_screen.on_back()
+                return True
+        return False
 
     @property
     def pyetheroll(self):
@@ -71,10 +79,31 @@ class Controller(FloatLayout):
         Gets or creates the Etheroll object.
         Also recreates the object if the chain_id changed.
         """
+        from pyetheroll.etheroll import Etheroll
         chain_id = SettingsScreen.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
-            self._pyetheroll = pyetheroll.Etheroll(chain_id)
+            self._pyetheroll = Etheroll(chain_id)
         return self._pyetheroll
+
+    @property
+    def account_utils(self):
+        """
+        Gets or creates the AccountUtils object so it loads lazily.
+        """
+        from ethereum_utils import AccountUtils
+        if self._account_utils is None:
+            keystore_dir = self.get_keystore_path()
+            self._account_utils = AccountUtils(keystore_dir=keystore_dir)
+        return self._account_utils
+
+    def preload_account_utils(self, dt):
+        """
+        Preloads `AccountUtils`, since it takes few seconds on Android.
+        """
+        account_utils = self.account_utils
+        self.disabled = False
+        # not using that returned value, but it peaces linter
+        return account_utils
 
     @classmethod
     def get_keystore_path(cls):
@@ -97,7 +126,7 @@ class Controller(FloatLayout):
         if platform == "android":
             KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
         keystore_dir = os.path.join(
-            KEYSTORE_DIR_PREFIX, constants.KEYSTORE_DIR_SUFFIX)
+            KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
         return keystore_dir
 
     def bind_wager_property(self):
@@ -127,10 +156,17 @@ class Controller(FloatLayout):
 
     def bind_roll_button(self):
         """
-        binds roll screen "Roll" button to controller roll()
+        Binds roll screen "Roll" button to controller roll().
         """
         roll_button = self.roll_screen.ids.roll_button_id
         roll_button.bind(on_release=lambda instance: self.roll())
+
+    def bind_keyboard(self):
+        """
+        Binds keyboard keys to actions.
+        """
+        from kivy.core.window import Window
+        Window.bind(on_keyboard=self.on_keyboard)
 
     def bind_profit_property(self):
         """
@@ -164,6 +200,9 @@ class Controller(FloatLayout):
         self.screen_manager.bind(current_screen=on_current_screen)
 
     def register_screens(self):
+        # lazy loading
+        from etheroll.about import AboutScreen
+        from etheroll.roll_results import RollResultsScreen
         screen_dicts = {
             # "roll_screen": RollScreen,
             "roll_results_screen": RollResultsScreen,
@@ -214,7 +253,7 @@ class Controller(FloatLayout):
     def about_screen(self):
         return self.screen_manager.get_screen('about_screen')
 
-    def on_unlock_clicked(self, dialog, account, password):
+    def on_unlock_clicked(self, instance, dialog, account, password):
         """
         Caches the password and call roll method again.
         """
@@ -227,18 +266,10 @@ class Controller(FloatLayout):
         """
         Prompt the password dialog.
         """
-        title = "Enter your password"
-        content = PasswordForm()
-        content.ids.account_id.text = "0x" + account.address.hex()
-        dialog = Dialog.create_dialog_content_helper(
-                    title=title,
-                    content=content)
-        # workaround for MDDialog container size (too small by default)
-        dialog.ids.container.size_hint_y = 1
-        dialog.add_action_button(
-            "Unlock",
-            action=lambda *x: self.on_unlock_clicked(
-                dialog, account, content.password))
+        # lazy loading
+        from etheroll.passwordform import PasswordForm
+        dialog = PasswordForm.dialog(account)
+        dialog.content.bind(on_unlock=self.on_unlock_clicked)
         dialog.open()
         return dialog
 
@@ -270,11 +301,21 @@ class Controller(FloatLayout):
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 
-    @staticmethod
     @mainthread
-    def dialog_roll_error(exception):
+    def dialog_roll_error(self, exception):
+        """
+        Shows different error message depending on the exception.
+        On "MAC mismatch" (wrong password), void the cached password so the
+        user can try again refs:
+        https://github.com/AndreMiras/EtherollApp/issues/9
+        """
         title = "Error rolling"
         body = str(exception)
+        if exception.args[0] == 'MAC mismatch':
+            title = "Wrong password"
+            body = "Can't unlock wallet, wrong password."
+            account = self.current_account
+            self._account_passwords.pop(account.address.hex())
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 
@@ -331,7 +372,10 @@ class Controller(FloatLayout):
         """
         Shows address QR Code in a dialog.
         """
-        account = self.switch_account_screen.current_account
+        # lazy loading
+        from kivy.garden.qrcode import QRCodeWidget
+        from kivy.metrics import dp
+        account = self.current_account
         if not account:
             return
         address = "0x" + account.address.hex()
@@ -354,7 +398,9 @@ class Controller(FloatLayout):
         """
         Copies the current account address to the clipboard.
         """
-        account = self.switch_account_screen.current_account
+        # lazy loading
+        from kivy.core.clipboard import Clipboard
+        account = self.current_account
         if not account:
             return
         address = "0x" + account.address.hex()

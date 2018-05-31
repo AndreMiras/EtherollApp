@@ -1,5 +1,5 @@
 from pythonforandroid.recipe import TargetPythonRecipe
-from pythonforandroid.toolchain import shprint, current_directory, ArchARM
+from pythonforandroid.toolchain import shprint
 from pythonforandroid.logger import info, error
 from pythonforandroid.util import ensure_dir, temp_directory
 from os.path import exists, join

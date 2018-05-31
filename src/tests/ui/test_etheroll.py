@@ -9,7 +9,7 @@ from unittest import mock
 
 from hexbytes import HexBytes
 from kivy.clock import Clock
-from tests import test_pyetheroll
+from tests.pyetheroll import test_etheroll
 
 from etheroll.controller import EtherollApp
 from etheroll.utils import Dialog
@@ -339,8 +339,8 @@ class UITestCase(unittest.TestCase):
         """
         Roll history screen should display recent rolls, refs #61.
         """
-        bet_results_logs = test_pyetheroll.TestEtheroll.bet_results_logs
-        bet_logs = test_pyetheroll.TestEtheroll.bet_logs
+        bet_results_logs = test_etheroll.TestEtheroll.bet_results_logs
+        bet_logs = test_etheroll.TestEtheroll.bet_logs
         merged_logs = [
             {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
             {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
@@ -352,7 +352,7 @@ class UITestCase(unittest.TestCase):
         self.assertIsNotNone(controller.current_account)
         screen_manager = controller.screen_manager
         # patches library with fake recent rolls
-        with mock.patch('pyetheroll.Etheroll.get_merged_logs') \
+        with mock.patch('pyetheroll.etheroll.Etheroll.get_merged_logs') \
                 as m_get_merged_logs:
             m_get_merged_logs.return_value = merged_logs
             screen_manager.current = 'roll_results_screen'
@@ -444,7 +444,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(dialog.title, 'Enter your password')
         dialog.content.password = 'password'
         unlock_button = dialog._action_buttons[0]
-        with mock.patch('pyetheroll.Etheroll.player_roll_dice') \
+        with mock.patch('pyetheroll.etheroll.Etheroll.player_roll_dice') \
                 as m_player_roll_dice:
             m_player_roll_dice.return_value = HexBytes(
                 '0x7be6e37621eb12db7dc535954345f69'
@@ -474,6 +474,73 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(len(dialogs), 1)
         dialog = dialogs[0]
         self.assertEqual(dialog.title, 'Rolled successfully')
+        dialog.dismiss()
+        self.assertEqual(len(dialogs), 0)
+        # loads back the default screen
+        screen_manager = controller.screen_manager
+        screen_manager.current = 'roll_screen'
+        self.advance_frames_for_screen()
+
+    def helper_test_roll_password(self, app):
+        """
+        Makes sure wrong passwords are handled properly.
+        Relevant error messages should prompt and it should be possible to
+        try again, refs:
+        https://github.com/AndreMiras/EtherollApp/issues/9
+        """
+        controller = app.root
+        # makes sure an account is selected
+        self.assertIsNotNone(controller.current_account)
+        # voids cached passwords
+        controller._account_passwords = {}
+        # retrieving the roll button, to click it
+        roll_screen = controller.roll_screen
+        roll_button = roll_screen.ids.roll_button_id
+        self.assertEqual(roll_button.text, 'Roll')
+        roll_button.dispatch('on_release')
+        # it should open the error dialog
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'Enter your password')
+        dialog.content.password = 'wrong password'
+        unlock_button = dialog._action_buttons[0]
+        unlock_button.dispatch('on_release')
+        # runs in a thread since password unlocking and tx signing takes time
+        threads = threading.enumerate()
+        # since we may run into race condition with threading.enumerate()
+        # we make the test conditional
+        if len(threads) == 2:
+            # rolls should be pulled from a thread
+            self.assertEqual(len(threads), 2)
+            player_roll_dice_thread = threads[1]
+            self.assertEqual(
+                type(player_roll_dice_thread), threading.Thread)
+            self.assertTrue(
+                'function Controller.player_roll_dice'
+                in str(player_roll_dice_thread._target))
+            # waits for the end of the thread
+            player_roll_dice_thread.join()
+        self.advance_frames_for_screen()
+        # thread has ended and the main thread is running alone again
+        self.assertEqual(len(threading.enumerate()), 1)
+        main_thread = threading.enumerate()[0]
+        self.assertEqual(type(main_thread), threading._MainThread)
+        # an error dialog should pop
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'Wrong password')
+        dialog.dismiss()
+        # the wrong password should not get cached and a password form should
+        # be prompted again next time we try to roll
+        roll_button.dispatch('on_release')
+        # it should open the error dialog
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'Enter your password')
+        dialog.dismiss()
         # loads back the default screen
         screen_manager = controller.screen_manager
         screen_manager.current = 'roll_screen'
@@ -495,6 +562,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_roll_history_no_tx(app)
         self.helper_test_roll_history_no_account(app)
         self.helper_test_roll(app)
+        self.helper_test_roll_password(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

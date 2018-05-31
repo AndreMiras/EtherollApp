@@ -1,14 +1,17 @@
 # Change Log
 
-## [Unreleased]
+## [v20180531]
 
   - Handle wrong password error, refs #9
+  - Dockerize Android APK compile, refs #38
+  - Android CI on Travis, refs #39
   - Prompt error dialog on no network, refs #59
   - Fix crash on empty roll history, refs #67
   - Add xclip & xsel system dependencies, refs #81, #82
   - Load previous screen on back button, refs #84
   - Validate password form on enter key, refs #85
   - Fix settings race condition crash, refs #86
+  - Dockerize F-Droid APK compile, refs #89
   - Speed up application loading, refs #91
   - Optional Etherscan API key, refs #93
 

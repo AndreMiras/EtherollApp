@@ -253,7 +253,7 @@ class Controller(FloatLayout):
     def about_screen(self):
         return self.screen_manager.get_screen('about_screen')
 
-    def on_unlock_clicked(self, dialog, account, password):
+    def on_unlock_clicked(self, instance, dialog, account, password):
         """
         Caches the password and call roll method again.
         """
@@ -268,18 +268,8 @@ class Controller(FloatLayout):
         """
         # lazy loading
         from etheroll.passwordform import PasswordForm
-        title = "Enter your password"
-        content = PasswordForm()
-        content.ids.account_id.text = "0x" + account.address.hex()
-        dialog = Dialog.create_dialog_content_helper(
-                    title=title,
-                    content=content)
-        # workaround for MDDialog container size (too small by default)
-        dialog.ids.container.size_hint_y = 1
-        dialog.add_action_button(
-            "Unlock",
-            action=lambda *x: self.on_unlock_clicked(
-                dialog, account, content.password))
+        dialog = PasswordForm.dialog(account)
+        dialog.content.bind(on_unlock=self.on_unlock_clicked)
         dialog.open()
         return dialog
 

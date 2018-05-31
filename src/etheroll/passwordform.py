@@ -33,4 +33,8 @@ class PasswordForm(BoxLayout):
             "Unlock",
             action=lambda *x: password_form.dispatch(
                 'on_unlock', dialog, account, password_form.password))
+        # hitting enter on the text should also submit
+        password_form.ids.password_id.bind(
+            on_text_validate=lambda *x: password_form.dispatch(
+                'on_unlock', dialog, account, password_form.password))
         return dialog

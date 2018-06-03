@@ -1,5 +1,9 @@
 # Change Log
 
+## [Unreleased]
+
+  - Fix crash when deployed on SD, refs #96
+
 ## [v20180531]
 
   - Handle wrong password error, refs #9

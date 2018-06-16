@@ -1,6 +1,6 @@
 # Change Log
 
-## [Unreleased]
+## [v20180617]
 
   - Fix crash when deployed on SD, refs #96
 

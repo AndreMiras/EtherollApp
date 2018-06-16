@@ -23,7 +23,7 @@ source.include_exts = py,png,jpg,kv,atlas,md,json
 
 # (list) List of directory to exclude (let empty to not exclude anything)
 #source.exclude_dirs = tests, bin
-source.exclude_dirs = bin, venv, src/python-for-android
+source.exclude_dirs = python-for-android
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg

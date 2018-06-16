@@ -176,7 +176,7 @@ def find_library(name):
     pythonforandroid/recipes/python2/patches/ctypes-find-library-updated.patch
     """
     # Check the user app lib dir
-    app_root = os.path.abspath('./').split(os.path.sep)[0:4]
+    app_root = os.path.abspath('../../').split(os.path.sep)
     lib_search = os.path.sep.join(app_root) + os.path.sep + 'lib'
     for filename in os.listdir(lib_search):
         if filename.endswith('.so') and name in filename:

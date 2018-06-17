@@ -284,9 +284,11 @@ p4a.local_recipes = %(source.dir)s/python-for-android/recipes/
 # (str) Name of the certificate to use for signing the debug version
 # Get a list of available identities: buildozer ios list_identities
 #ios.codesign.debug = "iPhone Developer: <lastname> <firstname> (<hexstring>)"
+ios.codesign.debug = "iPhone Developer: andre.miras@gmail.com (9BF7W3M52N)"
 
 # (str) Name of the certificate to use for signing the release version
 #ios.codesign.release = %(ios.codesign.debug)s
+ios.codesign.release = %(ios.codesign.debug)s
 
 
 [buildozer]

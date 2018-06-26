@@ -2,6 +2,7 @@
 
 ## [Unreleased]
   - Fix pycryptodome compilation, refs #99
+  - Notifies when roll processed, refs #57
 
 ## [v20180617]
 

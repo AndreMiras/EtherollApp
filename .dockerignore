@@ -1,6 +1,8 @@
 venv/
 .git/
 .buildozer/
-.pytest_cache/
+**/.pytest_cache/
 .tox/
 bin/
+*.pyc
+**/__pycache__

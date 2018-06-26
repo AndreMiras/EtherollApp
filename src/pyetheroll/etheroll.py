@@ -250,6 +250,7 @@ class Etheroll:
         """
         Retrieves `address` last bets from event logs and returns the list
         of bets with decoded info. Does not return the actual roll result.
+        Least recent first (index 0), most recent last (index -1).
         """
         bets = []
         bet_events = self.get_log_bet_events(address, from_block, to_block)
@@ -371,6 +372,10 @@ class Etheroll:
         return merged_logs
 
     def get_merged_logs(self, address):
+        """
+        Returns the merged logs.
+        Least recent first (index 0), most recent last (index -1).
+        """
         last_bets_blocks = self.get_last_bets_blocks(address)
         if last_bets_blocks is None:
             return []

@@ -1,5 +1,8 @@
 # Change Log
 
+## [Unreleased]
+  - Fix pycryptodome compilation, refs #99
+
 ## [v20180617]
 
   - Fix crash when deployed on SD, refs #96

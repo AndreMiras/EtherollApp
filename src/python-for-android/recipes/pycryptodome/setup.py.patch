@@ -1,8 +1,8 @@
 diff --git a/setup.py b/setup.py
-index b022d2c..4cbcb1c 100644
+index b022d2c..ef302e4 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -251,6 +251,16 @@ class PCTBuildExt (build_ext):
+@@ -251,6 +251,22 @@ class PCTBuildExt (build_ext):
  
      aesni_mod_names = "Crypto.Cipher._raw_aesni",
  
@@ -12,9 +12,15 @@ index b022d2c..4cbcb1c 100644
 +        """
 +        build_ext.finalize_options(self)
 +        py_include = distutils.sysconfig.get_python_inc()
-+        self.include_dirs.remove(py_include)
++        try:
++            self.include_dirs.remove(py_include)
++        except ValueError:
++            pass
 +        libdir = distutils.sysconfig.get_config_var('LIBDIR')
-+        self.library_dirs.remove(libdir)
++        try:
++            self.library_dirs.remove(libdir)
++        except ValueError:
++            pass
 +
      def run(self):
          build_ext.run(self)

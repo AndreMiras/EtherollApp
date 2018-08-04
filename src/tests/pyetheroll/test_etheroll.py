@@ -447,6 +447,7 @@ class TestEtheroll(unittest.TestCase):
         """
         Makes sure the Etherscan getLogs API is called correctly for LogBet.
         """
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
         # simplified contract ABI
         contract_abi = [self.log_bet_abi]
         with \
@@ -457,7 +458,7 @@ class TestEtheroll(unittest.TestCase):
                 as m_get_etherscan_api_key:
             m_get_abi.return_value = json.dumps(contract_abi)
             m_get_etherscan_api_key.return_value = 'apikey'
-            etheroll = Etheroll()
+            etheroll = Etheroll(contract_address=contract_address)
         player_address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
         from_block = 5394085
         to_block = 5442078
@@ -480,6 +481,7 @@ class TestEtheroll(unittest.TestCase):
         """
         Makes sure the Etherscan getLogs API is called correctly for LogBet.
         """
+        contract_address = '0x048717Ea892F23Fb0126F00640e2b18072efd9D2'
         # simplified contract ABI
         contract_abi = [self.log_result_abi]
         with \
@@ -490,7 +492,7 @@ class TestEtheroll(unittest.TestCase):
                 as m_get_etherscan_api_key:
             m_get_abi.return_value = json.dumps(contract_abi)
             m_get_etherscan_api_key.return_value = 'apikey'
-            etheroll = Etheroll()
+            etheroll = Etheroll(contract_address=contract_address)
         player_address = '0x46044beaa1e985c67767e04de58181de5daaa00f'
         from_block = 5394085
         to_block = 5442078

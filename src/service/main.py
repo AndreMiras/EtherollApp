@@ -2,6 +2,7 @@ import os
 from time import sleep
 
 from kivy.storage.jsonstore import JsonStore
+from kivy.utils import platform
 from plyer import notification
 
 from ethereum_utils import AccountUtils
@@ -30,6 +31,17 @@ class MonitorRollsService():
         while True:
             self.pull_accounts_rolls()
             sleep(PULL_FREQUENCY_SECONDS)
+
+    @staticmethod
+    def set_auto_restart_service(restart=True):
+        """
+        Makes sure the service restarts automatically on Android when killed.
+        """
+        if platform != 'android':
+            return
+        from jnius import autoclass
+        PythonService = autoclass('org.kivy.android.PythonService')
+        PythonService.mService.setAutoRestartService(restart)
 
     @property
     def pyetheroll(self):
@@ -158,6 +170,7 @@ class MonitorRollsService():
 
 def main():
     service = MonitorRollsService()
+    service.set_auto_restart_service()
     service.start()
 
 

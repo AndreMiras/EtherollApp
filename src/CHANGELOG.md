@@ -1,8 +1,10 @@
 # Change Log
 
-## [Unreleased]
+## [v20180911]
+
   - Fix pycryptodome compilation, refs #99
-  - Notifies when roll processed, refs #57
+  - Notifie when roll processed, refs #57
+  - Update to new contract address
 
 ## [v20180617]
 

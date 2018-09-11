@@ -10,7 +10,7 @@ package.name = etheroll
 package.domain = com.github.andremiras
 
 # (str) Source code where the main.py live
-source.dir = src/
+source.dir = src
 
 # (list) Source files to include (let empty to include all the files)
 source.include_exts = py,png,jpg,kv,atlas,md,json
@@ -41,7 +41,8 @@ requirements =
     hostpython3crystax==3.6,
     python3crystax==3.6,
     setuptools,
-    kivy,
+    kivy==d8ef8c2,
+    plyer==1.3.0,
     android,
     gevent,
     cffi,
@@ -121,6 +122,7 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
+services = service:service/main.py
 
 #
 # OSX Specific
@@ -284,9 +286,11 @@ p4a.local_recipes = %(source.dir)s/python-for-android/recipes/
 # (str) Name of the certificate to use for signing the debug version
 # Get a list of available identities: buildozer ios list_identities
 #ios.codesign.debug = "iPhone Developer: <lastname> <firstname> (<hexstring>)"
+ios.codesign.debug = "iPhone Developer: andre.miras@gmail.com (9BF7W3M52N)"
 
 # (str) Name of the certificate to use for signing the release version
 #ios.codesign.release = %(ios.codesign.debug)s
+ios.codesign.release = %(ios.codesign.debug)s
 
 
 [buildozer]

@@ -9,10 +9,10 @@ from unittest import mock
 
 from hexbytes import HexBytes
 from kivy.clock import Clock
-from tests.pyetheroll import test_etheroll
 
 from etheroll.controller import EtherollApp
 from etheroll.utils import Dialog
+from tests.pyetheroll import test_etheroll
 
 
 class UITestCase(unittest.TestCase):

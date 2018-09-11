@@ -1,5 +1,11 @@
 # Change Log
 
+## [v20180911]
+
+  - Fix pycryptodome compilation, refs #99
+  - Notifie when roll processed, refs #57
+  - Update to new contract address
+
 ## [v20180617]
 
   - Fix crash when deployed on SD, refs #96

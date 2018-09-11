@@ -10,7 +10,7 @@
 # TODO:
 #	- delete archives to keep small the container small
 #	- setup caching (for apt, and pip)
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 # configure locale
 RUN apt update -qq > /dev/null && apt install --yes --no-install-recommends \
@@ -23,7 +23,7 @@ ENV LANG="en_US.UTF-8" \
 # install system dependencies
 RUN apt update -qq > /dev/null && apt install --yes --no-install-recommends \
 	python3 python3-dev virtualenv make lsb-release pkg-config git build-essential \
-    libssl-dev tox
+    sudo libssl-dev tox
 
 # install kivy system dependencies
 # https://kivy.org/docs/installation/installation-linux.html#dependencies-with-sdl2
@@ -32,4 +32,5 @@ RUN apt install --yes --no-install-recommends \
 
 WORKDIR /app
 COPY . /app
+RUN make system_dependencies
 ENTRYPOINT ["./dockerfiles/start.sh"]

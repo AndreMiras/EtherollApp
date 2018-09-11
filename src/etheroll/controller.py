@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import os
-from os.path import expanduser
 
 from kivy.app import App
 from kivy.clock import Clock, mainthread
@@ -15,11 +14,10 @@ from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
 from etheroll.constants import KEYSTORE_DIR_SUFFIX
+from etheroll.patches import patch_find_library_android, patch_typing_python351
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
-from etheroll.utils import (Dialog, load_kv_from_py,
-                            patch_find_library_android, patch_typing_python351,
-                            run_in_thread)
+from etheroll.utils import Dialog, load_kv_from_py, run_in_thread
 from version import __version__
 
 patch_find_library_android()
@@ -121,7 +119,7 @@ class Controller(FloatLayout):
         Returns the keystore path, which is the same as the default pyethapp
         one.
         """
-        KEYSTORE_DIR_PREFIX = expanduser("~")
+        KEYSTORE_DIR_PREFIX = os.path.expanduser("~")
         # uses kivy user_data_dir (/sdcard/<app_name>)
         if platform == "android":
             KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
@@ -478,7 +476,24 @@ class EtherollApp(App):
         self.icon = "docs/images/icon.png"
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.primary_palette = 'Indigo'
+        self.start_service()
         return Controller()
+
+    def start_service(self):
+        """
+        Starts the roll pulling service.
+        """
+        if platform == 'android':
+            from jnius import autoclass
+            package_name = 'etheroll'
+            package_domain = 'com.github.andremiras'
+            service_name = 'service'
+            service_class = '{}.{}.Service{}'.format(
+                package_domain, package_name, service_name.title())
+            service = autoclass(service_class)
+            mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+            argument = ''
+            service.start(mActivity, argument)
 
 
 def main():

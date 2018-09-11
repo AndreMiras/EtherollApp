@@ -8,7 +8,7 @@ isort
 # is fixed by installing kivy master
 # https://github.com/kivy/kivy/archive/27e3b90eae2a0155b22a435f1b6f65c913519db6.zip#egg=kivy
 # on Ubuntu 18.04 Bionic, the compile error related to `MIX_INIT_MOD` is fixed by installing:
-https://github.com/kivy/kivy/archive/d8ef8c2834293098bc404c0432049b2761f9b721.zip#egg=kivy
+https://github.com/kivy/kivy/archive/d8ef8c2.zip#egg=kivy
 # Kivy==1.10.0
 https://gitlab.com/kivymd/KivyMD/repository/archive.zip?ref=19e587e6#egg=kivymd
 ethereum==2.1.1
@@ -24,3 +24,4 @@ rlp==0.6.0
 # https://github.com/golemfactory/golem-messages/pull/112/files
 https://github.com/mfranciszkiewicz/pyelliptic/archive/1.5.10.tar.gz#egg=pyelliptic
 https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.zip#egg=layoutmargin
+plyer==1.3.0

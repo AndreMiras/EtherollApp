@@ -3,7 +3,7 @@
 
 ## [Unreleased]
 
-  - Notify when roll processed, refs #57, #103
+  - Notify when roll processed, refs #57, #103, #106
   - Recipes LDSHARED & CFLAGS cleaning, refs #104
 
 

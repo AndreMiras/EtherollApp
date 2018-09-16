@@ -1,15 +1,18 @@
 import os
 from time import sleep, time
 
+from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
 from kivy.utils import platform
 from plyer import notification
+from raven import Client
 
 from ethereum_utils import AccountUtils
 from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android
 from pyetheroll.constants import ROUND_DIGITS, ChainID
 from pyetheroll.etheroll import Etheroll
+from sentry_utils import configure_sentry
 
 patch_find_library_android()
 PULL_FREQUENCY_SECONDS = 10
@@ -178,9 +181,21 @@ class MonitorRollsService():
 
 
 def main():
-    service = MonitorRollsService()
-    service.set_auto_restart_service()
-    service.run()
+    # only send Android errors to Sentry
+    in_debug = platform != "android"
+    client = configure_sentry(in_debug)
+    try:
+        service = MonitorRollsService()
+        service.set_auto_restart_service()
+        service.run()
+    except Exception:
+        # avoid auto-restart loop
+        service.set_auto_restart_service(False)
+        if type(client) == Client:
+            Logger.info(
+                'Errors will be sent to Sentry, run with "--debug" if you '
+                'are a developper and want to the error in the shell.')
+        client.captureException()
 
 
 if __name__ == '__main__':

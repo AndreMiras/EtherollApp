@@ -1,14 +1,22 @@
 # Change Log
 
+
+## [Unreleased]
+
+  - Notify when roll processed, refs #57, #103
+  - Recipes LDSHARED & CFLAGS cleaning, refs #104
+
+
 ## [v20180911]
 
   - Fix pycryptodome compilation, refs #99
-  - Notify when roll processed, refs #57, #103
   - Update to new contract address
+
 
 ## [v20180617]
 
   - Fix crash when deployed on SD, refs #96
+
 
 ## [v20180531]
 

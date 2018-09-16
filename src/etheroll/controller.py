@@ -18,6 +18,7 @@ from etheroll.patches import patch_find_library_android, patch_typing_python351
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.utils import Dialog, load_kv_from_py, run_in_thread
+from service.utils import start_service
 from version import __version__
 
 patch_find_library_android()
@@ -357,6 +358,8 @@ class Controller(FloatLayout):
         if password is not None:
             self.player_roll_dice(
                 bet_size, chances, wallet_path, password, gas_price)
+            # restarts roll pulling service to reset the roll activity period
+            start_service()
 
     def load_switch_account(self):
         """
@@ -476,24 +479,8 @@ class EtherollApp(App):
         self.icon = "docs/images/icon.png"
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.primary_palette = 'Indigo'
-        self.start_service()
+        start_service()
         return Controller()
-
-    def start_service(self):
-        """
-        Starts the roll pulling service.
-        """
-        if platform == 'android':
-            from jnius import autoclass
-            package_name = 'etheroll'
-            package_domain = 'com.github.andremiras'
-            service_name = 'service'
-            service_class = '{}.{}.Service{}'.format(
-                package_domain, package_name, service_name.title())
-            service = autoclass(service_class)
-            mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
-            argument = ''
-            service.start(mActivity, argument)
 
 
 def main():

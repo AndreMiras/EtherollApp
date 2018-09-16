@@ -3,7 +3,7 @@
 ## [v20180911]
 
   - Fix pycryptodome compilation, refs #99
-  - Notifie when roll processed, refs #57
+  - Notify when roll processed, refs #57, #103
   - Update to new contract address
 
 ## [v20180617]

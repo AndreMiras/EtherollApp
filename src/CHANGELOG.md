@@ -5,6 +5,7 @@
 
   - Notify when roll processed, refs #57, #103, #106
   - Recipes LDSHARED & CFLAGS cleaning, refs #104
+  - Updates broken Mainnet node, refs #111
 
 
 ## [v20180911]

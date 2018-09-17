@@ -10,6 +10,7 @@ from kivy.utils import platform
 from kivymd.bottomsheet import MDListBottomSheet
 from kivymd.theming import ThemeManager
 from raven import Client
+from requests.exceptions import ConnectionError
 
 from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android, patch_typing_python351
@@ -308,7 +309,7 @@ class Controller(FloatLayout):
         """
         title = "Error rolling"
         body = str(exception)
-        if exception.args[0] == 'MAC mismatch':
+        if body == 'MAC mismatch':
             title = "Wrong password"
             body = "Can't unlock wallet, wrong password."
             account = self.current_account
@@ -330,7 +331,7 @@ class Controller(FloatLayout):
             roll_screen.toggle_widgets(False)
             tx_hash = self.pyetheroll.player_roll_dice(
                 bet_size, chances, wallet_path, password, gas_price)
-        except ValueError as exception:
+        except (ValueError, ConnectionError) as exception:
             roll_screen.toggle_widgets(True)
             self.dialog_roll_error(exception)
             return

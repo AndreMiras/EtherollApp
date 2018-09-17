@@ -38,8 +38,9 @@ def decode_contract_call(contract_abi: list, call_data: str):
 class HTTPProviderFactory:
 
     PROVIDER_URLS = {
-        ChainID.MAINNET: 'https://api.myetherapi.com/eth',
-        # also https://api.myetherapi.com/rop
+        # ChainID.MAINNET: 'https://api.myetherapi.com/eth',
+        ChainID.MAINNET: 'https://mainnet.infura.io',
+        # ChainID.ROPSTEN: 'https://api.myetherapi.com/rop',
         ChainID.ROPSTEN: 'https://ropsten.infura.io',
     }
 

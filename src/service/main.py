@@ -1,17 +1,23 @@
 import os
-from time import sleep
+from time import sleep, time
 
+from kivy.logger import Logger
 from kivy.storage.jsonstore import JsonStore
+from kivy.utils import platform
 from plyer import notification
+from raven import Client
 
 from ethereum_utils import AccountUtils
 from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android
 from pyetheroll.constants import ROUND_DIGITS, ChainID
 from pyetheroll.etheroll import Etheroll
+from sentry_utils import configure_sentry
 
 patch_find_library_android()
 PULL_FREQUENCY_SECONDS = 10
+# time before the service shuts down if no roll activity
+NO_ROLL_ACTIVITY_PERDIOD_SECONDS = 5 * 60
 
 
 class MonitorRollsService():
@@ -22,14 +28,32 @@ class MonitorRollsService():
         self._pyetheroll = None
         # per address cached merged logs, used to compare with next pulls
         self.merged_logs = {}
+        self.last_roll_activity = None
 
-    def start(self):
+    def run(self):
         """
         Blocking pull loop call.
+        Service will stop after a period of time with no roll activity.
         """
-        while True:
+        self.last_roll_activity = time()
+        elapsed = (time() - self.last_roll_activity)
+        while elapsed < NO_ROLL_ACTIVITY_PERDIOD_SECONDS:
             self.pull_accounts_rolls()
             sleep(PULL_FREQUENCY_SECONDS)
+            elapsed = (time() - self.last_roll_activity)
+        # service decided to die naturally after no roll activity
+        self.set_auto_restart_service(False)
+
+    @staticmethod
+    def set_auto_restart_service(restart=True):
+        """
+        Makes sure the service restarts automatically on Android when killed.
+        """
+        if platform != 'android':
+            return
+        from jnius import autoclass
+        PythonService = autoclass('org.kivy.android.PythonService')
+        PythonService.mService.setAutoRestartService(restart)
 
     @property
     def pyetheroll(self):
@@ -115,13 +139,13 @@ class MonitorRollsService():
             # since it differs, updates the cache and notifies
             self.merged_logs[address] = merged_logs
             self.do_notify(merged_logs)
+            self.last_roll_activity = time()
 
     def pull_accounts_rolls(self):
         accounts = self.account_utils.get_account_list()
         for account in accounts:
             self.pull_account_rolls(account)
 
-    # TODO: should we show "dice_result sign roll_under" and/or value won/lost?
     def do_notify(self, merged_logs):
         """
         Notifies the with last roll.
@@ -157,8 +181,21 @@ class MonitorRollsService():
 
 
 def main():
-    service = MonitorRollsService()
-    service.start()
+    # only send Android errors to Sentry
+    in_debug = platform != "android"
+    client = configure_sentry(in_debug)
+    try:
+        service = MonitorRollsService()
+        service.set_auto_restart_service()
+        service.run()
+    except Exception:
+        # avoid auto-restart loop
+        service.set_auto_restart_service(False)
+        if type(client) == Client:
+            Logger.info(
+                'Errors will be sent to Sentry, run with "--debug" if you '
+                'are a developper and want to the error in the shell.')
+        client.captureException()
 
 
 if __name__ == '__main__':

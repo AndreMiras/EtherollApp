@@ -9,6 +9,7 @@ from unittest import mock
 
 from hexbytes import HexBytes
 from kivy.clock import Clock
+from requests.exceptions import ConnectionError
 
 from etheroll.controller import EtherollApp
 from etheroll.utils import Dialog
@@ -27,6 +28,10 @@ class UITestCase(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.temp_path, ignore_errors=True)
+
+    def helper_setup(self, app):
+        pass
+        # etheroll.SCREEN_SWITCH_DELAY = 0.001
 
     # sleep function that catches `dt` from Clock
     def pause(*args):
@@ -54,9 +59,14 @@ class UITestCase(unittest.TestCase):
         """
         self.advance_frames_for_screen()
 
-    def helper_setup(self, app):
-        pass
-        # etheroll.SCREEN_SWITCH_DELAY = 0.001
+    def join_threads(self):
+        """
+        Joins pending threads.
+        """
+        threads = threading.enumerate()
+        # lists all threads but the main one
+        for thread in threads[1:]:
+            thread.join()
 
     def helper_test_empty_account(self, app):
         """
@@ -314,8 +324,7 @@ class UITestCase(unittest.TestCase):
 
     def helper_test_chances_input_binding(self, app):
         """
-        Makes sure the chances input works as expected, refs:
-        https://github.com/AndreMiras/EtherollApp/issues/46
+        Makes sure the chances input works as expected, refs #46.
         """
         controller = app.root
         # retrieves both widgets from roll screen
@@ -421,6 +430,8 @@ class UITestCase(unittest.TestCase):
         # we should get redirected to the overview page
         self.advance_frames_for_screen()
         self.assertEqual(controller.screen_manager.current, 'roll_screen')
+        # e.g. fetch_update_balance thread
+        self.join_threads()
 
     def helper_test_roll(self, app):
         """
@@ -480,13 +491,59 @@ class UITestCase(unittest.TestCase):
         screen_manager = controller.screen_manager
         screen_manager.current = 'roll_screen'
         self.advance_frames_for_screen()
+        # e.g. fetch_update_balance thread
+        self.join_threads()
+
+    def helper_test_roll_connection_error(self, app):
+        """
+        Makes sure ConnectionError on roll is handled gracefully, refs #111.
+        """
+        controller = app.root
+        # retrieving the roll button, to click it
+        roll_screen = controller.roll_screen
+        roll_button = roll_screen.ids.roll_button_id
+        self.assertEqual(roll_button.text, 'Roll')
+        with mock.patch('web3.eth.Eth.getTransactionCount') \
+                as m_getTransactionCount:
+            m_getTransactionCount.side_effect = \
+                ConnectionError('Whatever ConnectionError')
+            roll_button.dispatch('on_release')
+            threads = threading.enumerate()
+            # since we may run into race condition with threading.enumerate()
+            # we make the test conditional
+            if len(threads) == 2:
+                # rolls should be pulled from a thread
+                self.assertEqual(len(threads), 2)
+                player_roll_dice_thread = threads[1]
+                self.assertEqual(
+                    type(player_roll_dice_thread), threading.Thread)
+                self.assertTrue(
+                    'function Controller.player_roll_dice'
+                    in str(player_roll_dice_thread._target))
+                # waits for the end of the thread
+                player_roll_dice_thread.join()
+        self.advance_frames_for_screen()
+        self.assertEqual(len(threading.enumerate()), 1)
+        main_thread = threading.enumerate()[0]
+        self.assertEqual(type(main_thread), threading._MainThread)
+        # an error dialog should pop
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'Error rolling')
+        self.assertEqual(dialog.content.text, 'Whatever ConnectionError')
+        dialog.dismiss()
+        self.assertEqual(len(dialogs), 0)
+        # loads back the default screen
+        screen_manager = controller.screen_manager
+        screen_manager.current = 'roll_screen'
+        self.advance_frames_for_screen()
 
     def helper_test_roll_password(self, app):
         """
         Makes sure wrong passwords are handled properly.
         Relevant error messages should prompt and it should be possible to
-        try again, refs:
-        https://github.com/AndreMiras/EtherollApp/issues/9
+        try again, refs #9.
         """
         controller = app.root
         # makes sure an account is selected
@@ -562,6 +619,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_roll_history_no_tx(app)
         self.helper_test_roll_history_no_account(app)
         self.helper_test_roll(app)
+        self.helper_test_roll_connection_error(app)
         self.helper_test_roll_password(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.

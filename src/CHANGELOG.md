@@ -6,6 +6,7 @@
   - Notify when roll processed, refs #57, #103, #106
   - Recipes LDSHARED & CFLAGS cleaning, refs #104
   - Updates broken Mainnet node, refs #111
+  - Upgrades to Kivy==1.10.1, refs #100
 
 
 ## [v20180911]

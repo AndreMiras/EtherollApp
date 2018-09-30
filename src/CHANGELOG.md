@@ -1,6 +1,11 @@
 # Change Log
 
 
+## [Unreleased]
+
+  - Click notification to open the app, refs #114
+
+
 ## [v20180918]
 
   - Notify when roll processed, refs #57, #103, #106

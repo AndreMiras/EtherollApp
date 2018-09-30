@@ -42,7 +42,7 @@ requirements =
     python3crystax==3.6,
     setuptools,
     kivy==1.10.1,
-    plyer==1.3.0,
+    https://github.com/kivy/plyer/archive/3023876.zip,
     android,
     gevent,
     cffi,

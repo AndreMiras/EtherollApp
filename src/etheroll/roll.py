@@ -32,7 +32,7 @@ class BetSize(BoxLayout):
         inpt = self.ids.bet_size_input_id
         cast_to = float
         # shows less digits than the constant default to keep the input tiny
-        round_digits = 1
+        round_digits = 2
         BetSize.bind_slider_input(slider, inpt, cast_to, round_digits)
 
     @staticmethod

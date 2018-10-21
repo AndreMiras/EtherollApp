@@ -14,7 +14,7 @@ List of devices attached
 
 Update your udev rules, there's an example to adapt to your Android device here:
 ```
-sudo cp root/etc/udev/rules.d/51-android.rules /etc/udev/rules.d/
+sudo cp docs/root/etc/udev/rules.d/51-android.rules /etc/udev/rules.d/
 ```
 Then replug your device and rerun the command.
 

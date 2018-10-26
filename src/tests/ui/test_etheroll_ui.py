@@ -12,7 +12,7 @@ from kivy.clock import Clock
 from requests.exceptions import ConnectionError
 
 from etheroll.controller import EtherollApp
-from etheroll.utils import Dialog
+from etheroll.ui_utils import Dialog
 from tests.pyetheroll import test_etheroll
 
 

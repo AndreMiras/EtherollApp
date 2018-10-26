@@ -16,7 +16,8 @@ from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android, patch_typing_python351
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
-from etheroll.utils import Dialog, load_kv_from_py, run_in_thread
+from etheroll.ui_utils import Dialog, load_kv_from_py
+from etheroll.utils import run_in_thread
 from sentry_utils import configure_sentry
 from service.utils import start_service
 

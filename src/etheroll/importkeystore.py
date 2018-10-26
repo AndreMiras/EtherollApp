@@ -1,8 +1,8 @@
-from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import StringProperty
 from kivy.uix.boxlayout import BoxLayout
 
+from etheroll.store import Store
 from etheroll.ui_utils import load_kv_from_py
 
 load_kv_from_py(__file__)
@@ -19,5 +19,4 @@ class ImportKeystore(BoxLayout):
         """
         Sets keystore_path.
         """
-        controller = App.get_running_app().root
-        self.keystore_path = controller.get_keystore_path()
+        self.keystore_path = Store.get_keystore_path()

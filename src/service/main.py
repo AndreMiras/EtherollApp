@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 import os
 from time import sleep, time
+from types import SimpleNamespace
 
 from kivy.logger import Logger
-from kivy.storage.jsonstore import JsonStore
 from kivy.utils import platform
 from plyer import notification
 from raven import Client
@@ -10,6 +11,7 @@ from raven import Client
 from ethereum_utils import AccountUtils
 from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android
+from etheroll.store import Store
 from pyetheroll.constants import ROUND_DIGITS, ChainID
 from pyetheroll.etheroll import Etheroll
 from sentry_utils import configure_sentry
@@ -67,37 +69,18 @@ class MonitorRollsService():
         return self._pyetheroll
 
     @staticmethod
-    def user_data_dir():
+    def get_running_app():
         """
-        Fakes kivy.app.App().user_data_dir behavior.
-        On Android, `/sdcard/<app_name>` is returned.
+        Fakes the get_running_app() behavior and returns an app with only
+        `App.name` setup.
         """
-        # TODO: hardcoded
         app_name = 'etheroll'
-        data_dir = os.path.join('/sdcard', app_name)
-        data_dir = os.path.expanduser(data_dir)
-        if not os.path.exists(data_dir):
-            os.mkdir(data_dir)
-        return data_dir
-
-    # TODO: merge at least "store.json" const with src/etheroll/store.py
-    @classmethod
-    def get_store_path(cls):
-        """
-        Returns the full user store path.
-        """
-        user_data_dir = cls.user_data_dir()
-        store_path = os.path.join(user_data_dir, 'store.json')
-        return store_path
+        return SimpleNamespace(name=app_name)
 
     @classmethod
-    def get_store(cls):
-        """
-        Returns user Store object.
-        """
-        store_path = cls.get_store_path()
-        store = JsonStore(store_path)
-        return store
+    def user_data_dir(cls):
+        app = cls.get_running_app()
+        return Store.get_user_data_dir(app)
 
     # TODO: refactore and share the one from settings or somewhere
     @classmethod
@@ -105,7 +88,8 @@ class MonitorRollsService():
         """
         Retrieves last stored network value, defaults to Mainnet.
         """
-        store = cls.get_store()
+        app = cls.get_running_app()
+        store = Store.get_store(app)
         try:
             network_dict = store['network']
         except KeyError:
@@ -117,7 +101,11 @@ class MonitorRollsService():
 
     @classmethod
     def get_keystore_path(cls):
-        KEYSTORE_DIR_PREFIX = cls.user_data_dir()
+        KEYSTORE_DIR_PREFIX = os.path.expanduser("~")
+        # uses kivy user_data_dir (/sdcard/<app_name>)
+        if platform == "android":
+            # KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
+            KEYSTORE_DIR_PREFIX = cls.user_data_dir()
         keystore_dir = os.path.join(
             KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
         return keystore_dir
@@ -184,8 +172,8 @@ def main():
     # only send Android errors to Sentry
     in_debug = platform != "android"
     client = configure_sentry(in_debug)
+    service = MonitorRollsService()
     try:
-        service = MonitorRollsService()
         service.set_auto_restart_service()
         service.run()
     except Exception:

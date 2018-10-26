@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import os
-
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.logger import Logger
@@ -12,7 +10,6 @@ from kivymd.theming import ThemeManager
 from raven import Client
 from requests.exceptions import ConnectionError
 
-from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android, patch_typing_python351
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
@@ -90,8 +87,9 @@ class Controller(FloatLayout):
         Gets or creates the AccountUtils object so it loads lazily.
         """
         from ethereum_utils import AccountUtils
+        from etheroll.store import Store
         if self._account_utils is None:
-            keystore_dir = self.get_keystore_path()
+            keystore_dir = Store.get_keystore_path()
             self._account_utils = AccountUtils(keystore_dir=keystore_dir)
         return self._account_utils
 
@@ -103,30 +101,6 @@ class Controller(FloatLayout):
         self.disabled = False
         # not using that returned value, but it peaces linter
         return account_utils
-
-    @classmethod
-    def get_keystore_path(cls):
-        """
-        This is the Kivy default keystore path.
-        """
-        keystore_path = os.environ.get('KEYSTORE_PATH')
-        if keystore_path is None:
-            keystore_path = cls.get_default_keystore_path()
-        return keystore_path
-
-    @staticmethod
-    def get_default_keystore_path():
-        """
-        Returns the keystore path, which is the same as the default pyethapp
-        one.
-        """
-        KEYSTORE_DIR_PREFIX = os.path.expanduser("~")
-        # uses kivy user_data_dir (/sdcard/<app_name>)
-        if platform == "android":
-            KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
-        keystore_dir = os.path.join(
-            KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
-        return keystore_dir
 
     def bind_wager_property(self):
         """

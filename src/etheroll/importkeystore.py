@@ -3,7 +3,7 @@ from kivy.clock import Clock
 from kivy.properties import StringProperty
 from kivy.uix.boxlayout import BoxLayout
 
-from etheroll.utils import load_kv_from_py
+from etheroll.ui_utils import load_kv_from_py
 
 load_kv_from_py(__file__)
 

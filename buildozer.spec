@@ -43,6 +43,7 @@ requirements =
     setuptools,
     kivy==1.10.1,
     plyer==1.3.1,
+    oscpy==0.3.0,
     android,
     gevent,
     cffi,

@@ -15,8 +15,9 @@ from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.ui_utils import Dialog, load_kv_from_py
 from etheroll.utils import run_in_thread
+from osc.osc_app_server import OscAppServer
 from sentry_utils import configure_sentry
-from service.utils import start_service
+from service.utils import start_roll_pulling_service
 
 patch_find_library_android()
 patch_typing_python351()
@@ -313,6 +314,23 @@ class Controller(FloatLayout):
         roll_screen.toggle_widgets(True)
         self.dialog_roll_success(tx_hash)
 
+    @staticmethod
+    def start_services():
+        """
+        Starts both roll pulling service and OSC service.
+        The roll pulling service is getting the OSC server connection
+        parameters so it can communicate to it.
+        """
+        app = App.get_running_app()
+        osc_server, sockname = OscAppServer.get_or_create(app)
+        server_address, server_port = sockname
+        print(sockname)
+        arguments = {
+            'osc_server_address': server_address,
+            'osc_server_port': server_port,
+        }
+        start_roll_pulling_service(arguments)
+
     def roll(self):
         """
         Retrieves bet parameters from user input and sends it as a signed
@@ -333,7 +351,7 @@ class Controller(FloatLayout):
             self.player_roll_dice(
                 bet_size, chances, wallet_path, password, gas_price)
             # restarts roll pulling service to reset the roll activity period
-            start_service()
+            self.start_services()
 
     def load_switch_account(self):
         """
@@ -416,7 +434,7 @@ class EtherollApp(App):
         self.icon = "docs/images/icon.png"
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.primary_palette = 'Indigo'
-        start_service()
+        Controller.start_services()
         return Controller()
 
 

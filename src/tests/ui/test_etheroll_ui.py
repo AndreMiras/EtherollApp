@@ -61,11 +61,11 @@ class UITestCase(unittest.TestCase):
 
     def join_threads(self):
         """
-        Joins pending threads.
+        Joins pending threads except for main and OSC threads.
         """
         threads = threading.enumerate()
         # lists all threads but the main one
-        for thread in threads[1:]:
+        for thread in threads[2:]:
             thread.join()
 
     def helper_test_empty_account(self, app):
@@ -213,23 +213,23 @@ class UITestCase(unittest.TestCase):
         # fills them up with same password
         new_password1_id.text = new_password2_id.text = "password"
         # before clicking the create account button,
-        # only the main thread is running
-        self.assertEqual(len(threading.enumerate()), 1)
+        # only the main and OSC threads are running
+        self.assertEqual(len(threading.enumerate()), 2)
         main_thread = threading.enumerate()[0]
         self.assertEqual(type(main_thread), threading._MainThread)
         # click the create account button
         create_account_button_id.dispatch('on_release')
-        # after submitting the account creation thread should run
-        self.assertEqual(len(threading.enumerate()), 2)
+        # after submitting the account creation thread should also run
+        self.assertEqual(len(threading.enumerate()), 3)
         self.assertEqual(type(main_thread), threading._MainThread)
-        create_account_thread = threading.enumerate()[1]
+        create_account_thread = threading.enumerate()[2]
         self.assertTrue(
             'function CreateNewAccount.create_account'
             in str(create_account_thread._target))
         # waits for the end of the thread
         create_account_thread.join()
-        # thread has ended and the main thread is running alone again
-        self.assertEqual(len(threading.enumerate()), 1)
+        # thread has ended, main & OSC threads only are running again
+        self.assertEqual(len(threading.enumerate()), 2)
         main_thread = threading.enumerate()[0]
         self.assertEqual(type(main_thread), threading._MainThread)
         # verifies the account was created
@@ -244,8 +244,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(
             controller.switch_account_screen.current_account,
             account_utils.get_account_list()[0])
-        # joins ongoing threads
-        [t.join() for t in threading.enumerate()[1:]]
+        self.join_threads()
         # check the redirect dialog
         dialogs = Dialog.dialogs
         self.assertEqual(len(dialogs), 1)
@@ -291,8 +290,8 @@ class UITestCase(unittest.TestCase):
             new_password2_id.text = password_dict['new_password2']
             # makes the account creation fast
             # before clicking the create account button,
-            # only the main thread is running
-            self.assertEqual(len(threading.enumerate()), 1)
+            # only the main and OSC threads are running
+            self.assertEqual(len(threading.enumerate()), 2)
             main_thread = threading.enumerate()[0]
             self.assertEqual(type(main_thread), threading._MainThread)
             # click the create account button
@@ -301,8 +300,8 @@ class UITestCase(unittest.TestCase):
             threads = threading.enumerate()
             # since we may run into race condition with threading.enumerate()
             # we make the test conditional
-            if len(threads) == 2:
-                create_account_thread = threading.enumerate()[1]
+            if len(threads) == 3:
+                create_account_thread = threading.enumerate()[2]
                 self.assertEqual(
                     type(create_account_thread), threading.Thread)
                 self.assertTrue(
@@ -366,8 +365,8 @@ class UITestCase(unittest.TestCase):
             m_get_merged_logs.return_value = merged_logs
             screen_manager.current = 'roll_results_screen'
             # rolls should be pulled from a thread
-            self.assertEqual(len(threading.enumerate()), 2)
-            get_last_results_thread = threading.enumerate()[1]
+            self.assertEqual(len(threading.enumerate()), 3)
+            get_last_results_thread = threading.enumerate()[2]
             self.assertEqual(type(get_last_results_thread), threading.Thread)
             self.assertTrue(
                 'function RollResultsScreen.get_last_results'
@@ -375,8 +374,8 @@ class UITestCase(unittest.TestCase):
             # waits for the end of the thread
             get_last_results_thread.join()
             self.advance_frames_for_screen()
-            # thread has ended and the main thread is running alone again
-            self.assertEqual(len(threading.enumerate()), 1)
+            # thread has ended, main & OSC threads only are running again
+            self.assertEqual(len(threading.enumerate()), 2)
             main_thread = threading.enumerate()[0]
             self.assertEqual(type(main_thread), threading._MainThread)
         # verifies recent rolls appear
@@ -464,10 +463,10 @@ class UITestCase(unittest.TestCase):
             threads = threading.enumerate()
             # since we may run into race condition with threading.enumerate()
             # we make the test conditional
-            if len(threads) == 2:
+            if len(threads) == 3:
                 # rolls should be pulled from a thread
-                self.assertEqual(len(threads), 2)
-                player_roll_dice_thread = threads[1]
+                self.assertEqual(len(threads), 3)
+                player_roll_dice_thread = threads[2]
                 self.assertEqual(
                     type(player_roll_dice_thread), threading.Thread)
                 self.assertTrue(
@@ -476,8 +475,8 @@ class UITestCase(unittest.TestCase):
                 # waits for the end of the thread
                 player_roll_dice_thread.join()
         self.advance_frames_for_screen()
-        # thread has ended and the main thread is running alone again
-        self.assertEqual(len(threading.enumerate()), 1)
+        # thread has ended, main & OSC threads only are running again
+        self.assertEqual(len(threading.enumerate()), 2)
         main_thread = threading.enumerate()[0]
         self.assertEqual(type(main_thread), threading._MainThread)
         # a confirmation dialog with transaction hash should pop
@@ -511,10 +510,10 @@ class UITestCase(unittest.TestCase):
             threads = threading.enumerate()
             # since we may run into race condition with threading.enumerate()
             # we make the test conditional
-            if len(threads) == 2:
+            if len(threads) == 3:
                 # rolls should be pulled from a thread
-                self.assertEqual(len(threads), 2)
-                player_roll_dice_thread = threads[1]
+                self.assertEqual(len(threads), 3)
+                player_roll_dice_thread = threads[2]
                 self.assertEqual(
                     type(player_roll_dice_thread), threading.Thread)
                 self.assertTrue(
@@ -523,7 +522,8 @@ class UITestCase(unittest.TestCase):
                 # waits for the end of the thread
                 player_roll_dice_thread.join()
         self.advance_frames_for_screen()
-        self.assertEqual(len(threading.enumerate()), 1)
+        # thread has ended, main & OSC threads only are running again
+        self.assertEqual(len(threading.enumerate()), 2)
         main_thread = threading.enumerate()[0]
         self.assertEqual(type(main_thread), threading._MainThread)
         # an error dialog should pop
@@ -567,10 +567,10 @@ class UITestCase(unittest.TestCase):
         threads = threading.enumerate()
         # since we may run into race condition with threading.enumerate()
         # we make the test conditional
-        if len(threads) == 2:
+        if len(threads) == 3:
             # rolls should be pulled from a thread
-            self.assertEqual(len(threads), 2)
-            player_roll_dice_thread = threads[1]
+            self.assertEqual(len(threads), 3)
+            player_roll_dice_thread = threads[2]
             self.assertEqual(
                 type(player_roll_dice_thread), threading.Thread)
             self.assertTrue(
@@ -579,8 +579,8 @@ class UITestCase(unittest.TestCase):
             # waits for the end of the thread
             player_roll_dice_thread.join()
         self.advance_frames_for_screen()
-        # thread has ended and the main thread is running alone again
-        self.assertEqual(len(threading.enumerate()), 1)
+        # thread has ended, main & OSC threads only are running again
+        self.assertEqual(len(threading.enumerate()), 2)
         main_thread = threading.enumerate()[0]
         self.assertEqual(type(main_thread), threading._MainThread)
         # an error dialog should pop

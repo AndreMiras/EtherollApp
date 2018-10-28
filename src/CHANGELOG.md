@@ -1,7 +1,7 @@
 # Change Log
 
 
-## [Unreleased]
+## [v20181028]
 
   - Click notification to open the app, refs #114
   - Bets 2nd decimal place precision, refs #116

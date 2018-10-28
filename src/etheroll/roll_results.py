@@ -4,7 +4,8 @@ from kivy.properties import ListProperty
 from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ThreeLineAvatarListItem
 
-from etheroll.utils import Dialog, SubScreen, load_kv_from_py, run_in_thread
+from etheroll.ui_utils import Dialog, SubScreen, load_kv_from_py
+from etheroll.utils import run_in_thread
 from pyetheroll.constants import ROUND_DIGITS
 
 load_kv_from_py(__file__)

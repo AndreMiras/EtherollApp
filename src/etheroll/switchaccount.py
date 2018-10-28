@@ -4,7 +4,8 @@ from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivymd.list import OneLineListItem
 
-from etheroll.utils import Dialog, SubScreen, load_kv_from_py, run_in_thread
+from etheroll.ui_utils import Dialog, SubScreen, load_kv_from_py
+from etheroll.utils import run_in_thread
 
 load_kv_from_py(__file__)
 

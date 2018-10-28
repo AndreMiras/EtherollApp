@@ -1,8 +1,23 @@
+#!/usr/bin/env python
+"""
+Roll pulling service script.
+Monitors the chain on regular basis and send notifications on change.
+Also updates the App UI via OSC:
+MonitorRollsService -> OscAppClient -> OscAppServer -> App
+
+On Linux run with:
+```sh
+PYTHONPATH=src/
+PYTHON_SERVICE_ARGUMENT='{"osc_server_port": PORT}'
+./src/service/main.py
+```
+"""
+import json
 import os
 from time import sleep, time
+from types import SimpleNamespace
 
 from kivy.logger import Logger
-from kivy.storage.jsonstore import JsonStore
 from kivy.utils import platform
 from plyer import notification
 from raven import Client
@@ -10,6 +25,8 @@ from raven import Client
 from ethereum_utils import AccountUtils
 from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android
+from etheroll.store import Store
+from osc.osc_app_client import OscAppClient
 from pyetheroll.constants import ROUND_DIGITS, ChainID
 from pyetheroll.etheroll import Etheroll
 from sentry_utils import configure_sentry
@@ -22,13 +39,19 @@ NO_ROLL_ACTIVITY_PERDIOD_SECONDS = 5 * 60
 
 class MonitorRollsService():
 
-    def __init__(self):
+    def __init__(self, osc_server_port=None):
+        """
+        Set `osc_server_port` to enable UI synchronization with service.
+        """
         keystore_dir = self.get_keystore_path()
         self.account_utils = AccountUtils(keystore_dir=keystore_dir)
         self._pyetheroll = None
         # per address cached merged logs, used to compare with next pulls
         self.merged_logs = {}
         self.last_roll_activity = None
+        self.osc_app_client = None
+        if osc_server_port is not None:
+            self.osc_app_client = OscAppClient('localhost', osc_server_port)
 
     def run(self):
         """
@@ -67,37 +90,18 @@ class MonitorRollsService():
         return self._pyetheroll
 
     @staticmethod
-    def user_data_dir():
+    def get_running_app():
         """
-        Fakes kivy.app.App().user_data_dir behavior.
-        On Android, `/sdcard/<app_name>` is returned.
+        Fakes the get_running_app() behavior and returns an app with only
+        `App.name` setup.
         """
-        # TODO: hardcoded
         app_name = 'etheroll'
-        data_dir = os.path.join('/sdcard', app_name)
-        data_dir = os.path.expanduser(data_dir)
-        if not os.path.exists(data_dir):
-            os.mkdir(data_dir)
-        return data_dir
-
-    # TODO: merge at least "store.json" const with src/etheroll/store.py
-    @classmethod
-    def get_store_path(cls):
-        """
-        Returns the full user store path.
-        """
-        user_data_dir = cls.user_data_dir()
-        store_path = os.path.join(user_data_dir, 'store.json')
-        return store_path
+        return SimpleNamespace(name=app_name)
 
     @classmethod
-    def get_store(cls):
-        """
-        Returns user Store object.
-        """
-        store_path = cls.get_store_path()
-        store = JsonStore(store_path)
-        return store
+    def user_data_dir(cls):
+        app = cls.get_running_app()
+        return Store.get_user_data_dir(app)
 
     # TODO: refactore and share the one from settings or somewhere
     @classmethod
@@ -105,7 +109,8 @@ class MonitorRollsService():
         """
         Retrieves last stored network value, defaults to Mainnet.
         """
-        store = cls.get_store()
+        app = cls.get_running_app()
+        store = Store.get_store(app)
         try:
             network_dict = store['network']
         except KeyError:
@@ -117,7 +122,11 @@ class MonitorRollsService():
 
     @classmethod
     def get_keystore_path(cls):
-        KEYSTORE_DIR_PREFIX = cls.user_data_dir()
+        KEYSTORE_DIR_PREFIX = os.path.expanduser("~")
+        # uses kivy user_data_dir (/sdcard/<app_name>)
+        if platform == "android":
+            # KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
+            KEYSTORE_DIR_PREFIX = cls.user_data_dir()
         keystore_dir = os.path.join(
             KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
         return keystore_dir
@@ -152,6 +161,7 @@ class MonitorRollsService():
         If the roll has no bet result, notifies it was just placed on the
         blockchain, but not yet resolved by the oracle.
         If it has a result, notifies it.
+        Also notifies the app process via OSC so it can refresh balance.
         """
         merged_log = merged_logs[-1]
         bet_log = merged_log['bet_log']
@@ -177,6 +187,8 @@ class MonitorRollsService():
             message = '{0} {1} {2}'.format(
                 dice_result, sign, roll_under)
         kwargs = {'title': title, 'message': message, 'ticker': ticker}
+        if self.osc_app_client is not None:
+            self.osc_app_client.send_refresh_balance()
         notification.notify(**kwargs)
 
 
@@ -184,8 +196,12 @@ def main():
     # only send Android errors to Sentry
     in_debug = platform != "android"
     client = configure_sentry(in_debug)
+    argument = os.environ.get('PYTHON_SERVICE_ARGUMENT', 'null')
+    argument = json.loads(argument)
+    argument = {} if argument is None else argument
+    osc_server_port = argument.get('osc_server_port')
+    service = MonitorRollsService(osc_server_port)
     try:
-        service = MonitorRollsService()
         service.set_auto_restart_service()
         service.run()
     except Exception:

@@ -1,7 +1,9 @@
+import json
+
 from kivy.utils import platform
 
 
-def start_service():
+def start_roll_pulling_service(arguments=None):
     """
     Starts the roll pulling service.
     If the service is already running, it won't be started twice.
@@ -16,5 +18,5 @@ def start_service():
         package_domain, package_name, service_name.title())
     service = autoclass(service_class)
     mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
-    argument = ''
+    argument = json.dumps(arguments)
     service.start(mActivity, argument)

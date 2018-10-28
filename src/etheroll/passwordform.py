@@ -1,7 +1,7 @@
 from kivy.properties import StringProperty
 from kivy.uix.boxlayout import BoxLayout
 
-from etheroll.utils import Dialog, load_kv_from_py
+from etheroll.ui_utils import Dialog, load_kv_from_py
 
 load_kv_from_py(__file__)
 

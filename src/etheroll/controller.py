@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import os
-
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.logger import Logger
@@ -12,16 +10,16 @@ from kivymd.theming import ThemeManager
 from raven import Client
 from requests.exceptions import ConnectionError
 
-from etheroll.constants import KEYSTORE_DIR_SUFFIX
-from etheroll.patches import patch_find_library_android, patch_typing_python351
+from etheroll.patches import patch_find_library_android
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
-from etheroll.utils import Dialog, load_kv_from_py, run_in_thread
+from etheroll.ui_utils import Dialog, load_kv_from_py
+from etheroll.utils import run_in_thread
+from osc.osc_app_server import OscAppServer
 from sentry_utils import configure_sentry
-from service.utils import start_service
+from service.utils import start_roll_pulling_service
 
 patch_find_library_android()
-patch_typing_python351()
 load_kv_from_py(__file__)
 
 
@@ -62,7 +60,7 @@ class Controller(FloatLayout):
             if Dialog.dialogs:
                 Dialog.dismiss_all_dialogs()
                 return True
-            from etheroll.utils import SubScreen
+            from etheroll.ui_utils import SubScreen
             current_screen = self.screen_manager.current_screen
             # if is sub-screen loads previous and stops the propagation
             # otherwise propagates the key to exit
@@ -89,8 +87,9 @@ class Controller(FloatLayout):
         Gets or creates the AccountUtils object so it loads lazily.
         """
         from ethereum_utils import AccountUtils
+        from etheroll.store import Store
         if self._account_utils is None:
-            keystore_dir = self.get_keystore_path()
+            keystore_dir = Store.get_keystore_path()
             self._account_utils = AccountUtils(keystore_dir=keystore_dir)
         return self._account_utils
 
@@ -102,30 +101,6 @@ class Controller(FloatLayout):
         self.disabled = False
         # not using that returned value, but it peaces linter
         return account_utils
-
-    @classmethod
-    def get_keystore_path(cls):
-        """
-        This is the Kivy default keystore path.
-        """
-        keystore_path = os.environ.get('KEYSTORE_PATH')
-        if keystore_path is None:
-            keystore_path = cls.get_default_keystore_path()
-        return keystore_path
-
-    @staticmethod
-    def get_default_keystore_path():
-        """
-        Returns the keystore path, which is the same as the default pyethapp
-        one.
-        """
-        KEYSTORE_DIR_PREFIX = os.path.expanduser("~")
-        # uses kivy user_data_dir (/sdcard/<app_name>)
-        if platform == "android":
-            KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
-        keystore_dir = os.path.join(
-            KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
-        return keystore_dir
 
     def bind_wager_property(self):
         """
@@ -338,6 +313,23 @@ class Controller(FloatLayout):
         roll_screen.toggle_widgets(True)
         self.dialog_roll_success(tx_hash)
 
+    @staticmethod
+    def start_services():
+        """
+        Starts both roll pulling service and OSC service.
+        The roll pulling service is getting the OSC server connection
+        parameters so it can communicate to it.
+        """
+        app = App.get_running_app()
+        osc_server, sockname = OscAppServer.get_or_create(app)
+        server_address, server_port = sockname
+        print(sockname)
+        arguments = {
+            'osc_server_address': server_address,
+            'osc_server_port': server_port,
+        }
+        start_roll_pulling_service(arguments)
+
     def roll(self):
         """
         Retrieves bet parameters from user input and sends it as a signed
@@ -358,7 +350,7 @@ class Controller(FloatLayout):
             self.player_roll_dice(
                 bet_size, chances, wallet_path, password, gas_price)
             # restarts roll pulling service to reset the roll activity period
-            start_service()
+            self.start_services()
 
     def load_switch_account(self):
         """
@@ -441,7 +433,7 @@ class EtherollApp(App):
         self.icon = "docs/images/icon.png"
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.primary_palette = 'Indigo'
-        start_service()
+        Controller.start_services()
         return Controller()
 
 

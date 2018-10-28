@@ -2,7 +2,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivymd.toolbar import Toolbar
 
-from etheroll.utils import load_kv_from_py
+from etheroll.ui_utils import load_kv_from_py
 
 load_kv_from_py(__file__)
 

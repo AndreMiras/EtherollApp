@@ -6,7 +6,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen
 
-from etheroll.utils import Dialog, load_kv_from_py, run_in_thread
+from etheroll.ui_utils import Dialog, load_kv_from_py
+from etheroll.utils import run_in_thread
 from pyetheroll.constants import ROUND_DIGITS
 
 load_kv_from_py(__file__)
@@ -32,7 +33,7 @@ class BetSize(BoxLayout):
         inpt = self.ids.bet_size_input_id
         cast_to = float
         # shows less digits than the constant default to keep the input tiny
-        round_digits = 1
+        round_digits = 2
         BetSize.bind_slider_input(slider, inpt, cast_to, round_digits)
 
     @staticmethod

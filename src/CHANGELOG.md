@@ -1,6 +1,15 @@
 # Change Log
 
 
+## [v20181028]
+
+  - Click notification to open the app, refs #114
+  - Bets 2nd decimal place precision, refs #116
+  - Platform agnostic notification service, refs #120
+  - Updates balance on roll, refs #115
+  - Removes typing patch, refs #72
+
+
 ## [v20180918]
 
   - Notify when roll processed, refs #57, #103, #106

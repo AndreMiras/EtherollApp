@@ -1,7 +1,7 @@
 from kivy.properties import StringProperty
 from kivy.uix.scrollview import ScrollView
 
-from etheroll.utils import load_kv_from_py
+from etheroll.ui_utils import load_kv_from_py
 
 load_kv_from_py(__file__)
 

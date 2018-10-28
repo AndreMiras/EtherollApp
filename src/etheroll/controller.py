@@ -61,7 +61,7 @@ class Controller(FloatLayout):
             if Dialog.dialogs:
                 Dialog.dismiss_all_dialogs()
                 return True
-            from etheroll.utils import SubScreen
+            from etheroll.ui_utils import SubScreen
             current_screen = self.screen_manager.current_screen
             # if is sub-screen loads previous and stops the propagation
             # otherwise propagates the key to exit

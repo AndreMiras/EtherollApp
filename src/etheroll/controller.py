@@ -10,7 +10,7 @@ from kivymd.theming import ThemeManager
 from raven import Client
 from requests.exceptions import ConnectionError
 
-from etheroll.patches import patch_find_library_android, patch_typing_python351
+from etheroll.patches import patch_find_library_android
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.ui_utils import Dialog, load_kv_from_py
@@ -20,7 +20,6 @@ from sentry_utils import configure_sentry
 from service.utils import start_roll_pulling_service
 
 patch_find_library_android()
-patch_typing_python351()
 load_kv_from_py(__file__)
 
 

@@ -1,6 +1,5 @@
 import ctypes.util
 import os
-import typing
 from ctypes.util import find_library as original_find_library
 
 from kivy.utils import platform
@@ -33,20 +32,3 @@ def patch_find_library_android():
     """
     if platform == 'android':
         ctypes.util.find_library = find_library
-
-
-CT_co = typing.TypeVar('CT_co', covariant=True, bound=type)
-
-
-class Type(typing.Generic[CT_co], extra=type):
-    __slots__ = ()
-
-
-def patch_typing_python351():
-    """
-    Python 3.5.1 doesn't have typing.Type, refs:
-    https://github.com/crystax/android-vendor-python-3-5/issues/1
-    """
-    # TODO: check Python version and only patch if == 3.5.1
-    if not hasattr(typing, 'Type'):
-        typing.Type = Type

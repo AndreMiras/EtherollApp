@@ -7,6 +7,7 @@
   - Bets 2nd decimal place precision, refs #116
   - Platform agnostic notification service, refs #120
   - Updates balance on roll, refs #115
+  - Removes typing patch, refs #72
 
 
 ## [v20180918]

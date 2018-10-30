@@ -3,6 +3,11 @@
 
 ## [v20181028]
 
+  - Split dedicated Etheroll library, refs #97
+
+
+## [v20181028]
+
   - Click notification to open the app, refs #114
   - Bets 2nd decimal place precision, refs #116
   - Platform agnostic notification service, refs #120
@@ -43,6 +48,7 @@
   - Dockerize F-Droid APK compile, refs #89
   - Speed up application loading, refs #91
   - Optional Etherscan API key, refs #93
+
 
 ## [v20180517]
 

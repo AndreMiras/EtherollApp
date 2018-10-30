@@ -9,7 +9,6 @@ from unittest import mock
 from eth_account.internal.transactions import assert_valid_fields
 from ethereum.tools.keys import PBKDF2_CONSTANTS
 from pyethapp.accounts import Account
-
 from pyetheroll.constants import ChainID
 from pyetheroll.etheroll import Etheroll
 

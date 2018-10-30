@@ -5,10 +5,10 @@ from kivy.properties import NumericProperty, StringProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen
+from pyetheroll.constants import ROUND_DIGITS
 
 from etheroll.ui_utils import Dialog, load_kv_from_py
 from etheroll.utils import run_in_thread
-from pyetheroll.constants import ROUND_DIGITS
 
 load_kv_from_py(__file__)
 

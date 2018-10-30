@@ -3,11 +3,10 @@ import unittest
 from unittest import mock
 
 from hexbytes.main import HexBytes
-from web3.utils.datastructures import AttributeDict
-
 from pyetheroll.constants import ChainID
 from pyetheroll.transaction_debugger import (TransactionDebugger,
                                              decode_contract_call)
+from web3.utils.datastructures import AttributeDict
 
 
 class TestTransactionDebugger(unittest.TestCase):

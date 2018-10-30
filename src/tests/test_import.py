@@ -42,6 +42,10 @@ class ModulesImportTestCase(unittest.TestCase):
         self.assertIsNotNone(account)
         self.assertIsNotNone(address)
 
+    def test_pyetheroll(self):
+        from pyetheroll.etheroll import Etheroll
+        self.assertTrue(hasattr(Etheroll, 'player_roll_dice'))
+
 
 if __name__ == '__main__':
     unittest.main()

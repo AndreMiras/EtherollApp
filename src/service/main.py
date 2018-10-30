@@ -20,6 +20,8 @@ from types import SimpleNamespace
 from kivy.logger import Logger
 from kivy.utils import platform
 from plyer import notification
+from pyetheroll.constants import ROUND_DIGITS, ChainID
+from pyetheroll.etheroll import Etheroll
 from raven import Client
 
 from ethereum_utils import AccountUtils
@@ -27,8 +29,6 @@ from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android
 from etheroll.store import Store
 from osc.osc_app_client import OscAppClient
-from pyetheroll.constants import ROUND_DIGITS, ChainID
-from pyetheroll.etheroll import Etheroll
 from sentry_utils import configure_sentry
 
 patch_find_library_android()

@@ -20,19 +20,6 @@ class AccountUtils():
         accounts_service = self.app.services.accounts
         return accounts_service.accounts
 
-    @staticmethod
-    def get_private_key(wallet_path, wallet_password):
-        """
-        Given wallet path and password, returns private key.
-        Made this way to workaround pyethapp slow account management:
-        https://github.com/ethereum/pyethapp/issues/292
-        """
-        # lazy loading
-        from web3.auto import w3
-        encrypted_key = open(wallet_path).read()
-        private_key = w3.eth.account.decrypt(encrypted_key, wallet_password)
-        return private_key
-
     def new_account(self, password):
         """
         Creates an account on the disk and returns it.

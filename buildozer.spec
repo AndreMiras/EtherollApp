@@ -101,7 +101,7 @@ requirements =
     requests-cache==0.4.13,
     qrcode,
     https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.zip,
-    https://github.com/AndreMiras/pyetheroll/archive/20181030.zip,
+    https://github.com/AndreMiras/pyetheroll/archive/20181031.zip
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes

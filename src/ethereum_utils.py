@@ -1,55 +1,47 @@
 import os
 
+from pyethapp_accounts import Account
 
-class AccountUtils():
+
+class AccountUtils:
 
     def __init__(self, keystore_dir):
-        # must be imported after `patch_find_library_android()`
-        from devp2p.app import BaseApp
-        from pyethapp.accounts import AccountsService
         self.keystore_dir = keystore_dir
-        self.app = BaseApp(
-            config=dict(accounts=dict(keystore_dir=self.keystore_dir)))
-        AccountsService.register_with_app(self.app)
-        self.patch_ethereum_tools_keys()
+        self._accounts = None
 
     def get_account_list(self):
         """
         Returns the Account list.
         """
-        accounts_service = self.app.services.accounts
-        return accounts_service.accounts
+        if self._accounts is not None:
+            return self._accounts
+        self._accounts = []
+        keyfiles = []
+        for item in os.listdir(self.keystore_dir):
+            item_path = os.path.join(self.keystore_dir, item)
+            if os.path.isfile(item_path):
+                keyfiles.append(item_path)
+        for keyfile in keyfiles:
+            account = Account.load(path=keyfile)
+            self._accounts.append(account)
+        return self._accounts
 
-    def new_account(self, password):
+    def new_account(self, password, iterations=None):
         """
         Creates an account on the disk and returns it.
         """
-        # lazy loading
-        from pyethapp.accounts import Account
-        account = Account.new(password, uuid=None)
-        account.path = os.path.join(
-            self.app.services.accounts.keystore_dir,
-            account.address.hex())
-        self.app.services.accounts.add_account(account)
+        account = Account.new(password, uuid=None, iterations=iterations)
+        account.path = os.path.join(self.keystore_dir, account.address.hex())
+        self.add_account(account)
         return account
 
-    @staticmethod
-    def patch_ethereum_tools_keys():
-        """
-        Patches `make_keystore_json()` to use `create_keyfile_json()`, see:
-        https://github.com/ethereum/pyethapp/issues/292
-        """
-        # lazy loading
-        import eth_keyfile
-        from ethereum.tools import keys
-        from ethereum.utils import is_string, to_string
-        keys.make_keystore_json = eth_keyfile.create_keyfile_json
-
-        def decode_keyfile_json(raw_keyfile_json, password):
-            if not is_string(password):
-                password = to_string(password)
-            return eth_keyfile.decode_keyfile_json(raw_keyfile_json, password)
-        keys.decode_keystore_json = decode_keyfile_json
+    def add_account(self, account):
+        with open(account.path, 'w') as f:
+            f.write(account.dump())
+        if self._accounts is None:
+            self._accounts = []
+        self._accounts.append(account)
+        return account
 
     @staticmethod
     def deleted_account_dir(keystore_dir):
@@ -80,7 +72,7 @@ class AccountUtils():
         """
         # lazy loading
         import shutil
-        keystore_dir = self.app.services.accounts.keystore_dir
+        keystore_dir = self.keystore_dir
         deleted_keystore_dir = self.deleted_account_dir(keystore_dir)
         # create the deleted account dir if required
         if not os.path.exists(deleted_keystore_dir):
@@ -90,6 +82,4 @@ class AccountUtils():
         deleted_account_path = os.path.join(
             deleted_keystore_dir, account_filename)
         shutil.move(account.path, deleted_account_path)
-        # deletes it from the `AccountsService` account manager instance
-        accounts_service = self.app.services.accounts
-        accounts_service.accounts.remove(account)
+        self._accounts.remove(account)

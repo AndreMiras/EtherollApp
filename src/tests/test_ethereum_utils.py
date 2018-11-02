@@ -25,13 +25,11 @@ class TestAccountUtils(unittest.TestCase):
         3) tries to unlock the account
         """
         # 1) verifies the current account list is empty
-        account_list = self.account_utils.get_account_list()
-        self.assertEqual(len(account_list), 0)
+        self.assertEqual(self.account_utils.get_account_list(), [])
         # 2) creates a new account and verify we can retrieve it
         password = PASSWORD
-        account = self.account_utils.new_account(password)
-        account_list = self.account_utils.get_account_list()
-        self.assertEqual(len(account_list), 1)
+        account = self.account_utils.new_account(password, iterations=1)
+        self.assertEqual(len(self.account_utils.get_account_list()), 1)
         self.assertEqual(account, self.account_utils.get_account_list()[0])
         # 3) tries to unlock the account
         # it's unlocked by default after creation
@@ -41,6 +39,22 @@ class TestAccountUtils(unittest.TestCase):
         self.assertTrue(account.locked)
         account.unlock(password)
         self.assertFalse(account.locked)
+
+    def test_get_account_list(self):
+        """
+        Makes sure get_account_list() loads properly accounts from file system.
+        """
+        password = PASSWORD
+        self.assertEqual(self.account_utils.get_account_list(), [])
+        account = self.account_utils.new_account(password, iterations=1)
+        self.assertEqual(len(self.account_utils.get_account_list()), 1)
+        account = self.account_utils.get_account_list()[0]
+        self.assertIsNotNone(account.path)
+        # removes the cache copy and checks again if it gets loaded
+        self.account_utils._accounts = None
+        self.assertEqual(len(self.account_utils.get_account_list()), 1)
+        account = self.account_utils.get_account_list()[0]
+        self.assertIsNotNone(account.path)
 
     def test_deleted_account_dir(self):
         """
@@ -67,7 +81,7 @@ class TestAccountUtils(unittest.TestCase):
         Then verify we can load the account from the backup/trash location.
         """
         password = PASSWORD
-        account = self.account_utils.new_account(password)
+        account = self.account_utils.new_account(password, iterations=1)
         address = account.address
         self.assertEqual(len(self.account_utils.get_account_list()), 1)
         # deletes the account and verifies it's not loaded anymore
@@ -93,7 +107,7 @@ class TestAccountUtils(unittest.TestCase):
         https://github.com/AndreMiras/PyWallet/issues/88
         """
         password = PASSWORD
-        account = self.account_utils.new_account(password)
+        account = self.account_utils.new_account(password, iterations=1)
         # creates a file in the backup/trash folder that would conflict
         # with the deleted account
         deleted_keystore_dir = AccountUtils.deleted_account_dir(

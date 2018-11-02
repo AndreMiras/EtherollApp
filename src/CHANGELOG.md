@@ -1,9 +1,10 @@
 # Change Log
 
 
-## [v20181028]
+## [Unreleased]
 
   - Split dedicated Etheroll library, refs #97
+  - Remove legacy dependencies, refs #112
 
 
 ## [v20181028]

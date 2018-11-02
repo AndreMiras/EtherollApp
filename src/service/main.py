@@ -25,7 +25,7 @@ from pyetheroll.etheroll import Etheroll
 from raven import Client
 
 from ethereum_utils import AccountUtils
-from etheroll.constants import KEYSTORE_DIR_SUFFIX
+from etheroll.constants import API_KEY_PATH, KEYSTORE_DIR_SUFFIX
 from etheroll.patches import patch_find_library_android
 from etheroll.store import Store
 from osc.osc_app_client import OscAppClient
@@ -86,7 +86,7 @@ class MonitorRollsService():
         """
         chain_id = self.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
-            self._pyetheroll = Etheroll(chain_id)
+            self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
         return self._pyetheroll
 
     @staticmethod

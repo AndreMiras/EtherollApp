@@ -10,6 +10,7 @@ from kivymd.theming import ThemeManager
 from raven import Client
 from requests.exceptions import ConnectionError
 
+from etheroll.constants import API_KEY_PATH
 from etheroll.patches import patch_find_library_android
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
@@ -78,7 +79,7 @@ class Controller(FloatLayout):
         from pyetheroll.etheroll import Etheroll
         chain_id = SettingsScreen.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
-            self._pyetheroll = Etheroll(chain_id)
+            self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
         return self._pyetheroll
 
     @property

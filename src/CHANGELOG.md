@@ -5,6 +5,7 @@
 
   - Split dedicated Etheroll library, refs #97
   - Remove legacy dependencies, refs #112
+  - Migrate to upstream recipes
 
 
 ## [v20181028]
@@ -12,8 +13,8 @@
   - Click notification to open the app, refs #114
   - Bets 2nd decimal place precision, refs #116
   - Platform agnostic notification service, refs #120
-  - Updates balance on roll, refs #115
-  - Removes typing patch, refs #72
+  - Update balance on roll, refs #115
+  - Remove typing patch, refs #72
 
 
 ## [v20180918]

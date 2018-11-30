@@ -103,6 +103,12 @@ if not is_gradle_build:
 ```
 
 
+Uninstaling the app using adb:
+```
+buildozer android adb -- uninstall com.github.andremiras.etheroll
+```
+
+
 
 ## Kivy
 

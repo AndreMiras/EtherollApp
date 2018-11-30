@@ -138,6 +138,7 @@ android.permissions = INTERNET
 
 # (int) Minimum API required
 #android.minapi = 9
+android.minapi = 19
 
 # (int) Android SDK version to use
 #android.sdk = 20

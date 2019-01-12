@@ -54,7 +54,6 @@ requirements =
     eth-utils==1.2.1,
     gevent,
     hexbytes==0.1.0,
-    hostpython3crystax==3.6,
     https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.tar.gz,
     https://github.com/AndreMiras/KivyMD/archive/69f3e88.tar.gz,
     https://github.com/AndreMiras/pyetheroll/archive/884805b.tar.gz,
@@ -68,7 +67,7 @@ requirements =
     plyer==1.3.1,
     pycryptodome==3.4.6,
     Pygments==2.2.0,
-    python3crystax==3.6,
+    python3==3.6.8,
     qrcode==6.0,
     raven==6.9.0,
     requests==2.20.0,
@@ -135,24 +134,28 @@ android.permissions = INTERNET
 
 # (int) Android API to use
 #android.api = 19
+android.api = 27
 
-# (int) Minimum API required
+# (int) Minimum API required. You will need to set the android.ndk_api to be as low as this value.
 #android.minapi = 9
-android.minapi = 19
+android.minapi = 27
 
 # (int) Android SDK version to use
 #android.sdk = 20
 
 # (str) Android NDK version to use
 #android.ndk = 9c
-# android.ndk = 10
+android.ndk = 17c
+
+# (int) Android NDK API to use (optional). This is the minimum API your app will support.
+#android.ndk_api = 19
+android.ndk_api = 27
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
 #android.ndk_path =
-android.ndk_path = ~/.buildozer/crystax-ndk
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =

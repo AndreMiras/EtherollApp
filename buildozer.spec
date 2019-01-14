@@ -37,13 +37,16 @@ version.filename = %(source.dir)s/version.py
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
+# TODO: the recipe below don't compile yet for various reasons
+# cffi,
+# cytoolz==0.9.0,
+# gevent,
+# lru-dict==1.1.5,
 requirements =
     android,
     attrdict==2.0.0,
     certifi==2018.10.15,
-    cffi,
     chardet==3.0.4,
-    cytoolz==0.9.0,
     eth-abi==1.2.2,
     eth-account==0.3.0,
     eth-hash==0.2.0,
@@ -52,7 +55,6 @@ requirements =
     eth-rlp==0.1.2,
     eth-typing==2.0.0,
     eth-utils==1.2.1,
-    gevent,
     hexbytes==0.1.0,
     https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.tar.gz,
     https://github.com/AndreMiras/KivyMD/archive/69f3e88.tar.gz,
@@ -60,7 +62,6 @@ requirements =
     https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz,
     idna==2.7,
     kivy==1.10.1,
-    lru-dict==1.1.5,
     openssl,
     oscpy==0.3.0,
     parsimonious==0.8.1,
@@ -99,7 +100,8 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
-services = service:service/main.py
+# TODO: currently broken after p4a refactoring
+# services = service:service/main.py
 
 #
 # OSX Specific

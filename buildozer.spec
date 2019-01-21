@@ -100,8 +100,7 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
-# TODO: currently broken after p4a refactoring
-# services = service:service/main.py
+services = service:service/main.py
 
 #
 # OSX Specific

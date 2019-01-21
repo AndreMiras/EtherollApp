@@ -37,8 +37,8 @@ version.filename = %(source.dir)s/version.py
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
-# TODO: the recipe below don't compile yet for various reasons
 requirements =
+    sqlite3,
     android,
     attrdict==2.0.0,
     certifi==2018.10.15,

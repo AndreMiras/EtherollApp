@@ -6,7 +6,7 @@
   - Split dedicated Etheroll library, refs #97
   - Remove legacy dependencies, refs #112
   - Migrate to upstream recipes
-  - Move to python3 recipe
+  - Move to python3 recipe, refs #123
 
 
 ## [v20181028]

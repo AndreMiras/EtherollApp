@@ -10,7 +10,7 @@ env:
   - TAG=etheroll-android DOCKERFILE=dockerfiles/Dockerfile-android COMMAND='buildozer android debug'
 
 install:
-  - docker build --tag=$TAG --file=$DOCKERFILE .
+  - docker build --tag=$TAG --file=$DOCKERFILE --build-arg TRAVIS .
 
 script:
   - travis_wait docker run $TAG $COMMAND

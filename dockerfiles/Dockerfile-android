@@ -9,6 +9,7 @@
 # docker run -it --rm etheroll-android
 FROM ubuntu:18.04
 
+ARG TRAVIS=false
 ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}" \
@@ -16,9 +17,6 @@ ENV WORK_DIR="${HOME_DIR}" \
 ENV DOCKERFILES_VERSION="master" \
     DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
 ENV MAKEFILES_URL="${DOCKERFILES_URL}/${DOCKERFILES_VERSION}/buildozer_android_new"
-# currently needed because buildozer still uses `tools/android` binary
-# even though we have the new `tools/bin/sdkmanager` available
-ENV USE_SDK_WRAPPER=true
 
 
 # configure locale
@@ -38,7 +36,7 @@ RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends 
 # TODO: should this go to a Makefile instead so it can be shared/reused?
 RUN apt install -qq --yes --no-install-recommends \
     python3.6 libpython3.6-dev python3-setuptools \
-    autoconf automake libtool libltdl-dev libffi-dev bsdtar
+    autoconf automake libtool libltdl-dev libffi-dev bsdtar zip
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}
@@ -52,6 +50,10 @@ WORKDIR ${WORK_DIR}
 # install buildozer and dependencies
 RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output buildozer.mk
 RUN make -f buildozer.mk
+# enforces buildozer master (afebba5) until next release
+RUN pip install --upgrade https://github.com/kivy/buildozer/archive/afebba5.zip
 
 COPY . ${WORK_DIR}
+# limits the amount of logs for Travis
+RUN if [ "${TRAVIS}" = "true" ]; then sed 's/log_level = [0-9]/log_level = 1/' -i buildozer.spec; fi
 ENTRYPOINT ["./dockerfiles/start.sh"]

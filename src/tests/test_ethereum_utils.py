@@ -2,8 +2,10 @@ import os
 import shutil
 import unittest
 from tempfile import mkdtemp
+from unittest import mock
 
 from ethereum_utils import AccountUtils
+from pyethapp_accounts import Account
 
 PASSWORD = "password"
 
@@ -55,6 +57,27 @@ class TestAccountUtils(unittest.TestCase):
         self.assertEqual(len(self.account_utils.get_account_list()), 1)
         account = self.account_utils.get_account_list()[0]
         self.assertIsNotNone(account.path)
+
+    def test_get_account_list_error(self):
+        """
+        get_account_list() should not cache empty account on PermissionError.
+        """
+        # creates a temporary account that we'll try to list
+        password = PASSWORD
+        account = Account.new(password, uuid=None, iterations=1)
+        account.path = os.path.join(self.keystore_dir, account.address.hex())
+        with open(account.path, 'w') as f:
+            f.write(account.dump())
+        # `listdir()` can raise a `PermissionError`
+        with mock.patch('os.listdir') as mock_listdir:
+            mock_listdir.side_effect = PermissionError
+            with self.assertRaises(PermissionError):
+                self.account_utils.get_account_list()
+        # the empty account list should not be catched and loading it again
+        # should show the existing account on file system
+        self.assertEqual(len(self.account_utils.get_account_list()), 1)
+        self.assertEqual(
+            self.account_utils.get_account_list()[0].address, account.address)
 
     def test_deleted_account_dir(self):
         """

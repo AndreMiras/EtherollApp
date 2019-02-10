@@ -26,12 +26,10 @@ from raven import Client
 
 from ethereum_utils import AccountUtils
 from etheroll.constants import API_KEY_PATH, KEYSTORE_DIR_SUFFIX
-from etheroll.patches import patch_find_library_android
 from etheroll.store import Store
 from osc.osc_app_client import OscAppClient
 from sentry_utils import configure_sentry
 
-patch_find_library_android()
 PULL_FREQUENCY_SECONDS = 10
 # time before the service shuts down if no roll activity
 NO_ROLL_ACTIVITY_PERDIOD_SECONDS = 5 * 60

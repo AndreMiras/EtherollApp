@@ -15,12 +15,14 @@ class AccountUtils:
         """
         if self._accounts is not None:
             return self._accounts
-        self._accounts = []
         keyfiles = []
         for item in os.listdir(self.keystore_dir):
             item_path = os.path.join(self.keystore_dir, item)
             if os.path.isfile(item_path):
                 keyfiles.append(item_path)
+        # starts caching after `listdir()` call so if it fails
+        # (e.g. `PermissionError`) account list won't be empty next call
+        self._accounts = []
         for keyfile in keyfiles:
             account = Account.load(path=keyfile)
             self._accounts.append(account)

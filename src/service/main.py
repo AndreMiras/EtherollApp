@@ -151,7 +151,13 @@ class MonitorRollsService():
             self.last_roll_activity = time()
 
     def pull_accounts_rolls(self):
-        accounts = self.account_utils.get_account_list()
+        accounts = []
+        try:
+            accounts = self.account_utils.get_account_list()
+        except PermissionError:
+            # happens in e.g. Android runtime permission check, refs #125
+            pass
+        print(f'accounts: {accounts}')
         for account in accounts:
             self.pull_account_rolls(account)
 

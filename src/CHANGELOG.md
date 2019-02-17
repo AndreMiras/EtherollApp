@@ -1,7 +1,7 @@
 # Change Log
 
 
-## [Unreleased]
+## [v20190217]
 
   - Migrate to upstream recipes
   - UI testing in Travis via xvfb, refs #65

@@ -20,18 +20,16 @@ from types import SimpleNamespace
 from kivy.logger import Logger
 from kivy.utils import platform
 from plyer import notification
+from pyetheroll.constants import ROUND_DIGITS, ChainID
+from pyetheroll.etheroll import Etheroll
 from raven import Client
 
 from ethereum_utils import AccountUtils
-from etheroll.constants import KEYSTORE_DIR_SUFFIX
-from etheroll.patches import patch_find_library_android
+from etheroll.constants import API_KEY_PATH, KEYSTORE_DIR_SUFFIX
 from etheroll.store import Store
 from osc.osc_app_client import OscAppClient
-from pyetheroll.constants import ROUND_DIGITS, ChainID
-from pyetheroll.etheroll import Etheroll
 from sentry_utils import configure_sentry
 
-patch_find_library_android()
 PULL_FREQUENCY_SECONDS = 10
 # time before the service shuts down if no roll activity
 NO_ROLL_ACTIVITY_PERDIOD_SECONDS = 5 * 60
@@ -86,7 +84,7 @@ class MonitorRollsService():
         """
         chain_id = self.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
-            self._pyetheroll = Etheroll(chain_id)
+            self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
         return self._pyetheroll
 
     @staticmethod
@@ -151,7 +149,13 @@ class MonitorRollsService():
             self.last_roll_activity = time()
 
     def pull_accounts_rolls(self):
-        accounts = self.account_utils.get_account_list()
+        accounts = []
+        try:
+            accounts = self.account_utils.get_account_list()
+        except PermissionError:
+            # happens in e.g. Android runtime permission check, refs #125
+            pass
+        print(f'accounts: {accounts}')
         for account in accounts:
             self.pull_account_rolls(account)
 

@@ -1,21 +1,32 @@
 # Change Log
 
 
+## [v20190217]
+
+  - Migrate to upstream recipes
+  - UI testing in Travis via xvfb, refs #65
+  - Split dedicated Etheroll library, refs #97
+  - Remove legacy dependencies, refs #122
+  - Move to python3 recipe, refs #123
+  - Handles write storage permission, refs #125
+  - Non root Docker user, refs #127
+
+
 ## [v20181028]
 
   - Click notification to open the app, refs #114
   - Bets 2nd decimal place precision, refs #116
   - Platform agnostic notification service, refs #120
-  - Updates balance on roll, refs #115
-  - Removes typing patch, refs #72
+  - Update balance on roll, refs #115
+  - Remove typing patch, refs #72
 
 
 ## [v20180918]
 
   - Notify when roll processed, refs #57, #103, #106
   - Recipes LDSHARED & CFLAGS cleaning, refs #104
-  - Updates broken Mainnet node, refs #111
-  - Upgrades to Kivy==1.10.1, refs #100
+  - Update broken Mainnet node, refs #111
+  - Upgrade to Kivy==1.10.1, refs #100
 
 
 ## [v20180911]
@@ -43,6 +54,7 @@
   - Dockerize F-Droid APK compile, refs #89
   - Speed up application loading, refs #91
   - Optional Etherscan API key, refs #93
+
 
 ## [v20180517]
 

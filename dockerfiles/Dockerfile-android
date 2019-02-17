@@ -9,6 +9,7 @@
 # docker run -it --rm etheroll-android
 FROM ubuntu:18.04
 
+ARG TRAVIS=false
 ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}" \
@@ -16,9 +17,6 @@ ENV WORK_DIR="${HOME_DIR}" \
 ENV DOCKERFILES_VERSION="master" \
     DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
 ENV MAKEFILES_URL="${DOCKERFILES_URL}/${DOCKERFILES_VERSION}/buildozer_android_new"
-# currently needed because buildozer still uses `tools/android` binary
-# even though we have the new `tools/bin/sdkmanager` available
-ENV USE_SDK_WRAPPER=true
 
 
 # configure locale
@@ -30,7 +28,7 @@ ENV LANG="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8"
 
 # install system dependencies (required to setup all the tools)
-RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
+RUN apt install -qq --yes --no-install-recommends \
     make curl ca-certificates xz-utils unzip openjdk-8-jdk sudo python-pip \
     python-setuptools
 
@@ -38,7 +36,7 @@ RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends 
 # TODO: should this go to a Makefile instead so it can be shared/reused?
 RUN apt install -qq --yes --no-install-recommends \
     python3.6 libpython3.6-dev python3-setuptools \
-    autoconf automake libtool libltdl-dev libffi-dev bsdtar
+    autoconf automake libtool libltdl-dev libffi-dev bsdtar zip
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}
@@ -49,23 +47,13 @@ RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 USER ${USER}
 WORKDIR ${WORK_DIR}
 
-# downloads and installs CrystaX NDK
-RUN curl --location --progress-bar ${MAKEFILES_URL}/crystax_ndk.mk --output crystax_ndk.mk
-# using `bsdtar` since `tar` is failing extracting it on Travis
-RUN make -f crystax_ndk.mk TAR=`which bsdtar`
-
-# downloads and installs Android SDK
-RUN curl --location --progress-bar ${MAKEFILES_URL}/android_sdk.mk --output android_sdk.mk
-RUN make -f android_sdk.mk
-
 # install buildozer and dependencies
 RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output buildozer.mk
 RUN make -f buildozer.mk
-
-# links SDK and NDK to where buildozer is expecting to see them
-RUN mkdir -p ${HOME}/.buildozer/android/platform
-RUN ln -sfn ${HOME}/.android ${HOME}/.buildozer/android/platform/android-sdk-20
-RUN ln -sfn ${HOME}/.android/crystax-ndk ${HOME}/.buildozer/
+# enforces buildozer master (afebba5) until next release
+RUN pip install --upgrade https://github.com/kivy/buildozer/archive/afebba5.zip
 
 COPY . ${WORK_DIR}
+# limits the amount of logs for Travis
+RUN if [ "${TRAVIS}" = "true" ]; then sed 's/log_level = [0-9]/log_level = 1/' -i buildozer.spec; fi
 ENTRYPOINT ["./dockerfiles/start.sh"]

@@ -13,7 +13,7 @@ from requests.exceptions import ConnectionError
 
 from etheroll.controller import EtherollApp
 from etheroll.ui_utils import Dialog
-from tests.pyetheroll import test_etheroll
+from tests.utils import PyEtherollTestUtils
 
 
 class UITestCase(unittest.TestCase):
@@ -347,8 +347,8 @@ class UITestCase(unittest.TestCase):
         """
         Roll history screen should display recent rolls, refs #61.
         """
-        bet_results_logs = test_etheroll.TestEtheroll.bet_results_logs
-        bet_logs = test_etheroll.TestEtheroll.bet_logs
+        bet_results_logs = PyEtherollTestUtils.bet_results_logs
+        bet_logs = PyEtherollTestUtils.bet_logs
         merged_logs = [
             {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},
             {'bet_log': bet_logs[0], 'bet_result': bet_results_logs[0]},

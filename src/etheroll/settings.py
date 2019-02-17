@@ -1,6 +1,7 @@
+from pyetheroll.constants import DEFAULT_GAS_PRICE_GWEI, ChainID
+
 from etheroll.store import Store
 from etheroll.ui_utils import SubScreen, load_kv_from_py
-from pyetheroll.constants import DEFAULT_GAS_PRICE_GWEI, ChainID
 
 load_kv_from_py(__file__)
 

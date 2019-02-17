@@ -37,6 +37,11 @@ class Store:
         """
         if app is None:
             app = App.get_running_app()
+        # keeps the old behavior prior kivy==1.11.0 change, refs:
+        # https://github.com/kivy/kivy/pull/6095
+        # we may still want to upgrade later in the future
+        if platform == "android":
+            return os.path.join('/sdcard', app.name)
         return App.user_data_dir.fget(app)
 
     @classmethod

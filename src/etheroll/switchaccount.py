@@ -2,6 +2,7 @@ from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.utils import platform
 from kivymd.list import OneLineListItem
 
 from etheroll.ui_utils import Dialog, SubScreen, load_kv_from_py
@@ -50,6 +51,19 @@ class SwitchAccount(BoxLayout):
             list_item = self.create_item(account)
             account_list_id.add_widget(list_item)
 
+    @staticmethod
+    def check_request_permission():
+        """
+        Android runtime storage permission check.
+        """
+        if platform != "android":
+            return
+        from android.permissions import (
+            Permission, request_permission, check_permission)
+        permission = Permission.WRITE_EXTERNAL_STORAGE
+        if not check_permission(permission):
+            request_permission(permission)
+
     @run_in_thread
     def load_account_list(self):
         """
@@ -59,16 +73,28 @@ class SwitchAccount(BoxLayout):
         """
         self.controller = App.get_running_app().root
         self.toggle_spinner(show=True)
-        accounts = self.controller.account_utils.get_account_list()
+        accounts = []
+        self.check_request_permission()
+        try:
+            accounts = self.controller.account_utils.get_account_list()
+            self.update_account_list(accounts)
+        except PermissionError as exception:
+            self.on_permission_error(exception)
         self.toggle_spinner(show=False)
-        self.update_account_list(accounts)
 
     @staticmethod
     def on_empty_account_list():
         controller = App.get_running_app().root
         keystore_dir = controller.account_utils.keystore_dir
         title = "No account found"
-        body = "No account found in:\n%s" % keystore_dir
+        body = f"No account found in:\n{keystore_dir}"
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
+    @staticmethod
+    def on_permission_error(exception):
+        title = "Permission denied"
+        body = str(exception.args)
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
 

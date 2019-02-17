@@ -38,69 +38,46 @@ version.filename = %(source.dir)s/version.py
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
 requirements =
-    hostpython3crystax==3.6,
-    python3crystax==3.6,
-    setuptools,
-    kivy==1.10.1,
-    plyer==1.3.1,
-    oscpy==0.3.0,
+    sqlite3,
     android,
-    gevent,
-    cffi,
-    https://github.com/AndreMiras/KivyMD/archive/9b2206a.tar.gz,
-    openssl,
-    pyelliptic==1.5.7,
-    asn1crypto==0.24.0,
-    coincurve==7.1.0,
-    bitcoin==1.1.42,
-    devp2p==0.9.3,
-    pycryptodome==3.4.6,
-    pbkdf2==1.3,
-    py-ecc==1.4.2,
-    pysha3==1.0.2,
-    pyyaml==3.12,
-    scrypt==0.8.6,
-    ethereum==2.1.1,
-    ptyprocess==0.5.2,
-    pexpect==4.4.0,
-    Pygments==2.2.0,
-    decorator==4.2.1,
-    ipython-genutils==0.2.0,
-    traitlets==4.3.2,
-    ipython==5.5.0,
-    click==6.7,
-    pickleshare==0.7.4,
-    simplegeneric==0.8.1,
-    wcwidth==0.1.7,
-    prompt-toolkit==1.0.15,
-    https://github.com/ethereum/pyethapp/archive/8406f32.zip,
-    idna==2.6,
-    typing==3.6.4,
-    eth-keys==0.2.0b3,
-    eth-keyfile==0.5.1,
-    rlp==0.6.0,
-    eth-rlp==0.1.2,
     attrdict==2.0.0,
-    eth-account==0.2.2,
-    hexbytes==0.1.0,
-    lru-dict==1.1.5,
-    web3==4.0.0b11,
-    certifi==2018.1.18,
+    certifi==2018.10.15,
+    cffi,
     chardet==3.0.4,
-    urllib3==1.22,
-    requests==2.18.4,
-    https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.zip,
-    eth-testrpc==1.3.3,
-    eth-hash==0.1.1,
-    pyethash==0.1.27,
     cytoolz==0.9.0,
-    toolz==0.9.0,
-    eth-abi==1.0.0,
-    eth-utils==1.0.1,
-    raven==6.6.0,
+    eth-abi==1.2.2,
+    eth-account==0.3.0,
+    eth-hash==0.2.0,
+    eth-keyfile==0.5.1,
+    eth-keys==0.2.0b3,
+    eth-rlp==0.1.2,
+    eth-typing==2.0.0,
+    eth-utils==1.2.1,
+    gevent,
+    hexbytes==0.1.0,
+    https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.tar.gz,
+    https://github.com/AndreMiras/KivyMD/archive/69f3e88.tar.gz,
+    https://github.com/AndreMiras/pyetheroll/archive/884805b.tar.gz,
+    https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz,
+    idna==2.7,
+    kivy==90c86f8,
+    lru-dict==1.1.5,
+    openssl,
+    oscpy==0.3.0,
+    parsimonious==0.8.1,
+    plyer==1.3.1,
+    pycryptodome==3.4.6,
+    Pygments==2.2.0,
+    python3==3.7.1,
+    qrcode==6.0,
+    raven==6.9.0,
+    requests==2.20.0,
     requests-cache==0.4.13,
-    qrcode,
-    https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.zip
+    rlp==1.0.3,
+    setuptools,
+    toolz==0.9.0,
+    urllib3==1.24.1,
+    web3==4.8.1
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -153,28 +130,28 @@ fullscreen = 0
 #android.presplash_color = #FFFFFF
 
 # (list) Permissions
-#android.permissions = INTERNET
-android.permissions = INTERNET
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE
 
-# (int) Android API to use
-#android.api = 19
+# (int) Target Android API, should be as high as possible.
+android.api = 27
 
-# (int) Minimum API required
-#android.minapi = 9
+# (int) Minimum API your APK will support.
+android.minapi = 21
 
 # (int) Android SDK version to use
-#android.sdk = 20
+android.sdk = 20
 
 # (str) Android NDK version to use
-#android.ndk = 9c
-# android.ndk = 10
+android.ndk = 17c
+
+# (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
+android.ndk_api = 21
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
 #android.ndk_path =
-android.ndk_path = ~/.buildozer/crystax-ndk
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
@@ -186,6 +163,12 @@ android.ndk_path = ~/.buildozer/crystax-ndk
 # This can be useful to avoid excess Internet downloads or save time
 # when an update is due and you just want to test/build your package
 # android.skip_update = False
+
+# (bool) If True, then automatically accept SDK license
+# agreements. This is intended for automation only. If set to False,
+# the default, you will be shown the license when first running
+# buildozer.
+android.accept_sdk_license = True
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
@@ -221,7 +204,7 @@ android.blacklist_src = blacklist.txt
 
 # (str) python-for-android branch to use, defaults to master
 #p4a.branch = stable
-p4a.branch = master
+p4a.branch = 0.7.0
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled

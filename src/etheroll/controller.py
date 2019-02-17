@@ -10,7 +10,7 @@ from kivymd.theming import ThemeManager
 from raven import Client
 from requests.exceptions import ConnectionError
 
-from etheroll.patches import patch_find_library_android
+from etheroll.constants import API_KEY_PATH
 from etheroll.settings import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.ui_utils import Dialog, load_kv_from_py
@@ -19,7 +19,6 @@ from osc.osc_app_server import OscAppServer
 from sentry_utils import configure_sentry
 from service.utils import start_roll_pulling_service
 
-patch_find_library_android()
 load_kv_from_py(__file__)
 
 
@@ -78,7 +77,7 @@ class Controller(FloatLayout):
         from pyetheroll.etheroll import Etheroll
         chain_id = SettingsScreen.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
-            self._pyetheroll = Etheroll(chain_id)
+            self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
         return self._pyetheroll
 
     @property

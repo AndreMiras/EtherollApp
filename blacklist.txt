@@ -1,5 +1,4 @@
 lib-dynload/_csv.so
-distutils/*
 xml/*
 pdb.{doc,pyo}
 profile.{doc,pyo}

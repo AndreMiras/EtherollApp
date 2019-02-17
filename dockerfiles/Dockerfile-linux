@@ -7,10 +7,16 @@
 # docker run etheroll-linux 'make test'
 # Or for interactive shell:
 # docker run -it --rm etheroll-linux
+# For running UI:
+# xhost +"local:docker@"
+# docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix etheroll-linux 'make uitest'
 # TODO:
 #	- delete archives to keep small the container small
-#	- setup caching (for apt, and pip)
 FROM ubuntu:18.04
+
+ENV USER="user"
+ENV HOME_DIR="/home/${USER}"
+ENV WORK_DIR="${HOME_DIR}"
 
 # configure locale
 RUN apt update -qq > /dev/null && apt install --yes --no-install-recommends \
@@ -30,7 +36,17 @@ RUN apt update -qq > /dev/null && apt install --yes --no-install-recommends \
 RUN apt install --yes --no-install-recommends \
     libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
 
-WORKDIR /app
-COPY . /app
-RUN make system_dependencies
+# prepare non root env
+RUN useradd --create-home --shell /bin/bash ${USER}
+# with sudo access and no password
+RUN usermod -append --groups sudo ${USER}
+RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+USER ${USER}
+WORKDIR ${WORK_DIR}
+COPY . ${WORK_DIR}
+
+RUN sudo make system_dependencies
+# required by Kivy `App.user_data_dir`
+RUN mkdir ~/.config
 ENTRYPOINT ["./dockerfiles/start.sh"]

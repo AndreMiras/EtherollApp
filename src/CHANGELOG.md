@@ -3,10 +3,13 @@
 
 ## [Unreleased]
 
-  - Split dedicated Etheroll library, refs #97
-  - Remove legacy dependencies, refs #112
   - Migrate to upstream recipes
+  - UI testing in Travis via xvfb, refs #65
+  - Split dedicated Etheroll library, refs #97
+  - Remove legacy dependencies, refs #122
   - Move to python3 recipe, refs #123
+  - Handles write storage permission, refs #125
+  - Non root Docker user, refs #127
 
 
 ## [v20181028]
@@ -22,8 +25,8 @@
 
   - Notify when roll processed, refs #57, #103, #106
   - Recipes LDSHARED & CFLAGS cleaning, refs #104
-  - Updates broken Mainnet node, refs #111
-  - Upgrades to Kivy==1.10.1, refs #100
+  - Update broken Mainnet node, refs #111
+  - Upgrade to Kivy==1.10.1, refs #100
 
 
 ## [v20180911]

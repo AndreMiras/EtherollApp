@@ -17,14 +17,14 @@
         size_hint_y: None
         MDTextField:
             id: bet_size_input_id
-            text: "0.10"
+            text: "{}".format(root.min_bet_property)
             font_size: dp(20)
             input_filter: 'float'
             width: dp(40)
             size_hint_x: None
         MDSlider:
             id: bet_size_slider_id
-            range: 0, 10
+            range: root.min_bet_property, 10
             step: 0.05
 
 <ChanceOfWinning>:

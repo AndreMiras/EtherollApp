@@ -1,6 +1,11 @@
 # Change Log
 
 
+## [Unreleased]
+
+  - Pull minimum bet from contract, refs #129
+
+
 ## [v20190217]
 
   - Migrate to upstream recipes

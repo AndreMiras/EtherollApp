@@ -4,6 +4,7 @@
 ## [Unreleased]
 
   - Pull minimum bet from contract, refs #129
+  - Fix permission issue on settings, refs #131
 
 
 ## [v20190217]
@@ -13,7 +14,7 @@
   - Split dedicated Etheroll library, refs #97
   - Remove legacy dependencies, refs #122
   - Move to python3 recipe, refs #123
-  - Handles write storage permission, refs #125
+  - Handle write storage permission, refs #125
   - Non root Docker user, refs #127
 
 

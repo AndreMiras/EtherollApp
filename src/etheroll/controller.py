@@ -413,6 +413,26 @@ class Controller(FloatLayout):
             lambda x: self.copy_address_clipboard(), icon='content-copy')
         bottom_sheet.open()
 
+    @staticmethod
+    def check_request_write_permission():
+        """
+        Android runtime storage permission check.
+        """
+        if platform != "android":
+            return
+        from android.permissions import (
+            Permission, request_permission, check_permission)
+        permission = Permission.WRITE_EXTERNAL_STORAGE
+        if not check_permission(permission):
+            request_permission(permission)
+
+    @staticmethod
+    def on_permission_error(exception):
+        title = "Permission denied"
+        body = str(exception.args)
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
 
 class DebugRavenClient(object):
     """

@@ -74,7 +74,7 @@ requirements =
     requests==2.20.0,
     requests-cache==0.4.13,
     rlp==1.0.3,
-    setuptools,
+    setuptools==40.9.0,
     toolz==0.9.0,
     urllib3==1.24.1,
     web3==4.8.1

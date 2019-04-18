@@ -1,3 +1,4 @@
+from kivy.app import App
 from pyetheroll.constants import DEFAULT_GAS_PRICE_GWEI, ChainID
 
 from etheroll.store import Store
@@ -14,11 +15,26 @@ class SettingsScreen(SubScreen):
     def __init__(self, **kwargs):
         super(SettingsScreen, self).__init__(**kwargs)
 
+    @staticmethod
+    def get_store():
+        """
+        Wrappers around get_store for handling permissions on Android.
+        """
+        controller = App.get_running_app().root
+        # would also work for read permission
+        controller.check_request_write_permission()
+        try:
+            store = Store.get_store()
+        except PermissionError as exception:
+            controller.on_permission_error(exception)
+            store = {}
+        return store
+
     def store_network(self):
         """
         Saves selected network to the store.
         """
-        store = Store.get_store()
+        store = self.get_store()
         network = self.get_ui_network()
         store.put('network', value=network.name)
 
@@ -26,7 +42,7 @@ class SettingsScreen(SubScreen):
         """
         Saves gas price value to the store.
         """
-        store = Store.get_store()
+        store = self.get_store()
         gas_price = self.get_ui_gas_price()
         store.put('gas_price', value=gas_price)
 
@@ -53,12 +69,12 @@ class SettingsScreen(SubScreen):
     def is_ui_testnet(self):
         return self.ids.testnet_checkbox_id.active
 
-    @staticmethod
-    def get_stored_network():
+    @classmethod
+    def get_stored_network(cls):
         """
         Retrieves last stored network value, defaults to Mainnet.
         """
-        store = Store.get_store()
+        store = cls.get_store()
         try:
             network_dict = store['network']
         except KeyError:
@@ -81,12 +97,12 @@ class SettingsScreen(SubScreen):
     def get_ui_gas_price(self):
         return self.ids.gas_price_slider_id.value
 
-    @staticmethod
-    def get_stored_gas_price():
+    @classmethod
+    def get_stored_gas_price(cls):
         """
         Retrieves stored gas price value, defaults to DEFAULT_GAS_PRICE_GWEI.
         """
-        store = Store.get_store()
+        store = cls.get_store()
         try:
             gas_price_dict = store['gas_price']
         except KeyError:

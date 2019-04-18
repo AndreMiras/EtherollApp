@@ -1,27 +1,28 @@
 # Docker image for running F-Droid build scripts.
 # Build with:
-# docker build --tag=fdroid --file=dockerfiles/Dockerfile-fdroid .
+#   docker build --tag=fdroid --file=dockerfiles/Dockerfile-fdroid .
 # Run with:
-# docker run fdroid /bin/sh -c 'fdroid build -v -l com.github.andremiras.etheroll'
+#   docker run fdroid /bin/sh -c 'fdroid build -v -l com.github.andremiras.etheroll'
 # Or using the entry point shortcut:
-# docker run fdroid 'fdroid build -v -l com.github.andremiras.etheroll'
+#   docker run fdroid 'fdroid build -v -l com.github.andremiras.etheroll'
 # Or for interactive shell:
-# docker run -it --rm fdroid
-FROM ubuntu:18.04
+#   docker run -it --rm fdroid
+# WARNING:
+# The `--on-server` option should only be used in a container since it could
+# could mess up with the system it's running in.
+#
+FROM debian:stretch
 
 ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}" \
     PATH="${HOME_DIR}/.local/bin:${PATH}" \
-    FDROIDDATA_ARCHIVE="fdroiddata-master.tar.bz2"
+    FDROIDDATA_ARCHIVE="fdroiddata-feature-new_app_etheroll.tar.bz2"
+    # FDROIDDATA_ARCHIVE="fdroiddata-master.tar.bz2"
 ENV FDROIDDATA_DL_URL="https://gitlab.com/fdroid/fdroiddata/-/archive/master/${FDROIDDATA_ARCHIVE}"
-# currently needed because buildozer still uses `tools/android` binary
-# even though we have the new `tools/bin/sdkmanager` available
-ENV USE_SDK_WRAPPER=true
-# fdroid requires these two variables, see:
+# fdroid requires this env, see:
 # https://gitlab.com/fdroid/fdroidserver/merge_requests/290
-ENV ANDROID_HOME="${HOME_DIR}/.android" \
-    ANDROID_NDK="${HOME_DIR}/.buildozer/crystax-ndk"
+ENV ANDROID_HOME="${HOME_DIR}/.android"
 
 ENV DOCKERFILES_VERSION="master" \
     DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
@@ -32,24 +33,37 @@ ENV MAKEFILES_URL="${DOCKERFILES_URL}/${DOCKERFILES_VERSION}/buildozer_android_n
 RUN apt update -qq > /dev/null && apt install --yes --no-install-recommends \
     locales && \
     locale-gen en_US.UTF-8
-ENV LANG="en_US.UTF-8" \
-    LANGUAGE="en_US.UTF-8" \
-    LC_ALL="en_US.UTF-8"
+ENV LANG="C.UTF-8" \
+    LANGUAGE="C.UTF-8" \
+    LC_ALL="C.UTF-8"
+RUN dpkg-reconfigure --frontend noninteractive locales
 
-# install system dependencies (required to setup all the tools)
-RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
-    make curl wget ca-certificates xz-utils unzip openjdk-8-jdk sudo python-pip \
-    python-setuptools
 
-# install build dependencies (required to successfully build the project)
-# TODO: should this go to a Makefile instead?
+# install fdroid basebox dependencies, refs:
+# https://gitlab.com/fdroid/basebox/blob/0.5.1/fdroid_basebox.py#L80
+# https://gitlab.com/fdroid/fdroidserver/blob/1.1.1/buildserver/provision-apt-get-install#L45
 RUN apt install -qq --yes --no-install-recommends \
-    python3.6 libpython3.6-dev python3-setuptools python3-pip \
-    autoconf automake libtool libltdl-dev libffi-dev
+    autoconf \
+    automake \
+    ca-certificates \
+    curl \
+    git \
+    lbzip2 \
+    libpython3-dev \
+    libtool \
+    make \
+    openjdk-8-jdk \
+    python3 \
+    python3-pip \
+    python3-setuptools \
+    sudo \
+    unzip \
+    zip
 
 # make python3 the default
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
     update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
+
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}
@@ -64,14 +78,9 @@ WORKDIR ${WORK_DIR}
 RUN curl --location --progress-bar ${MAKEFILES_URL}/android_sdk.mk --output android_sdk.mk
 RUN make -f android_sdk.mk
 
-# install buildozer and dependencies
-RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output buildozer.mk
-RUN make -f buildozer.mk
-
 # install fdroidserver and fdroiddata
 RUN pip install fdroidserver
 RUN curl --location --progress-bar "${FDROIDDATA_DL_URL}" --output "${FDROIDDATA_ARCHIVE}" && \
     tar -xf "${FDROIDDATA_ARCHIVE}" --directory "${WORK_DIR}"
 
 WORKDIR ${WORK_DIR}
-ENTRYPOINT ["./dockerfiles/start.sh"]

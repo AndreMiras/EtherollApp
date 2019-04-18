@@ -10,8 +10,6 @@
 # For running UI:
 # xhost +"local:docker@"
 # docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix etheroll-linux 'make uitest'
-# TODO:
-#	- delete archives to keep small the container small
 FROM ubuntu:18.04
 
 ENV USER="user"
@@ -27,14 +25,22 @@ ENV LANG="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8"
 
 # install system dependencies
-RUN apt update -qq > /dev/null && apt install --yes --no-install-recommends \
-	python3 python3-dev virtualenv make lsb-release pkg-config git build-essential \
-    sudo libssl-dev tox
-
-# install kivy system dependencies
-# https://kivy.org/docs/installation/installation-linux.html#dependencies-with-sdl2
 RUN apt install --yes --no-install-recommends \
-    libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
+    build-essential \
+    git \
+    libsdl2-dev \
+    libsdl2-image-dev \
+    libsdl2-mixer-dev \
+    libsdl2-ttf-dev \
+    libssl-dev \
+    lsb-release \
+    make \
+    pkg-config \
+	python3 \
+    python3-dev \
+    sudo \
+    tox \
+    virtualenv
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}

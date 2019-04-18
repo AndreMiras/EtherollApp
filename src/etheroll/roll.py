@@ -6,11 +6,13 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.screenmanager import Screen
 from pyetheroll.constants import ROUND_DIGITS
+from requests.exceptions import ConnectionError
 
 from etheroll.ui_utils import Dialog, load_kv_from_py
 from etheroll.utils import run_in_thread
 
 load_kv_from_py(__file__)
+DEFAULT_MIN_BET = 0.10
 
 
 class RollUnderRecap(GridLayout):
@@ -20,6 +22,7 @@ class RollUnderRecap(GridLayout):
 
 
 class BetSize(BoxLayout):
+    min_bet_property = NumericProperty(DEFAULT_MIN_BET)
 
     def __init__(self, **kwargs):
         super(BetSize, self).__init__(**kwargs)
@@ -35,6 +38,27 @@ class BetSize(BoxLayout):
         # shows less digits than the constant default to keep the input tiny
         round_digits = 2
         BetSize.bind_slider_input(slider, inpt, cast_to, round_digits)
+        self.pull_min_bet_from_contract()
+
+    @run_in_thread
+    def pull_min_bet_from_contract(self):
+        """
+        Retrieves (async) the minimum bet size by calling the contract.
+        On network error fallback to default minimum bet.
+        """
+        controller = App.get_running_app().root
+        pyetheroll = controller.pyetheroll
+        min_bet = DEFAULT_MIN_BET
+        try:
+            min_bet_wei = pyetheroll.contract.functions.minBet().call()
+            min_bet = round(min_bet_wei / 1e18, ROUND_DIGITS)
+        except ConnectionError:
+            pass
+        self.set_min_bet(min_bet)
+
+    @mainthread
+    def set_min_bet(self, min_bet):
+        self.min_bet_property = min_bet
 
     @staticmethod
     def bind_slider_input(

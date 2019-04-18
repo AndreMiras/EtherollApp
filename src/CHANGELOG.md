@@ -1,7 +1,7 @@
 # Change Log
 
 
-## [Unreleased]
+## [v20190418]
 
   - Pull minimum bet from contract, refs #129
   - Fix permission issue on settings, refs #131

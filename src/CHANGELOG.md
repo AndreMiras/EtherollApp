@@ -1,10 +1,16 @@
 # Change Log
 
 
+## [Unreleased]
+
+  - Support F-Droid auto updates, refs #132
+
+
 ## [v20190418]
 
   - Pull minimum bet from contract, refs #129
   - Fix permission issue on settings, refs #131
+  - Available on the F-Droid market, refs #36
 
 
 ## [v20190217]

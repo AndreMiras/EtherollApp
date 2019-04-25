@@ -8,14 +8,14 @@ This is documenting the release process.
 Make sure the CHANGELOG.md is up to date and follows the http://keepachangelog.com guidelines.
 Start the release with git flow:
 ```sh
-git flow release start vYYYYMMDD
+git flow release start vYYYY.MMDD
 ```
 Now update the [CHANGELOG.md](/src/CHANGELOG.md) `[Unreleased]` section to match the new release version.
 Also update the `__version__` and `__version_code__` values from the [version.py](/src/version.py) file.
 Optionally already update the direct download link from the [README.md](/README.md).
 Then commit and finish release.
 ```sh
-git commit -a -m "vYYYYMMDD"
+git commit -a -m "vYYYY.MMDD"
 git flow release finish
 ```
 Push everything, make sure tags are also pushed:

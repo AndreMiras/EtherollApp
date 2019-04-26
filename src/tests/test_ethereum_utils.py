@@ -1,7 +1,7 @@
 import os
 import shutil
 import unittest
-from tempfile import mkdtemp
+from tempfile import TemporaryDirectory, mkdtemp
 from unittest import mock
 
 from ethereum_utils import AccountUtils
@@ -78,6 +78,23 @@ class TestAccountUtils(unittest.TestCase):
         self.assertEqual(len(self.account_utils.get_account_list()), 1)
         self.assertEqual(
             self.account_utils.get_account_list()[0].address, account.address)
+
+    def test_get_account_list_no_dir(self):
+        """
+        The keystore directory should be created if it doesn't exist, refs:
+        https://github.com/AndreMiras/PyWallet/issues/133
+        """
+        # nominal case when the directory already exists
+        with TemporaryDirectory() as keystore_dir:
+            self.assertTrue(os.path.isdir(keystore_dir))
+            account_utils = AccountUtils(keystore_dir)
+            self.assertEqual(account_utils.get_account_list(), [])
+        # when the directory doesn't exist it should also be created
+        self.assertFalse(os.path.isdir(keystore_dir))
+        account_utils = AccountUtils(keystore_dir)
+        self.assertTrue(os.path.isdir(keystore_dir))
+        self.assertEqual(account_utils.get_account_list(), [])
+        shutil.rmtree(keystore_dir, ignore_errors=True)
 
     def test_deleted_account_dir(self):
         """

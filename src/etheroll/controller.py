@@ -89,7 +89,10 @@ class Controller(FloatLayout):
         from etheroll.store import Store
         if self._account_utils is None:
             keystore_dir = Store.get_keystore_path()
-            self._account_utils = AccountUtils(keystore_dir=keystore_dir)
+            # would try to create the keystore directory if doesn't exist,
+            # hence we need to make sure we have permissions
+            if self.check_request_write_permission():
+                self._account_utils = AccountUtils(keystore_dir=keystore_dir)
         return self._account_utils
 
     def preload_account_utils(self, dt):
@@ -419,12 +422,14 @@ class Controller(FloatLayout):
         Android runtime storage permission check.
         """
         if platform != "android":
-            return
+            return True
         from android.permissions import (
             Permission, request_permission, check_permission)
         permission = Permission.WRITE_EXTERNAL_STORAGE
-        if not check_permission(permission):
+        had_permission = check_permission(permission)
+        if not had_permission:
             request_permission(permission)
+        return had_permission
 
     @staticmethod
     def on_permission_error(exception):

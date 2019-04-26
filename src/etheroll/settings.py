@@ -25,7 +25,9 @@ class SettingsScreen(SubScreen):
         controller.check_request_write_permission()
         try:
             store = Store.get_store()
-        except PermissionError:
+        except (PermissionError, OSError):
+            # PermissionError -> e.g. Android runtime permission
+            # OSError -> e.g. directory doesn't exist
             # fails silently, setting will simply not be stored on disk
             store = {}
         return store

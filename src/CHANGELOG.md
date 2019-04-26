@@ -1,7 +1,7 @@
 # Change Log
 
 
-## [Unreleased]
+## [v2019.0426]
 
   - Support F-Droid auto updates, refs #132
   - Keystore directory and permissions, refs #133, #134

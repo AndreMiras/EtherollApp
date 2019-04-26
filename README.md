@@ -2,7 +2,12 @@
 
 [![Build Status](https://secure.travis-ci.org/AndreMiras/EtherollApp.png?branch=develop)](http://travis-ci.org/AndreMiras/EtherollApp)
 
-<a href="https://github.com/AndreMiras/EtherollApp/releases/download/v20190418/etheroll-2019.0418-debug.apk"><img src="https://www.scottishchildrenslottery.com/export/system/modules/com.assense.gaming.stv.template/resources/images/google-play-store.svg" width="200"></a>
+<a href="https://f-droid.org/en/packages/com.github.andremiras.etheroll">
+  <img src="https://f-droid.org/badge/get-it-on.png" height="75">
+</a>
+<a href="https://github.com/AndreMiras/EtherollApp/releases/download/v2019.0426/etheroll-2019.0426-debug.apk">
+  <img src="https://www.livenettv.to/img/landing-page-1/google-play.png" height="75">
+</a>
 
 Provably fair dice game running on the [Ethereum blockchain](https://etheroll.com/#/smart-contract).
 Built with Python, [Kivy](https://github.com/kivy/kivy) and love.

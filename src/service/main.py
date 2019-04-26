@@ -41,9 +41,8 @@ class MonitorRollsService():
         """
         Set `osc_server_port` to enable UI synchronization with service.
         """
-        keystore_dir = self.get_keystore_path()
-        self.account_utils = AccountUtils(keystore_dir=keystore_dir)
         self._pyetheroll = None
+        self._account_utils = None
         # per address cached merged logs, used to compare with next pulls
         self.merged_logs = {}
         self.last_roll_activity = None
@@ -64,6 +63,16 @@ class MonitorRollsService():
             elapsed = (time() - self.last_roll_activity)
         # service decided to die naturally after no roll activity
         self.set_auto_restart_service(False)
+
+    @property
+    def account_utils(self):
+        """
+        Gets or creates the AccountUtils object so it loads lazily.
+        """
+        if self._account_utils is None:
+            keystore_dir = self.get_keystore_path()
+            self._account_utils = AccountUtils(keystore_dir=keystore_dir)
+        return self._account_utils
 
     @staticmethod
     def set_auto_restart_service(restart=True):

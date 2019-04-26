@@ -1,10 +1,17 @@
 # Change Log
 
 
+## [v2019.0426]
+
+  - Support F-Droid auto updates, refs #132
+  - Keystore directory and permissions, refs #133, #134
+
+
 ## [v20190418]
 
   - Pull minimum bet from contract, refs #129
   - Fix permission issue on settings, refs #131
+  - Available on the F-Droid market, refs #36
 
 
 ## [v20190217]

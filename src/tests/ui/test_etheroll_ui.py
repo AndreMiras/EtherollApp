@@ -614,6 +614,27 @@ class UITestCase(unittest.TestCase):
         screen_manager.current = 'roll_screen'
         self.advance_frames_for_screen()
 
+    def helper_test_settings_screen(self, app):
+        """
+        Verifies the settings screen loads and shows infos.
+        """
+        controller = app.root
+        screen_manager = controller.screen_manager
+        # verify the landing screen is loaded by default
+        screen = screen_manager.children[0]
+        self.assertEqual(screen.name, 'roll_screen')
+        # loads the about and verify
+        screen_manager.current = 'settings_screen'
+        self.advance_frames_for_screen()
+        screen = screen_manager.children[0]
+        self.assertEqual(screen.name, 'settings_screen')
+        # checks settings screen attributes
+        self.assertEqual(screen.is_ui_mainnet(), True)
+        self.assertEqual(screen.is_ui_testnet(), False)
+        # loads back the default screen
+        screen_manager.current = 'roll_screen'
+        self.advance_frames_for_screen()
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -632,6 +653,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_roll(app)
         self.helper_test_roll_connection_error(app)
         self.helper_test_roll_password(app)
+        self.helper_test_settings_screen(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

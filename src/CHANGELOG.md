@@ -1,6 +1,11 @@
 # Change Log
 
 
+## [Unreleased]
+
+  - Save keystore to private user dir, refs #141
+
+
 ## [v2019.0426]
 
   - Support F-Droid auto updates, refs #132

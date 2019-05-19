@@ -1,82 +1,24 @@
+import os
+
 from kivy.app import App
+from kivy.utils import platform
 from pyetheroll.constants import DEFAULT_GAS_PRICE_GWEI, ChainID
 
+from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.store import Store
-from etheroll.ui_utils import SubScreen, load_kv_from_py
-
-load_kv_from_py(__file__)
 
 
-class SettingsScreen(SubScreen):
+class Settings:
     """
     Screen for configuring network, gas price...
     """
-
-    def __init__(self, **kwargs):
-        super(SettingsScreen, self).__init__(**kwargs)
-
-    @staticmethod
-    def get_store():
-        """
-        Wrappers around get_store for handling permissions on Android.
-        """
-        controller = App.get_running_app().root
-        # would also work for read permission
-        controller.check_request_write_permission()
-        try:
-            store = Store.get_store()
-        except (PermissionError, OSError):
-            # PermissionError -> e.g. Android runtime permission
-            # OSError -> e.g. directory doesn't exist
-            # fails silently, setting will simply not be stored on disk
-            store = {}
-        return store
-
-    def store_network(self):
-        """
-        Saves selected network to the store.
-        """
-        store = self.get_store()
-        network = self.get_ui_network()
-        store.put('network', value=network.name)
-
-    def store_gas_price(self):
-        """
-        Saves gas price value to the store.
-        """
-        store = self.get_store()
-        gas_price = self.get_ui_gas_price()
-        store.put('gas_price', value=gas_price)
-
-    def store_settings(self):
-        """
-        Stores settings to json store.
-        """
-        self.store_gas_price()
-        self.store_network()
-
-    def get_ui_network(self):
-        """
-        Retrieves network values from UI.
-        """
-        if self.is_ui_mainnet():
-            network = ChainID.MAINNET
-        else:
-            network = ChainID.ROPSTEN
-        return network
-
-    def is_ui_mainnet(self):
-        return self.ids.mainnet_checkbox_id.active
-
-    def is_ui_testnet(self):
-        return self.ids.testnet_checkbox_id.active
 
     @classmethod
     def get_stored_network(cls):
         """
         Retrieves last stored network value, defaults to Mainnet.
         """
-        store = cls.get_store()
+        store = Store.get_store()
         try:
             network_dict = store['network']
         except KeyError:
@@ -96,15 +38,12 @@ class SettingsScreen(SubScreen):
         network = cls.get_stored_network()
         return network == ChainID.ROPSTEN
 
-    def get_ui_gas_price(self):
-        return self.ids.gas_price_slider_id.value
-
     @classmethod
     def get_stored_gas_price(cls):
         """
         Retrieves stored gas price value, defaults to DEFAULT_GAS_PRICE_GWEI.
         """
-        store = cls.get_store()
+        store = Store.get_store()
         try:
             gas_price_dict = store['gas_price']
         except KeyError:
@@ -112,3 +51,68 @@ class SettingsScreen(SubScreen):
         gas_price = gas_price_dict.get(
             'value', DEFAULT_GAS_PRICE_GWEI)
         return gas_price
+
+    @classmethod
+    def is_persistent_keystore(cls):
+        """
+        Retrieves the settings value regarding the keystore persistency.
+        Defaults to False.
+        """
+        store = Store.get_store()
+        try:
+            persist_keystore_dict = store['persist_keystore']
+        except KeyError:
+            persist_keystore_dict = {}
+        persist_keystore = persist_keystore_dict.get(
+            'value', False)
+        return persist_keystore
+
+    @staticmethod
+    def get_files_dir():
+        """
+        Alternative App._get_user_data_dir() implementation for Android
+        that also works when within a service activity.
+        """
+        from jnius import autoclass, cast
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        activity = PythonActivity.mActivity
+        if activity is None:
+            # assume we're running from the background service
+            PythonService = autoclass('org.kivy.android.PythonService')
+            activity = PythonService.mService
+        context = cast('android.content.Context', activity)
+        file_p = cast('java.io.File', context.getFilesDir())
+        data_dir = file_p.getAbsolutePath()
+        return data_dir
+
+    @classmethod
+    def _get_android_keystore_prefix(cls, app=None):
+        """
+        Returns the Android keystore path prefix.
+        The location differs based on the persistency user settings.
+        """
+        if app is None:
+            app = App.get_running_app()
+        if cls.is_persistent_keystore():
+            # TODO: hardcoded path, refs:
+            # https://github.com/AndreMiras/EtherollApp/issues/145
+            KEYSTORE_DIR_PREFIX = os.path.join('/sdcard', app.name)
+        else:
+            KEYSTORE_DIR_PREFIX = cls.get_files_dir()
+        return KEYSTORE_DIR_PREFIX
+
+    @classmethod
+    def get_keystore_path(cls, app=None):
+        """
+        Returns the keystore directory path.
+        This can be overriden by the `KEYSTORE_PATH` environment variable.
+        """
+        keystore_path = os.environ.get('KEYSTORE_PATH')
+        if keystore_path is not None:
+            return keystore_path
+        KEYSTORE_DIR_PREFIX = os.path.expanduser("~")
+        if platform == "android":
+            KEYSTORE_DIR_PREFIX = cls._get_android_keystore_prefix(app)
+        keystore_path = os.path.join(
+            KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
+        return keystore_path

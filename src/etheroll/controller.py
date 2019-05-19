@@ -11,7 +11,8 @@ from raven import Client
 from requests.exceptions import ConnectionError
 
 from etheroll.constants import API_KEY_PATH
-from etheroll.settings import SettingsScreen
+from etheroll.settings import Settings
+from etheroll.settings_screen import SettingsScreen
 from etheroll.switchaccount import SwitchAccountScreen
 from etheroll.ui_utils import Dialog, load_kv_from_py
 from etheroll.utils import run_in_thread
@@ -35,7 +36,6 @@ class Controller(FloatLayout):
         Clock.schedule_once(self._after_init)
         self._account_passwords = {}
         self._pyetheroll = None
-        self._account_utils = None
 
     def _after_init(self, dt):
         """
@@ -75,7 +75,7 @@ class Controller(FloatLayout):
         Also recreates the object if the chain_id changed.
         """
         from pyetheroll.etheroll import Etheroll
-        chain_id = SettingsScreen.get_stored_network()
+        chain_id = Settings.get_stored_network()
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
             self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
         return self._pyetheroll
@@ -86,14 +86,8 @@ class Controller(FloatLayout):
         Gets or creates the AccountUtils object so it loads lazily.
         """
         from ethereum_utils import AccountUtils
-        from etheroll.store import Store
-        if self._account_utils is None:
-            keystore_dir = Store.get_keystore_path()
-            # would try to create the keystore directory if doesn't exist,
-            # hence we need to make sure we have permissions
-            if self.check_request_write_permission():
-                self._account_utils = AccountUtils(keystore_dir=keystore_dir)
-        return self._account_utils
+        keystore_dir = Settings.get_keystore_path()
+        return AccountUtils.get_or_create(keystore_dir)
 
     def preload_account_utils(self, dt):
         """
@@ -341,7 +335,7 @@ class Controller(FloatLayout):
         roll_input = roll_screen.get_roll_input()
         bet_size = roll_input['bet_size']
         chances = roll_input['chances']
-        gas_price = SettingsScreen.get_stored_gas_price()
+        gas_price = Settings.get_stored_gas_price()
         account = self.current_account
         if account is None:
             self.on_account_none()
@@ -415,21 +409,6 @@ class Controller(FloatLayout):
             'Copy address',
             lambda x: self.copy_address_clipboard(), icon='content-copy')
         bottom_sheet.open()
-
-    @staticmethod
-    def check_request_write_permission():
-        """
-        Android runtime storage permission check.
-        """
-        if platform != "android":
-            return True
-        from android.permissions import (
-            Permission, request_permission, check_permission)
-        permission = Permission.WRITE_EXTERNAL_STORAGE
-        had_permission = check_permission(permission)
-        if not had_permission:
-            request_permission(permission)
-        return had_permission
 
     @staticmethod
     def on_permission_error(exception):

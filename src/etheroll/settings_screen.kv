@@ -1,3 +1,4 @@
+#:import Settings etheroll.settings.Settings
 #:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
 #:import MDSlider kivymd.slider.MDSlider
 
@@ -22,7 +23,7 @@
                     size_hint: None, None
                     size: dp(48), dp(48)
                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                    active: root.is_stored_mainnet()
+                    active: Settings.is_stored_mainnet()
                 MDLabel:
                     text: 'Mainnet'
                     theme_text_color: 'Primary'
@@ -34,7 +35,7 @@
                     size_hint: None, None
                     size: dp(48), dp(48)
                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                    active: root.is_stored_testnet()
+                    active: Settings.is_stored_testnet()
                 MDLabel:
                     text: 'Testnet'
                     theme_text_color: 'Primary'
@@ -57,6 +58,27 @@
                     MDSlider:
                         id: gas_price_slider_id
                         range: 0, 50
-                        value: root.get_stored_gas_price()
+                        value: Settings.get_stored_gas_price()
                         step: 1
+            PushUp:
+            BoxLayout:
+                orientation: 'vertical'
+                MDLabel:
+                    text: 'Persist keystore'
+                    font_style: 'Title'
+                    theme_text_color: 'Primary'
+                BoxLayout:
+                    orientation: 'horizontal'
+                    MDSwitch:
+                        id: persist_keystore_switch_id
+                        size_hint: None, None
+                        size: dp(36), dp(48)
+                        pos_hint: {'center_x': 0.75, 'center_y': 0.5}
+                        active: Settings.is_persistent_keystore()
+                        on_release: root.check_request_write_permission()
+                    MDLabel:
+                        halign: 'right'
+                        text: 'Keeps accounts even if the app is uninstalled'
+                        theme_text_color: 'Primary'
+
             PushUp:

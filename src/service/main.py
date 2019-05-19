@@ -15,24 +15,41 @@ PYTHON_SERVICE_ARGUMENT='{"osc_server_port": PORT}'
 import json
 import os
 from time import sleep, time
-from types import SimpleNamespace
 
+from kivy.app import App
 from kivy.logger import Logger
 from kivy.utils import platform
 from plyer import notification
-from pyetheroll.constants import ROUND_DIGITS, ChainID
+from pyetheroll.constants import ROUND_DIGITS
 from pyetheroll.etheroll import Etheroll
 from raven import Client
 
 from ethereum_utils import AccountUtils
-from etheroll.constants import API_KEY_PATH, KEYSTORE_DIR_SUFFIX
-from etheroll.store import Store
+from etheroll.constants import API_KEY_PATH
+from etheroll.settings import Settings
 from osc.osc_app_client import OscAppClient
 from sentry_utils import configure_sentry
 
 PULL_FREQUENCY_SECONDS = 10
 # time before the service shuts down if no roll activity
 NO_ROLL_ACTIVITY_PERDIOD_SECONDS = 5 * 60
+
+
+class ServiceApp(App):
+
+    def __init__(self, app_name):
+        # call the super class so the singleton App is saved
+        super().__init__()
+        self._app_name = app_name
+
+    def _get_user_data_dir(self):
+        """
+        Overrides the default `App._get_user_data_dir()` behavior on Android to
+        also work with service activity.
+        """
+        if platform == 'android':
+            return Settings.get_files_dir()
+        return super()._get_user_data_dir()
 
 
 class MonitorRollsService():
@@ -69,10 +86,9 @@ class MonitorRollsService():
         """
         Gets or creates the AccountUtils object so it loads lazily.
         """
-        if self._account_utils is None:
-            keystore_dir = self.get_keystore_path()
-            self._account_utils = AccountUtils(keystore_dir=keystore_dir)
-        return self._account_utils
+        app = self.get_running_app()
+        keystore_dir = Settings.get_keystore_path(app)
+        return AccountUtils.get_or_create(keystore_dir)
 
     @staticmethod
     def set_auto_restart_service(restart=True):
@@ -91,7 +107,8 @@ class MonitorRollsService():
         Gets or creates the Etheroll object.
         Also recreates the object if the chain_id changed.
         """
-        chain_id = self.get_stored_network()
+        chain_id = Settings.get_stored_network()
+        print(f'chain_id: {chain_id}')
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
             self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
         return self._pyetheroll
@@ -102,41 +119,7 @@ class MonitorRollsService():
         Fakes the get_running_app() behavior and returns an app with only
         `App.name` setup.
         """
-        app_name = 'etheroll'
-        return SimpleNamespace(name=app_name)
-
-    @classmethod
-    def user_data_dir(cls):
-        app = cls.get_running_app()
-        return Store.get_user_data_dir(app)
-
-    # TODO: refactore and share the one from settings or somewhere
-    @classmethod
-    def get_stored_network(cls):
-        """
-        Retrieves last stored network value, defaults to Mainnet.
-        """
-        app = cls.get_running_app()
-        store = Store.get_store(app)
-        try:
-            network_dict = store['network']
-        except KeyError:
-            network_dict = {}
-        network_name = network_dict.get(
-            'value', ChainID.MAINNET.name)
-        network = ChainID[network_name]
-        return network
-
-    @classmethod
-    def get_keystore_path(cls):
-        KEYSTORE_DIR_PREFIX = os.path.expanduser("~")
-        # uses kivy user_data_dir (/sdcard/<app_name>)
-        if platform == "android":
-            # KEYSTORE_DIR_PREFIX = App.get_running_app().user_data_dir
-            KEYSTORE_DIR_PREFIX = cls.user_data_dir()
-        keystore_dir = os.path.join(
-            KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
-        return keystore_dir
+        return ServiceApp(app_name='etheroll')
 
     def pull_account_rolls(self, account):
         """
@@ -159,11 +142,7 @@ class MonitorRollsService():
 
     def pull_accounts_rolls(self):
         accounts = []
-        try:
-            accounts = self.account_utils.get_account_list()
-        except PermissionError:
-            # happens in e.g. Android runtime permission check, refs #125
-            pass
+        accounts = self.account_utils.get_account_list()
         print(f'accounts: {accounts}')
         for account in accounts:
             self.pull_account_rolls(account)

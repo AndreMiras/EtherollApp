@@ -1,6 +1,8 @@
 import threading
 from io import StringIO
 
+from kivy.utils import platform
+
 
 def run_in_thread(fn):
     """
@@ -25,6 +27,29 @@ def run_in_thread(fn):
         t.start()
         return t
     return run
+
+
+def check_write_permission():
+    """
+    Android runtime storage permission check.
+    """
+    if platform != "android":
+        return True
+    from android.permissions import Permission, check_permission
+    permission = Permission.WRITE_EXTERNAL_STORAGE
+    return check_permission(permission)
+
+
+def check_request_write_permission():
+    """
+    Android runtime storage permission check & request.
+    """
+    had_permission = check_write_permission()
+    if not had_permission:
+        from android.permissions import Permission, request_permission
+        permission = Permission.WRITE_EXTERNAL_STORAGE
+        request_permission(permission)
+    return had_permission
 
 
 class StringIOCBWrite(StringIO):

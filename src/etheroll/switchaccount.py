@@ -60,12 +60,8 @@ class SwitchAccount(BoxLayout):
         self.controller = App.get_running_app().root
         self.toggle_spinner(show=True)
         accounts = []
-        self.controller.check_request_write_permission()
-        try:
-            accounts = self.controller.account_utils.get_account_list()
-            self.update_account_list(accounts)
-        except PermissionError as exception:
-            self.controller.on_permission_error(exception)
+        accounts = self.controller.account_utils.get_account_list()
+        self.update_account_list(accounts)
         self.toggle_spinner(show=False)
 
     @staticmethod

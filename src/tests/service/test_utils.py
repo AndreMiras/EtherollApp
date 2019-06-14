@@ -31,6 +31,10 @@ class TestUtils(unittest.TestCase):
         arguments = {'foo': 'bar', 'foobar': True}
         with self.patch_platform(), self.patch_jnius(m_jnius):
             utils.start_roll_polling_service(arguments)
+        assert m_jnius.autoclass.call_args_list == [
+            mock.call('com.github.andremiras.etheroll.ServiceService'),
+            mock.call('org.kivy.android.PythonActivity'),
+        ]
         assert m_jnius.autoclass().start.call_args_list == [
             mock.call(
                 m_jnius.autoclass().mActivity,

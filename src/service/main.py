@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Roll pulling service script.
+Roll polling service script.
 Monitors the chain on regular basis and send notifications on change.
 Also updates the App UI via OSC:
 MonitorRollsService -> OscAppClient -> OscAppServer -> App

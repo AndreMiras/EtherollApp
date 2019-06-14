@@ -18,7 +18,7 @@ from etheroll.ui_utils import Dialog, load_kv_from_py
 from etheroll.utils import run_in_thread
 from osc.osc_app_server import OscAppServer
 from sentry_utils import configure_sentry
-from service.utils import start_roll_pulling_service
+from service.utils import start_roll_polling_service
 
 load_kv_from_py(__file__)
 
@@ -312,8 +312,8 @@ class Controller(FloatLayout):
     @staticmethod
     def start_services():
         """
-        Starts both roll pulling service and OSC service.
-        The roll pulling service is getting the OSC server connection
+        Starts both roll polling service and OSC service.
+        The roll polling service is getting the OSC server connection
         parameters so it can communicate to it.
         """
         app = App.get_running_app()
@@ -324,7 +324,7 @@ class Controller(FloatLayout):
             'osc_server_address': server_address,
             'osc_server_port': server_port,
         }
-        start_roll_pulling_service(arguments)
+        start_roll_polling_service(arguments)
 
     def roll(self):
         """
@@ -345,7 +345,7 @@ class Controller(FloatLayout):
         if password is not None:
             self.player_roll_dice(
                 bet_size, chances, wallet_path, password, gas_price)
-            # restarts roll pulling service to reset the roll activity period
+            # restarts roll polling service to reset the roll activity period
             self.start_services()
 
     def load_switch_account(self):

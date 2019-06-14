@@ -475,7 +475,7 @@ class UITestCase(unittest.TestCase):
             # since we may run into race condition with threading.enumerate()
             # we make the test conditional
             if len(threads) == 3:
-                # rolls should be pulled from a thread
+                # rolls should be fetched from a thread
                 self.assertEqual(len(threads), 3)
                 player_roll_dice_thread = threads[2]
                 self.assertEqual(
@@ -522,7 +522,7 @@ class UITestCase(unittest.TestCase):
             # since we may run into race condition with threading.enumerate()
             # we make the test conditional
             if len(threads) == 3:
-                # rolls should be pulled from a thread
+                # rolls should be fetched from a thread
                 self.assertEqual(len(threads), 3)
                 player_roll_dice_thread = threads[2]
                 self.assertEqual(
@@ -579,7 +579,7 @@ class UITestCase(unittest.TestCase):
         # since we may run into race condition with threading.enumerate()
         # we make the test conditional
         if len(threads) == 3:
-            # rolls should be pulled from a thread
+            # rolls should be fetched from a thread
             self.assertEqual(len(threads), 3)
             player_roll_dice_thread = threads[2]
             self.assertEqual(

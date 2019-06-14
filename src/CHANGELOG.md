@@ -14,7 +14,7 @@
 
 ## [v20190418]
 
-  - Pull minimum bet from contract, refs #129
+  - Fetch minimum bet from contract, refs #129
   - Fix permission issue on settings, refs #131
   - Available on the F-Droid market, refs #36
 

@@ -3,9 +3,9 @@ import json
 from kivy.utils import platform
 
 
-def start_roll_pulling_service(arguments=None):
+def start_roll_polling_service(arguments=None):
     """
-    Starts the roll pulling service.
+    Starts the roll polling service.
     If the service is already running, it won't be started twice.
     """
     if platform != 'android':

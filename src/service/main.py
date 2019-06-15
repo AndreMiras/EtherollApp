@@ -35,12 +35,7 @@ PULL_FREQUENCY_SECONDS = 10
 NO_ROLL_ACTIVITY_PERDIOD_SECONDS = 5 * 60
 
 
-class ServiceApp(App):
-
-    def __init__(self, app_name):
-        # call the super class so the singleton App is saved
-        super().__init__()
-        self._app_name = app_name
+class EtherollApp(App):
 
     def _get_user_data_dir(self):
         """
@@ -66,6 +61,8 @@ class MonitorRollsService():
         self.osc_app_client = None
         if osc_server_port is not None:
             self.osc_app_client = OscAppClient('localhost', osc_server_port)
+        # so that the `App._running_app` singleton is available
+        EtherollApp()
 
     def run(self):
         """
@@ -86,7 +83,7 @@ class MonitorRollsService():
         """
         Gets or creates the AccountUtils object so it loads lazily.
         """
-        app = self.get_running_app()
+        app = App.get_running_app()
         keystore_dir = Settings.get_keystore_path(app)
         return AccountUtils.get_or_create(keystore_dir)
 
@@ -112,14 +109,6 @@ class MonitorRollsService():
         if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
             self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
         return self._pyetheroll
-
-    @staticmethod
-    def get_running_app():
-        """
-        Fakes the get_running_app() behavior and returns an app with only
-        `App.name` setup.
-        """
-        return ServiceApp(app_name='etheroll')
 
     def pull_account_rolls(self, account):
         """

@@ -83,8 +83,7 @@ class MonitorRollsService():
         """
         Gets or creates the AccountUtils object so it loads lazily.
         """
-        app = App.get_running_app()
-        keystore_dir = Settings.get_keystore_path(app)
+        keystore_dir = Settings.get_keystore_path()
         return AccountUtils.get_or_create(keystore_dir)
 
     @staticmethod

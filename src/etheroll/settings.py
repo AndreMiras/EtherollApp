@@ -86,13 +86,12 @@ class Settings:
         return data_dir
 
     @classmethod
-    def _get_android_keystore_prefix(cls, app=None):
+    def _get_android_keystore_prefix(cls):
         """
         Returns the Android keystore path prefix.
         The location differs based on the persistency user settings.
         """
-        if app is None:
-            app = App.get_running_app()
+        app = App.get_running_app()
         if cls.is_persistent_keystore():
             # TODO: hardcoded path, refs:
             # https://github.com/AndreMiras/EtherollApp/issues/145
@@ -102,7 +101,7 @@ class Settings:
         return KEYSTORE_DIR_PREFIX
 
     @classmethod
-    def get_keystore_path(cls, app=None):
+    def get_keystore_path(cls):
         """
         Returns the keystore directory path.
         This can be overriden by the `KEYSTORE_PATH` environment variable.
@@ -112,7 +111,7 @@ class Settings:
             return keystore_path
         KEYSTORE_DIR_PREFIX = os.path.expanduser("~")
         if platform == "android":
-            KEYSTORE_DIR_PREFIX = cls._get_android_keystore_prefix(app)
+            KEYSTORE_DIR_PREFIX = cls._get_android_keystore_prefix()
         keystore_path = os.path.join(
             KEYSTORE_DIR_PREFIX, KEYSTORE_DIR_SUFFIX)
         return keystore_path

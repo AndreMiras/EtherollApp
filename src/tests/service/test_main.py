@@ -5,7 +5,7 @@ from unittest import mock
 from kivy.app import App
 from pyetheroll.constants import ChainID
 
-from service.main import MonitorRollsService, ServiceApp
+from service.main import EtherollApp, MonitorRollsService
 
 
 def patch_platform():
@@ -16,20 +16,19 @@ def patch_jnius(m_jnius=mock.MagicMock()):
     return mock.patch.dict('sys.modules', jnius=m_jnius)
 
 
-class TestServiceApp(unittest.TestCase):
+class TestEtherollApp(unittest.TestCase):
     """
-    Unit tests ServiceApp methods.
+    Unit tests EtherollApp methods.
     """
 
     def test_init(self):
         """
-        Checks the ServiceApp initializes correctly.
+        Checks the EtherollApp initializes correctly.
         Checks the singleton via App.get_running_app() is available.
         """
         App._running_app = None
         assert App.get_running_app() is None
-        app_name = 'etheroll'
-        app = ServiceApp(app_name)
+        app = EtherollApp()
         assert App.get_running_app() == app
         assert app.name == 'etheroll'
 
@@ -37,16 +36,14 @@ class TestServiceApp(unittest.TestCase):
         """
         Verifies `_get_user_data_dir()` returns the app directory.
         """
-        app_name = 'etheroll'
-        app = ServiceApp(app_name)
+        app = EtherollApp()
         assert app._get_user_data_dir().endswith('.config/etheroll')
 
     def test_get_user_data_dir_android(self):
         """
         On Android, pyjnius is used to call getAbsolutePath().
         """
-        app_name = 'etheroll'
-        app = ServiceApp(app_name)
+        app = EtherollApp()
         m_jnius = mock.MagicMock()
         with patch_platform(), patch_jnius(m_jnius):
             assert app._get_user_data_dir()
@@ -125,11 +122,6 @@ class TestMonitorRollsService(unittest.TestCase):
             m_get_stored_network.return_value = ChainID.ROPSTEN
             assert service.pyetheroll.chain_id == ChainID.ROPSTEN
             assert service.pyetheroll != pyetheroll
-
-    def test_get_running_app(self):
-        app = MonitorRollsService.get_running_app()
-        assert isinstance(app, ServiceApp)
-        assert app.name == 'etheroll'
 
     def test_pull_account_rolls(self):
         """

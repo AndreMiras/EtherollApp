@@ -82,7 +82,14 @@ class TestMonitorRollsService(unittest.TestCase):
         assert m_set_auto_restart_service.call_args_list == [mock.call(False)]
 
     def test_account_utils(self):
+        """
+        Makes sures accessing the AccountUtils object is possible even when the
+        running app singleton wasn't accessible prior to creating the service.
+        """
+        App._running_app = None
+        assert App.get_running_app() is None
         service = MonitorRollsService()
+        assert App.get_running_app() is not None
         assert service.account_utils is not None
 
     def test_set_auto_restart_service(self):

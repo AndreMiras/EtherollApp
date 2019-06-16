@@ -37,13 +37,31 @@ NO_ROLL_ACTIVITY_PERDIOD_SECONDS = 5 * 60
 
 class EtherollApp(App):
 
+    @staticmethod
+    def get_files_dir():
+        """
+        Alternative App._get_user_data_dir() implementation for Android
+        that also works when within a service activity.
+        """
+        from jnius import autoclass, cast
+        PythonActivity = autoclass('org.kivy.android.PythonActivity')
+        activity = PythonActivity.mActivity
+        if activity is None:
+            # assume we're running from the background service
+            PythonService = autoclass('org.kivy.android.PythonService')
+            activity = PythonService.mService
+        context = cast('android.content.Context', activity)
+        file_p = cast('java.io.File', context.getFilesDir())
+        data_dir = file_p.getAbsolutePath()
+        return data_dir
+
     def _get_user_data_dir(self):
         """
         Overrides the default `App._get_user_data_dir()` behavior on Android to
         also work with service activity.
         """
         if platform == 'android':
-            return Settings.get_files_dir()
+            return self.get_files_dir()
         return super()._get_user_data_dir()
 
 

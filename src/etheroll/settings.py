@@ -67,24 +67,6 @@ class Settings:
             'value', False)
         return persist_keystore
 
-    @staticmethod
-    def get_files_dir():
-        """
-        Alternative App._get_user_data_dir() implementation for Android
-        that also works when within a service activity.
-        """
-        from jnius import autoclass, cast
-        PythonActivity = autoclass('org.kivy.android.PythonActivity')
-        activity = PythonActivity.mActivity
-        if activity is None:
-            # assume we're running from the background service
-            PythonService = autoclass('org.kivy.android.PythonService')
-            activity = PythonService.mService
-        context = cast('android.content.Context', activity)
-        file_p = cast('java.io.File', context.getFilesDir())
-        data_dir = file_p.getAbsolutePath()
-        return data_dir
-
     @classmethod
     def _get_android_keystore_prefix(cls):
         """
@@ -95,10 +77,10 @@ class Settings:
         if cls.is_persistent_keystore():
             # TODO: hardcoded path, refs:
             # https://github.com/AndreMiras/EtherollApp/issues/145
-            KEYSTORE_DIR_PREFIX = os.path.join('/sdcard', app.name)
+            keystore_dir_prefix = os.path.join('/sdcard', app.name)
         else:
-            KEYSTORE_DIR_PREFIX = cls.get_files_dir()
-        return KEYSTORE_DIR_PREFIX
+            keystore_dir_prefix = app.user_data_dir
+        return keystore_dir_prefix
 
     @classmethod
     def get_keystore_path(cls):

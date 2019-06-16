@@ -1,6 +1,7 @@
 import shutil
 import unittest
 from tempfile import mkdtemp
+from unittest import mock
 
 from kivy.app import App
 from pyetheroll.constants import ChainID
@@ -34,3 +35,16 @@ class TestSettings(unittest.TestCase):
     def test_get_stored_network(self):
         network = Settings.get_stored_network()
         assert network == ChainID.MAINNET
+
+    def test_get_android_keystore_prefix(self):
+        """
+        The keystore prefix should be the same as user_data_dir by default.
+        But it can also be persisted to the sdcard.
+        """
+        assert Settings.is_persistent_keystore() is False
+        prefix = Settings._get_android_keystore_prefix()
+        assert prefix == self.app.user_data_dir
+        with mock.patch.object(
+                Settings, 'is_persistent_keystore', return_value=True):
+            prefix = Settings._get_android_keystore_prefix()
+            assert prefix == '/sdcard/etheroll'

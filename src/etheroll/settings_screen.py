@@ -1,5 +1,7 @@
+from kivy.properties import BooleanProperty, NumericProperty
 from pyetheroll.constants import ChainID
 
+from etheroll.settings import Settings
 from etheroll.store import Store
 from etheroll.ui_utils import SubScreen, load_kv_from_py
 from etheroll.utils import (check_request_write_permission,
@@ -12,6 +14,10 @@ class SettingsScreen(SubScreen):
     """
     Screen for configuring network, gas price...
     """
+
+    is_stored_mainnet = BooleanProperty()
+    is_stored_testnet = BooleanProperty()
+    stored_gas_price = NumericProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -41,6 +47,26 @@ class SettingsScreen(SubScreen):
         persist_keystore = self.is_ui_persistent_keystore()
         persist_keystore &= check_write_permission()
         store.put('persist_keystore', value=persist_keystore)
+
+    def set_persist_keystore_switch_state(self, active):
+        """
+        The MDSwitch UI look doesn't seem to be binded to its status.
+        Here the UI look will be updated depending on the "active" status.
+        """
+        mdswitch = self.ids.persist_keystore_switch_id
+        if self.is_ui_persistent_keystore() != active:
+            mdswitch.ids.thumb.trigger_action()
+
+    def load_settings(self):
+        """
+        Load json store settings to UI properties.
+        """
+        self.is_stored_mainnet = Settings.is_stored_mainnet()
+        self.is_stored_testnet = Settings.is_stored_testnet()
+        self.stored_gas_price = Settings.get_stored_gas_price()
+        is_persistent_keystore = (
+            Settings.is_persistent_keystore() and check_write_permission())
+        self.set_persist_keystore_switch_state(is_persistent_keystore)
 
     def store_settings(self):
         """
@@ -74,5 +100,5 @@ class SettingsScreen(SubScreen):
 
     def check_request_write_permission(self):
         # previous state before the toggle
-        if not self.is_ui_persistent_keystore():
+        if self.is_ui_persistent_keystore():
             check_request_write_permission()

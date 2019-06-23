@@ -7,6 +7,10 @@ from pyetheroll.constants import DEFAULT_GAS_PRICE_GWEI, ChainID
 from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.store import Store
 
+NETWORK_SETTINGS = 'network'
+GAS_PRICE_SETTINGS = 'gas_price'
+PERSIST_KEYSTORE_SETTINGS = 'persist_keystore'
+
 
 class Settings:
     """
@@ -20,13 +24,21 @@ class Settings:
         """
         store = Store.get_store()
         try:
-            network_dict = store['network']
+            network_dict = store[NETWORK_SETTINGS]
         except KeyError:
             network_dict = {}
         network_name = network_dict.get(
             'value', ChainID.MAINNET.name)
         network = ChainID[network_name]
         return network
+
+    @classmethod
+    def set_stored_network(cls, network: ChainID):
+        """
+        Persists network settings.
+        """
+        store = Store.get_store()
+        store.put(NETWORK_SETTINGS, value=network.name)
 
     @classmethod
     def is_stored_mainnet(cls):
@@ -45,12 +57,20 @@ class Settings:
         """
         store = Store.get_store()
         try:
-            gas_price_dict = store['gas_price']
+            gas_price_dict = store[GAS_PRICE_SETTINGS]
         except KeyError:
             gas_price_dict = {}
         gas_price = gas_price_dict.get(
             'value', DEFAULT_GAS_PRICE_GWEI)
         return gas_price
+
+    @classmethod
+    def set_stored_gas_price(cls, gas_price: int):
+        """
+        Persists gas price settings.
+        """
+        store = Store.get_store()
+        store.put(GAS_PRICE_SETTINGS, value=gas_price)
 
     @classmethod
     def is_persistent_keystore(cls):
@@ -60,12 +80,20 @@ class Settings:
         """
         store = Store.get_store()
         try:
-            persist_keystore_dict = store['persist_keystore']
+            persist_keystore_dict = store[PERSIST_KEYSTORE_SETTINGS]
         except KeyError:
             persist_keystore_dict = {}
         persist_keystore = persist_keystore_dict.get(
             'value', False)
         return persist_keystore
+
+    @classmethod
+    def set_is_persistent_keystore(cls, persist_keystore: bool):
+        """
+        Saves keystore persistency settings.
+        """
+        store = Store.get_store()
+        store.put(PERSIST_KEYSTORE_SETTINGS, value=persist_keystore)
 
     @classmethod
     def _get_android_keystore_prefix(cls):

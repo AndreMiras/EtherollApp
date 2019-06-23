@@ -2,7 +2,6 @@ from kivy.properties import BooleanProperty, NumericProperty
 from pyetheroll.constants import ChainID
 
 from etheroll.settings import Settings
-from etheroll.store import Store
 from etheroll.ui_utils import SubScreen, load_kv_from_py
 from etheroll.utils import (check_request_write_permission,
                             check_write_permission)
@@ -26,27 +25,24 @@ class SettingsScreen(SubScreen):
         """
         Saves selected network to the store.
         """
-        store = Store.get_store()
         network = self.get_ui_network()
-        store.put('network', value=network.name)
+        Settings.set_stored_network(network)
 
     def store_gas_price(self):
         """
         Saves gas price value to the store.
         """
-        store = Store.get_store()
         gas_price = self.get_ui_gas_price()
-        store.put('gas_price', value=gas_price)
+        Settings.set_stored_gas_price(gas_price)
 
     def store_is_persistent_keystore(self):
         """
         Saves the persistency option to the store.
         Note that to save `True` we also check if we have write permissions.
         """
-        store = Store.get_store()
         persist_keystore = self.is_ui_persistent_keystore()
         persist_keystore &= check_write_permission()
-        store.put('persist_keystore', value=persist_keystore)
+        Settings.set_is_persistent_keystore(persist_keystore)
 
     def set_persist_keystore_switch_state(self, active):
         """

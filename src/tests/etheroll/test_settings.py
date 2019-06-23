@@ -32,9 +32,47 @@ class TestSettings(unittest.TestCase):
         """
         shutil.rmtree(self.temp_path, ignore_errors=True)
 
-    def test_get_stored_network(self):
-        network = Settings.get_stored_network()
-        assert network == ChainID.MAINNET
+    def test_get_set_stored_network(self):
+        """
+        Checks default stored network and set method.
+        """
+        # checks default
+        assert Settings.get_stored_network() == ChainID.MAINNET
+        # checks set
+        Settings.set_stored_network(ChainID.ROPSTEN)
+        assert Settings.get_stored_network() == ChainID.ROPSTEN
+
+    def test_is_stored_mainnet(self):
+        Settings.set_stored_network(ChainID.MAINNET)
+        assert Settings.is_stored_mainnet() is True
+        Settings.set_stored_network(ChainID.ROPSTEN)
+        assert Settings.is_stored_mainnet() is False
+
+    def test_is_stored_testnet(self):
+        Settings.set_stored_network(ChainID.MAINNET)
+        assert Settings.is_stored_testnet() is False
+        Settings.set_stored_network(ChainID.ROPSTEN)
+        assert Settings.is_stored_testnet() is True
+
+    def test_get_set_stored_gas_price(self):
+        """
+        Checks default stored gas price and set method.
+        """
+        # checks default
+        assert Settings.get_stored_gas_price() == 4
+        # checks set
+        Settings.set_stored_gas_price(42)
+        assert Settings.get_stored_gas_price() == 42
+
+    def test_get_set_is_persistent_keystore(self):
+        """
+        Checks default persist value and set method.
+        """
+        # checks default
+        assert Settings.is_persistent_keystore() is False
+        # checks set
+        Settings.set_is_persistent_keystore(True)
+        assert Settings.is_persistent_keystore() is True
 
     def test_get_android_keystore_prefix(self):
         """
@@ -47,4 +85,4 @@ class TestSettings(unittest.TestCase):
         with mock.patch.object(
                 Settings, 'is_persistent_keystore', return_value=True):
             prefix = Settings._get_android_keystore_prefix()
-            assert prefix == '/sdcard/etheroll'
+        assert prefix == '/sdcard/etheroll'

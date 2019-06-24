@@ -1,6 +1,10 @@
+import os
+import shutil
+
 from kivy.properties import BooleanProperty, NumericProperty
 from pyetheroll.constants import ChainID
 
+from etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etheroll.settings import Settings
 from etheroll.ui_utils import SubScreen, load_kv_from_py
 from etheroll.utils import (check_request_write_permission,
@@ -41,8 +45,64 @@ class SettingsScreen(SubScreen):
         Note that to save `True` we also check if we have write permissions.
         """
         persist_keystore = self.is_ui_persistent_keystore()
-        persist_keystore &= check_write_permission()
+        persist_keystore = persist_keystore and check_write_permission()
+        persistency_toggled = (
+            Settings.is_persistent_keystore() != persist_keystore)
+        if persistency_toggled:
+            self.sync_keystore(persist_keystore)
         Settings.set_is_persistent_keystore(persist_keystore)
+
+    def sync_to_directory(source_dir, destination_dir):
+        """
+        Copy source dir content to the destination dir one.
+        Files already existing get overriden.
+        """
+        os.makedirs(destination_dir, exist_ok=True)
+        files = os.listdir(source_dir)
+        for f in files:
+            source_file = os.path.join(source_dir, f)
+            # file path is given rather than the dir so it gets overriden
+            destination_file = os.path.join(destination_dir, f)
+            try:
+                shutil.copy(source_file, destination_file)
+            except PermissionError:
+                # `copymode()` may have fail, fallback to simple copy
+                shutil.copyfile(source_file, destination_file)
+
+    @classmethod
+    def sync_keystore_to_persistent(cls):
+        """
+        Copies keystore from non persistent to persistent storage.
+        """
+        # TODO: handle dir doesn't exist
+        source_dir = os.path.join(
+            Settings.get_non_persistent_keystore_path(),
+            KEYSTORE_DIR_SUFFIX)
+        destination_dir = os.path.join(
+            Settings.get_persistent_keystore_path(),
+            KEYSTORE_DIR_SUFFIX)
+        cls.sync_to_directory(source_dir, destination_dir)
+
+    @classmethod
+    def sync_keystore_to_non_persistent(cls):
+        """
+        Copies keystore from persistent to non persistent storage.
+        """
+        # TODO: handle dir doesn't exist
+        source_dir = os.path.join(
+            Settings.get_persistent_keystore_path(),
+            KEYSTORE_DIR_SUFFIX)
+        destination_dir = os.path.join(
+            Settings.get_non_persistent_keystore_path(),
+            KEYSTORE_DIR_SUFFIX)
+        cls.sync_to_directory(source_dir, destination_dir)
+
+    @classmethod
+    def sync_keystore(cls, to_persistent):
+        if to_persistent:
+            cls.sync_keystore_to_persistent()
+        else:
+            cls.sync_keystore_to_non_persistent()
 
     def set_persist_keystore_switch_state(self, active):
         """

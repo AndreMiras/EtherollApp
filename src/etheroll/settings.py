@@ -95,19 +95,28 @@ class Settings:
         store = Store.get_store()
         store.put(PERSIST_KEYSTORE_SETTINGS, value=persist_keystore)
 
+    @staticmethod
+    def get_persistent_keystore_path():
+        app = App.get_running_app()
+        # TODO: hardcoded path, refs:
+        # https://github.com/AndreMiras/EtherollApp/issues/145
+        return os.path.join('/sdcard', app.name)
+
+    @staticmethod
+    def get_non_persistent_keystore_path():
+        app = App.get_running_app()
+        return app.user_data_dir
+
     @classmethod
     def _get_android_keystore_prefix(cls):
         """
         Returns the Android keystore path prefix.
         The location differs based on the persistency user settings.
         """
-        app = App.get_running_app()
         if cls.is_persistent_keystore():
-            # TODO: hardcoded path, refs:
-            # https://github.com/AndreMiras/EtherollApp/issues/145
-            keystore_dir_prefix = os.path.join('/sdcard', app.name)
+            keystore_dir_prefix = cls.get_persistent_keystore_path()
         else:
-            keystore_dir_prefix = app.user_data_dir
+            keystore_dir_prefix = cls.get_non_persistent_keystore_path()
         return keystore_dir_prefix
 
     @classmethod

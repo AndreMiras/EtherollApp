@@ -5,10 +5,22 @@ from pyethapp_accounts import Account
 
 class AccountUtils:
 
+    singleton = None
+
     def __init__(self, keystore_dir):
         self.keystore_dir = keystore_dir
         self._accounts = None
         os.makedirs(keystore_dir, exist_ok=True)
+
+    @classmethod
+    def get_or_create(cls, keystore_dir):
+        """
+        Gets or creates the AccountUtils object so it loads lazily.
+        """
+        if cls.singleton is None or \
+                cls.singleton.keystore_dir != keystore_dir:
+            cls.singleton = cls(keystore_dir=keystore_dir)
+        return cls.singleton
 
     def get_account_list(self):
         """

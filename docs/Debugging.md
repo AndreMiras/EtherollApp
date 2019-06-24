@@ -51,5 +51,5 @@ buildozer android adb -- logcat
 ```
 or with filtering:
 ```
-buildozer android adb -- logcat | grep -E '(python  |service ):'
+buildozer android adb -- logcat 2>&1 | grep -E '(I python|I service|F DEBUG)'
 ```

@@ -5,7 +5,7 @@ import time
 import unittest
 from functools import partial
 from tempfile import mkdtemp
-from unittest import mock
+from unittest.mock import patch
 
 from hexbytes import HexBytes
 from kivy.clock import Clock
@@ -37,7 +37,8 @@ class UITestCase(unittest.TestCase):
     def pause(*args):
         time.sleep(0.000001)
 
-    def advance_frames(self, count):
+    @staticmethod
+    def advance_frames(count):
         """
         Borrowed from Kivy 1.10.0+ /kivy/tests/common.py
         GraphicUnitTest.advance_frames()
@@ -59,7 +60,8 @@ class UITestCase(unittest.TestCase):
         """
         self.advance_frames_for_screen()
 
-    def join_threads(self):
+    @staticmethod
+    def join_threads():
         """
         Joins pending threads except for main and OSC threads.
         """
@@ -67,6 +69,17 @@ class UITestCase(unittest.TestCase):
         # lists all threads but the main one
         for thread in threads[2:]:
             thread.join()
+
+    @staticmethod
+    def wait_mock_called(mock, timeout=1):
+        """
+        Returns True if `mock` was called before the `timeout` in seconds.
+        """
+        step = 0.1
+        while timeout > 0 and not mock.called:
+            time.sleep(step)
+            timeout -= step
+        return mock.called
 
     def helper_test_empty_account(self, app):
         """
@@ -360,19 +373,17 @@ class UITestCase(unittest.TestCase):
         self.assertIsNotNone(controller.current_account)
         screen_manager = controller.screen_manager
         # patches library with fake recent rolls
-        with mock.patch('pyetheroll.etheroll.Etheroll.get_merged_logs') \
+        with patch('pyetheroll.etheroll.Etheroll.get_merged_logs') \
                 as m_get_merged_logs:
             m_get_merged_logs.return_value = merged_logs
             screen_manager.current = 'roll_results_screen'
-            # rolls should be pulled from a thread
-            self.assertEqual(len(threading.enumerate()), 3)
-            get_last_results_thread = threading.enumerate()[2]
-            self.assertEqual(type(get_last_results_thread), threading.Thread)
-            self.assertTrue(
-                'function RollResultsScreen.get_last_results'
-                in str(get_last_results_thread._target))
-            # waits for the end of the thread
-            get_last_results_thread.join()
+            # waits and makes sure the mock to be called, refs #138
+            self.assertTrue(self.wait_mock_called(m_get_merged_logs))
+            # since get_merged_logs got called, the get_last_results thread
+            # should be over, only main & OSC threads only are running
+            thread_info = [(t, t._target) for t in threading.enumerate()]
+            self.assertEqual(
+                len(threading.enumerate()), 2, thread_info)
             self.advance_frames_for_screen()
             # thread has ended, main & OSC threads only are running again
             self.assertEqual(len(threading.enumerate()), 2)
@@ -454,7 +465,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(dialog.title, 'Enter your password')
         dialog.content.password = 'password'
         unlock_button = dialog._action_buttons[0]
-        with mock.patch('pyetheroll.etheroll.Etheroll.player_roll_dice') \
+        with patch('pyetheroll.etheroll.Etheroll.player_roll_dice') \
                 as m_player_roll_dice:
             m_player_roll_dice.return_value = HexBytes(
                 '0x7be6e37621eb12db7dc535954345f69'
@@ -464,7 +475,7 @@ class UITestCase(unittest.TestCase):
             # since we may run into race condition with threading.enumerate()
             # we make the test conditional
             if len(threads) == 3:
-                # rolls should be pulled from a thread
+                # rolls should be fetched from a thread
                 self.assertEqual(len(threads), 3)
                 player_roll_dice_thread = threads[2]
                 self.assertEqual(
@@ -502,7 +513,7 @@ class UITestCase(unittest.TestCase):
         roll_screen = controller.roll_screen
         roll_button = roll_screen.ids.roll_button_id
         self.assertEqual(roll_button.text, 'Roll')
-        with mock.patch('web3.eth.Eth.getTransactionCount') \
+        with patch('web3.eth.Eth.getTransactionCount') \
                 as m_getTransactionCount:
             m_getTransactionCount.side_effect = \
                 ConnectionError('Whatever ConnectionError')
@@ -511,7 +522,7 @@ class UITestCase(unittest.TestCase):
             # since we may run into race condition with threading.enumerate()
             # we make the test conditional
             if len(threads) == 3:
-                # rolls should be pulled from a thread
+                # rolls should be fetched from a thread
                 self.assertEqual(len(threads), 3)
                 player_roll_dice_thread = threads[2]
                 self.assertEqual(
@@ -568,7 +579,7 @@ class UITestCase(unittest.TestCase):
         # since we may run into race condition with threading.enumerate()
         # we make the test conditional
         if len(threads) == 3:
-            # rolls should be pulled from a thread
+            # rolls should be fetched from a thread
             self.assertEqual(len(threads), 3)
             player_roll_dice_thread = threads[2]
             self.assertEqual(
@@ -603,6 +614,27 @@ class UITestCase(unittest.TestCase):
         screen_manager.current = 'roll_screen'
         self.advance_frames_for_screen()
 
+    def helper_test_settings_screen(self, app):
+        """
+        Verifies the settings screen loads and shows infos.
+        """
+        controller = app.root
+        screen_manager = controller.screen_manager
+        # verify the landing screen is loaded by default
+        screen = screen_manager.children[0]
+        self.assertEqual(screen.name, 'roll_screen')
+        # loads the about and verify
+        screen_manager.current = 'settings_screen'
+        self.advance_frames_for_screen()
+        screen = screen_manager.children[0]
+        self.assertEqual(screen.name, 'settings_screen')
+        # checks settings screen attributes
+        self.assertEqual(screen.is_ui_mainnet(), True)
+        self.assertEqual(screen.is_ui_testnet(), False)
+        # loads back the default screen
+        screen_manager.current = 'roll_screen'
+        self.advance_frames_for_screen()
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -621,6 +653,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_roll(app)
         self.helper_test_roll_connection_error(app)
         self.helper_test_roll_password(app)
+        self.helper_test_settings_screen(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

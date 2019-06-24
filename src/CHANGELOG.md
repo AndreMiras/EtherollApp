@@ -1,6 +1,15 @@
 # Change Log
 
 
+## [v2019.0624]
+
+  - Save keystore to private user dir, refs #141
+  - Unit test polling service, refs #107
+  - Fix `helper_test_roll_history` test, refs #138
+  - Simplify service code
+  - Unit test settings.py
+
+
 ## [v2019.0426]
 
   - Support F-Droid auto updates, refs #132
@@ -9,7 +18,7 @@
 
 ## [v20190418]
 
-  - Pull minimum bet from contract, refs #129
+  - Fetch minimum bet from contract, refs #129
   - Fix permission issue on settings, refs #131
   - Available on the F-Droid market, refs #36
 

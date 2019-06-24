@@ -162,3 +162,15 @@ class TestAccountUtils(unittest.TestCase):
         self.assertEqual(len(self.account_utils.get_account_list()), 1)
         self.account_utils.delete_account(account)
         self.assertEqual(len(self.account_utils.get_account_list()), 0)
+
+    def test_get_or_create(self):
+        """
+        Checks if the singleton is handled properly.
+        It should only be different when changing keystore_dir.
+        """
+        account_utils = AccountUtils.get_or_create(self.keystore_dir)
+        assert account_utils == AccountUtils.get_or_create(self.keystore_dir)
+        with TemporaryDirectory() as keystore_dir:
+            assert account_utils != AccountUtils.get_or_create(keystore_dir)
+            assert AccountUtils.get_or_create(keystore_dir) == \
+                AccountUtils.get_or_create(keystore_dir)

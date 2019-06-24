@@ -19,6 +19,7 @@
     name: 'switch_account'
     on_pre_enter:
         switch_account_id.load_account_list()
+        import_keystore_id.load_keystore_path()
         # workaround for broken MDBottomNavigation, refs
         # https://github.com/AndreMiras/PyWallet/issues/38
         Window.dispatch('on_resize', *Window.size)
@@ -41,3 +42,4 @@
             text: "Import"
             icon: "download"
             ImportKeystore:
+                id: import_keystore_id

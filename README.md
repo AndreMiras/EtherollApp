@@ -5,7 +5,7 @@
 <a href="https://f-droid.org/packages/com.github.andremiras.etheroll">
   <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="75">
 </a>
-<a href="https://github.com/AndreMiras/EtherollApp/releases/download/v2019.0426/etheroll-2019.0426-debug.apk">
+<a href="https://github.com/AndreMiras/EtherollApp/releases/download/v2019.0624/etheroll-2019.0624-debug.apk">
   <img src="https://www.livenettv.to/img/landing-page-1/google-play.png" height="75">
 </a>
 

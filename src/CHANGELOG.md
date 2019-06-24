@@ -1,7 +1,7 @@
 # Change Log
 
 
-## [Unreleased]
+## [v2019.0624]
 
   - Save keystore to private user dir, refs #141
   - Unit test polling service, refs #107

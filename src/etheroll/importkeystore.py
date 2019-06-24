@@ -13,10 +13,10 @@ class ImportKeystore(BoxLayout):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        Clock.schedule_once(self._after_init)
+        Clock.schedule_once(self.load_keystore_path)
 
-    def _after_init(self, dt):
+    def load_keystore_path(self, dt=None):
         """
-        Sets keystore_path.
+        Updates keystore path displayed in the UI.
         """
         self.keystore_path = Settings.get_keystore_path()

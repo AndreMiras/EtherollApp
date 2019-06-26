@@ -56,7 +56,7 @@ requirements =
     gevent,
     hexbytes==0.1.0,
     https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.tar.gz,
-    https://github.com/AndreMiras/KivyMD/archive/69f3e88.tar.gz,
+    https://github.com/AndreMiras/KivyMD/archive/20181106.tar.gz,
     https://github.com/AndreMiras/pyetheroll/archive/884805b.tar.gz,
     https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz,
     idna==2.7,

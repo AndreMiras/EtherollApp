@@ -3,7 +3,7 @@ eth-utils==1.2.1
 flake8
 future
 https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.tar.gz#egg=layoutmargin
-https://github.com/AndreMiras/KivyMD/archive/69f3e88.tar.gz#egg=kivymd
+https://github.com/AndreMiras/KivyMD/archive/20181106.tar.gz#egg=kivymd
 https://github.com/AndreMiras/pyetheroll/archive/884805b.tar.gz#egg=pyetheroll
 https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz#egg=py-etherscan-api
 # Post 1.10.1 release

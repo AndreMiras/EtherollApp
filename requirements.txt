@@ -13,6 +13,6 @@ kivyunittest==0.1.8
 oscpy==0.3.0
 plyer==1.3.1
 qrcode==6.0
-raven==6.9.0
+raven==6.10.0
 requests-cache
 web3==4.8.1

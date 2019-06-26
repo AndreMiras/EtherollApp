@@ -70,7 +70,7 @@ requirements =
     Pygments==2.2.0,
     python3==3.7.1,
     qrcode==6.0,
-    raven==6.9.0,
+    raven==6.10.0,
     requests==2.20.0,
     requests-cache==0.4.13,
     rlp==1.0.3,

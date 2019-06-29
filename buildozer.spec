@@ -60,7 +60,7 @@ requirements =
     https://github.com/AndreMiras/pyetheroll/archive/884805b.tar.gz,
     https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz,
     idna==2.7,
-    kivy==90c86f8,
+    Kivy==1.11.1,
     lru-dict==1.1.5,
     openssl,
     oscpy==0.3.0,

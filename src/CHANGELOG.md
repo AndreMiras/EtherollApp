@@ -5,6 +5,7 @@
 
   - Update to KivyMD==20181106, refs #144
   - Update to Kivy==1.11.1, refs #148
+  - Migrate to Python3.7, refs #147
 
 
 ## [v2019.0624]

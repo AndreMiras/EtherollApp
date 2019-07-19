@@ -87,22 +87,6 @@ to:
 <property name="java.source" value="7" />
 ```
 
-Buildozer fails at copying APK to current directory:
-```
-IOError: [Errno 2] No such file or directory: u'/home/andre/workspace/EtherollApp/.buildozer/android/platform/build/dists/etheroll/build/outputs/apk/etheroll-debug.apk'
-```
-See https://github.com/AndreMiras/EtherollApp/issues/26
-To (dirty) workaround it, edit `~/.local/lib/python2.7/site-packages/buildozer/targets/android.py`
-and change:
-```
-if is_gradle_build:
-```
-by:
-```
-if not is_gradle_build:
-```
-
-
 Uninstaling the app using adb:
 ```
 buildozer android adb -- uninstall com.github.andremiras.etheroll

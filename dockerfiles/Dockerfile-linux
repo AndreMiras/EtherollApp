@@ -25,7 +25,7 @@ ENV LANG="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8"
 
 # install system dependencies
-RUN apt install --yes --no-install-recommends \
+RUN apt install -qq --yes --no-install-recommends \
     build-essential \
     git \
     libsdl2-dev \

@@ -202,10 +202,6 @@ android.blacklist_src = blacklist.txt
 # bootstrap)
 #android.gradle_dependencies =
 
-# (str) python-for-android branch to use, defaults to master
-#p4a.branch = stable
-p4a.branch = master
-
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
 #android.ouya.category = GAME
@@ -245,6 +241,12 @@ android.arch = armeabi-v7a
 #
 # Python for android (p4a) specific
 #
+
+# (str) python-for-android fork to use, defaults to upstream (kivy)
+p4a.fork = kivy
+
+# (str) python-for-android branch to use, defaults to master
+p4a.branch = develop
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
 #p4a.source_dir =

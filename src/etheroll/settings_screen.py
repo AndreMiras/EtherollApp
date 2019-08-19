@@ -22,9 +22,6 @@ class SettingsScreen(SubScreen):
     is_stored_testnet = BooleanProperty()
     stored_gas_price = NumericProperty()
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
     def store_network(self):
         """
         Saves selected network to the store.

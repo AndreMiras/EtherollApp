@@ -15,18 +15,37 @@ Built with Python, [Kivy](https://github.com/kivy/kivy) and love.
 
 <img src="https://i.imgur.com/ORa0iTG.png" alt="Screenshot mainscreen" width="300"> <img src="https://i.imgur.com/Imwuifi.png" alt="Screenshot roll history" width="300">
 
-## Run
+
+## Install & Usage
+[EtherollApp is available on PyPI](https://pypi.org/project/EtherollApp/).
+Therefore it can be installed via `pip`.
 ```sh
-make run
+pip3 install --user EtherollApp
+```
+Once installed, it should be available in your `PATH` and can be ran from the command line.
+```sh
+etherollapp
 ```
 
-## Install
+## Develop & Contribute
+If you want to experiment with the project or contribute, you can clone it and install dependencies.
 ```sh
 make
 ```
-
-## Test
+Later run the code on desktop via the `run` target.
+```sh
+make run
+```
+Unit tests are also available.
 ```sh
 make test
 make uitest
+```
+On Android you can build, deploy and run using [Buildozer](https://github.com/kivy/buildozer).
+```sh
+buildozer android debug deploy run logcat
+```
+And debug with `logcat`.
+```sh
+buildozer android adb -- logcat
 ```

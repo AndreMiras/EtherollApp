@@ -1,6 +1,6 @@
 from kivymd.spinner import MDSpinner
 
-from etheroll.ui_utils import load_kv_from_py
+from etherollapp.etheroll.ui_utils import load_kv_from_py
 
 load_kv_from_py(__file__)
 

@@ -4,8 +4,8 @@ from kivy.app import App
 from kivy.utils import platform
 from pyetheroll.constants import DEFAULT_GAS_PRICE_GWEI, ChainID
 
-from etheroll.constants import KEYSTORE_DIR_SUFFIX
-from etheroll.store import Store
+from etherollapp.etheroll.constants import KEYSTORE_DIR_SUFFIX
+from etherollapp.etheroll.store import Store
 
 NETWORK_SETTINGS = 'network'
 GAS_PRICE_SETTINGS = 'gas_price'

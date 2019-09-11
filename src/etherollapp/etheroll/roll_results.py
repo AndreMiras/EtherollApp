@@ -5,8 +5,8 @@ from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ThreeLineAvatarListItem
 from pyetheroll.constants import ROUND_DIGITS
 
-from etheroll.ui_utils import Dialog, SubScreen, load_kv_from_py
-from etheroll.utils import run_in_thread
+from etherollapp.etheroll.ui_utils import Dialog, SubScreen, load_kv_from_py
+from etherollapp.etheroll.utils import run_in_thread
 
 load_kv_from_py(__file__)
 

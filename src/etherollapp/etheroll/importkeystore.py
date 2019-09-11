@@ -2,8 +2,8 @@ from kivy.clock import Clock
 from kivy.properties import StringProperty
 from kivy.uix.boxlayout import BoxLayout
 
-from etheroll.settings import Settings
-from etheroll.ui_utils import load_kv_from_py
+from etherollapp.etheroll.settings import Settings
+from etherollapp.etheroll.ui_utils import load_kv_from_py
 
 load_kv_from_py(__file__)
 

@@ -3,8 +3,8 @@ from kivy.clock import mainthread
 from kivy.properties import StringProperty
 from kivy.uix.boxlayout import BoxLayout
 
-from etheroll.ui_utils import Dialog, load_kv_from_py
-from etheroll.utils import run_in_thread
+from etherollapp.etheroll.ui_utils import Dialog, load_kv_from_py
+from etherollapp.etheroll.utils import run_in_thread
 
 load_kv_from_py(__file__)
 

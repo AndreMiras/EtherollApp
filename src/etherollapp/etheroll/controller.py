@@ -59,7 +59,7 @@ class Controller(FloatLayout):
             if Dialog.dialogs:
                 Dialog.dismiss_all_dialogs()
                 return True
-            from etheroll.ui_utils import SubScreen
+            from etherollapp.etheroll.ui_utils import SubScreen
             current_screen = self.screen_manager.current_screen
             # if is sub-screen loads previous and stops the propagation
             # otherwise propagates the key to exit
@@ -170,8 +170,8 @@ class Controller(FloatLayout):
 
     def register_screens(self):
         # lazy loading
-        from etheroll.about import AboutScreen
-        from etheroll.roll_results import RollResultsScreen
+        from etherollapp.etheroll.about import AboutScreen
+        from etherollapp.etheroll.roll_results import RollResultsScreen
         screen_dicts = {
             # "roll_screen": RollScreen,
             "roll_results_screen": RollResultsScreen,
@@ -236,7 +236,7 @@ class Controller(FloatLayout):
         Prompt the password dialog.
         """
         # lazy loading
-        from etheroll.passwordform import PasswordForm
+        from etherollapp.etheroll.passwordform import PasswordForm
         dialog = PasswordForm.dialog(account)
         dialog.content.bind(on_unlock=self.on_unlock_clicked)
         dialog.open()

@@ -25,8 +25,8 @@ from pyetheroll.etheroll import Etheroll
 from raven import Client
 
 from ethereum_utils import AccountUtils
-from etheroll.constants import API_KEY_PATH
-from etheroll.settings import Settings
+from etherollapp.etheroll.constants import API_KEY_PATH
+from etherollapp.etheroll.settings import Settings
 from osc.osc_app_client import OscAppClient
 from sentry_utils import configure_sentry
 

@@ -8,8 +8,8 @@ from kivy.uix.screenmanager import Screen
 from pyetheroll.constants import ROUND_DIGITS
 from requests.exceptions import ConnectionError
 
-from etheroll.ui_utils import Dialog, load_kv_from_py
-from etheroll.utils import run_in_thread
+from etherollapp.etheroll.ui_utils import Dialog, load_kv_from_py
+from etherollapp.etheroll.utils import run_in_thread
 
 load_kv_from_py(__file__)
 DEFAULT_MIN_BET = 0.10

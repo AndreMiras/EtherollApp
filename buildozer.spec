@@ -33,7 +33,7 @@ source.exclude_dirs = python-for-android
 
 # (str) Application versioning (method 2)
 version.regex = __version__ = ['"](.*)['"]
-version.filename = %(source.dir)s/version.py
+version.filename = %(source.dir)s/etherollapp/version.py
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy

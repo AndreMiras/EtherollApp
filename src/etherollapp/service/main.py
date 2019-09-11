@@ -9,7 +9,7 @@ On Linux run with:
 ```sh
 PYTHONPATH=src/
 PYTHON_SERVICE_ARGUMENT='{"osc_server_port": PORT}'
-./src/service/main.py
+./src/etherollapp/service/main.py
 ```
 """
 import json
@@ -24,11 +24,11 @@ from pyetheroll.constants import ROUND_DIGITS
 from pyetheroll.etheroll import Etheroll
 from raven import Client
 
-from ethereum_utils import AccountUtils
+from etherollapp.ethereum_utils import AccountUtils
 from etherollapp.etheroll.constants import API_KEY_PATH
 from etherollapp.etheroll.settings import Settings
-from osc.osc_app_client import OscAppClient
-from sentry_utils import configure_sentry
+from etherollapp.osc.osc_app_client import OscAppClient
+from etherollapp.sentry_utils import configure_sentry
 
 PULL_FREQUENCY_SECONDS = 10
 # time before the service shuts down if no roll activity

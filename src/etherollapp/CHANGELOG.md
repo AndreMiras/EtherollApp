@@ -1,7 +1,7 @@
 # Change Log
 
 
-## [Unreleased]
+## [v2019.0911]
 
   - Update to KivyMD==20181106, refs #144
   - Update to Kivy==1.11.1, refs #148

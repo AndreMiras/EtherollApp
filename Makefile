@@ -67,4 +67,4 @@ clean/venv: clean
 
 uitest: virtualenv
 	. $(ACTIVATE_PATH) && \
-    $(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/tests/ui/
+    $(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/

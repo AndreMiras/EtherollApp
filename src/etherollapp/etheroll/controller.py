@@ -10,15 +10,15 @@ from kivymd.theming import ThemeManager
 from raven import Client
 from requests.exceptions import ConnectionError
 
-from etheroll.constants import API_KEY_PATH
-from etheroll.settings import Settings
-from etheroll.settings_screen import SettingsScreen
-from etheroll.switchaccount import SwitchAccountScreen
-from etheroll.ui_utils import Dialog, load_kv_from_py
-from etheroll.utils import run_in_thread
-from osc.osc_app_server import OscAppServer
-from sentry_utils import configure_sentry
-from service.utils import start_roll_polling_service
+from etherollapp.etheroll.constants import API_KEY_PATH
+from etherollapp.etheroll.settings import Settings
+from etherollapp.etheroll.settings_screen import SettingsScreen
+from etherollapp.etheroll.switchaccount import SwitchAccountScreen
+from etherollapp.etheroll.ui_utils import Dialog, load_kv_from_py
+from etherollapp.etheroll.utils import run_in_thread
+from etherollapp.osc.osc_app_server import OscAppServer
+from etherollapp.sentry_utils import configure_sentry
+from etherollapp.service.utils import start_roll_polling_service
 
 load_kv_from_py(__file__)
 

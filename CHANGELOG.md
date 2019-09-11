@@ -1,2 +1,2 @@
 # Change Log
-Moved to [src/CHANGELOG.md](src/CHANGELOG.md).
+Moved to [src/etherollapp/CHANGELOG.md](https://github.com/AndreMiras/EtherollApp/blob/develop/src/etherollapp/CHANGELOG.md).

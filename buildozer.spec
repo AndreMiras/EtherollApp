@@ -33,7 +33,7 @@ source.exclude_dirs = python-for-android
 
 # (str) Application versioning (method 2)
 version.regex = __version__ = ['"](.*)['"]
-version.filename = %(source.dir)s/version.py
+version.filename = %(source.dir)s/etherollapp/version.py
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
@@ -56,11 +56,11 @@ requirements =
     gevent,
     hexbytes==0.1.0,
     https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.tar.gz,
-    https://github.com/AndreMiras/KivyMD/archive/69f3e88.tar.gz,
+    https://github.com/AndreMiras/KivyMD/archive/20181106.tar.gz,
     https://github.com/AndreMiras/pyetheroll/archive/884805b.tar.gz,
     https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz,
     idna==2.7,
-    kivy==90c86f8,
+    Kivy==1.11.1,
     lru-dict==1.1.5,
     openssl,
     oscpy==0.3.0,
@@ -70,7 +70,7 @@ requirements =
     Pygments==2.2.0,
     python3==3.7.1,
     qrcode==6.0,
-    raven==6.9.0,
+    raven==6.10.0,
     requests==2.20.0,
     requests-cache==0.4.13,
     rlp==1.0.3,
@@ -100,7 +100,7 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
-services = service:service/main.py
+services = service:etherollapp/service/main.py
 
 #
 # OSX Specific
@@ -202,10 +202,6 @@ android.blacklist_src = blacklist.txt
 # bootstrap)
 #android.gradle_dependencies =
 
-# (str) python-for-android branch to use, defaults to master
-#p4a.branch = stable
-p4a.branch = master
-
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
 #android.ouya.category = GAME
@@ -245,6 +241,12 @@ android.arch = armeabi-v7a
 #
 # Python for android (p4a) specific
 #
+
+# (str) python-for-android fork to use, defaults to upstream (kivy)
+p4a.fork = kivy
+
+# (str) python-for-android branch to use, defaults to master
+p4a.branch = v2019.08.09
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
 #p4a.source_dir =

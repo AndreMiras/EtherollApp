@@ -1,0 +1,55 @@
+#:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
+#:import CustomToolbar etherollapp.etheroll.customtoolbar.CustomToolbar
+#:import LazyScreenManager etherollapp.etheroll.lazyscreenmanager.LazyScreenManager
+#:import RollScreen etherollapp.etheroll.roll.RollScreen
+
+
+# need this hack to push widgets up
+<PushUp@BoxLayout>:
+
+
+<Navigation@NavigationLayout>:
+    MDNavigationDrawer:
+        id: navigation_drawer_id
+        NavigationDrawerToolbar:
+            title: "Etheroll"
+        NavigationDrawerIconButton:
+            icon: "home"
+            text: "Home"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "left"
+                app.root.ids.screen_manager_id.current = "roll_screen"
+        NavigationDrawerIconButton:
+            icon: "format-list-bulleted"
+            text: "Roll results"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "left"
+                app.root.ids.screen_manager_id.current = "roll_results_screen"
+        NavigationDrawerIconButton:
+            icon: "key"
+            text: "Wallet"
+            on_release: app.root.load_switch_account()
+        NavigationDrawerIconButton:
+            icon: "settings"
+            text: "Settings"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "right"
+                app.root.ids.screen_manager_id.current = "settings_screen"
+        NavigationDrawerIconButton:
+            icon: "help"
+            text: "About"
+            on_release:
+                app.root.ids.screen_manager_id.transition.direction = "right"
+                app.root.ids.screen_manager_id.current = "about_screen"
+
+<Controller>:
+    Navigation:
+        id: navigation_id
+        BoxLayout:
+            orientation: "vertical"
+            CustomToolbar:
+                id: toolbar_id
+            LazyScreenManager:
+                id: screen_manager_id
+                RollScreen:
+                    name: "roll_screen"

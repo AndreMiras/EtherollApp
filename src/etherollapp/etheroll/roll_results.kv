@@ -1,0 +1,15 @@
+#:import ScrollViewSpinder etherollapp.etheroll.scroll_view_spinner
+
+
+<RollResultsScreen>:
+    on_pre_enter:
+        root.get_last_results()
+    BoxLayout:
+        orientation: "vertical"
+        ScrollViewSpinder:
+            id: spinner_id
+		ScrollView:
+            id: scroll_view_id
+            on_scroll_stop: root.on_scroll_stop(self.scroll_y)
+			MDList:
+				id: roll_list_id

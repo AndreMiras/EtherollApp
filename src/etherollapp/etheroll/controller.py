@@ -10,15 +10,15 @@ from kivymd.theming import ThemeManager
 from raven import Client
 from requests.exceptions import ConnectionError
 
-from etheroll.constants import API_KEY_PATH
-from etheroll.settings import Settings
-from etheroll.settings_screen import SettingsScreen
-from etheroll.switchaccount import SwitchAccountScreen
-from etheroll.ui_utils import Dialog, load_kv_from_py
-from etheroll.utils import run_in_thread
-from osc.osc_app_server import OscAppServer
-from sentry_utils import configure_sentry
-from service.utils import start_roll_polling_service
+from etherollapp.etheroll.constants import API_KEY_PATH
+from etherollapp.etheroll.settings import Settings
+from etherollapp.etheroll.settings_screen import SettingsScreen
+from etherollapp.etheroll.switchaccount import SwitchAccountScreen
+from etherollapp.etheroll.ui_utils import Dialog, load_kv_from_py
+from etherollapp.etheroll.utils import run_in_thread
+from etherollapp.osc.osc_app_server import OscAppServer
+from etherollapp.sentry_utils import configure_sentry
+from etherollapp.service.utils import start_roll_polling_service
 
 load_kv_from_py(__file__)
 
@@ -59,7 +59,7 @@ class Controller(FloatLayout):
             if Dialog.dialogs:
                 Dialog.dismiss_all_dialogs()
                 return True
-            from etheroll.ui_utils import SubScreen
+            from etherollapp.etheroll.ui_utils import SubScreen
             current_screen = self.screen_manager.current_screen
             # if is sub-screen loads previous and stops the propagation
             # otherwise propagates the key to exit
@@ -85,7 +85,7 @@ class Controller(FloatLayout):
         """
         Gets or creates the AccountUtils object so it loads lazily.
         """
-        from ethereum_utils import AccountUtils
+        from etherollapp.ethereum_utils import AccountUtils
         keystore_dir = Settings.get_keystore_path()
         return AccountUtils.get_or_create(keystore_dir)
 
@@ -170,8 +170,8 @@ class Controller(FloatLayout):
 
     def register_screens(self):
         # lazy loading
-        from etheroll.about import AboutScreen
-        from etheroll.roll_results import RollResultsScreen
+        from etherollapp.etheroll.about import AboutScreen
+        from etherollapp.etheroll.roll_results import RollResultsScreen
         screen_dicts = {
             # "roll_screen": RollScreen,
             "roll_results_screen": RollResultsScreen,
@@ -236,7 +236,7 @@ class Controller(FloatLayout):
         Prompt the password dialog.
         """
         # lazy loading
-        from etheroll.passwordform import PasswordForm
+        from etherollapp.etheroll.passwordform import PasswordForm
         dialog = PasswordForm.dialog(account)
         dialog.content.bind(on_unlock=self.on_unlock_clicked)
         dialog.open()

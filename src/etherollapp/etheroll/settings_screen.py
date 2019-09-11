@@ -4,11 +4,11 @@ import shutil
 from kivy.properties import BooleanProperty, NumericProperty
 from pyetheroll.constants import ChainID
 
-from etheroll.constants import KEYSTORE_DIR_SUFFIX
-from etheroll.settings import Settings
-from etheroll.ui_utils import SubScreen, load_kv_from_py
-from etheroll.utils import (check_request_write_permission,
-                            check_write_permission)
+from etherollapp.etheroll.constants import KEYSTORE_DIR_SUFFIX
+from etherollapp.etheroll.settings import Settings
+from etherollapp.etheroll.ui_utils import SubScreen, load_kv_from_py
+from etherollapp.etheroll.utils import (check_request_write_permission,
+                                        check_write_permission)
 
 load_kv_from_py(__file__)
 

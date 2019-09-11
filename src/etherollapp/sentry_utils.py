@@ -4,7 +4,7 @@ from raven import Client
 from raven.conf import setup_logging
 from raven.handlers.logging import SentryHandler
 
-from version import __version__
+from etherollapp.version import __version__
 
 
 def configure_sentry(in_debug=False):

@@ -33,7 +33,7 @@ source.exclude_dirs = python-for-android
 
 # (str) Application versioning (method 2)
 version.regex = __version__ = ['"](.*)['"]
-version.filename = %(source.dir)s/version.py
+version.filename = %(source.dir)s/etherollapp/version.py
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
@@ -100,7 +100,7 @@ orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
-services = service:service/main.py
+services = service:etherollapp/service/main.py
 
 #
 # OSX Specific
@@ -246,7 +246,7 @@ android.arch = armeabi-v7a
 p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-p4a.branch = develop
+p4a.branch = v2019.08.09
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
 #p4a.source_dir =

@@ -4,9 +4,9 @@ from kivy.clock import Clock, mainthread
 from kivy.properties import StringProperty
 from kivy.uix.boxlayout import BoxLayout
 
-from etheroll.ui_utils import SubScreen, load_kv_from_py
-from etheroll.utils import StringIOCBWrite, run_in_thread
-from version import __version__
+from etherollapp.etheroll.ui_utils import SubScreen, load_kv_from_py
+from etherollapp.etheroll.utils import StringIOCBWrite, run_in_thread
+from etherollapp.version import __version__
 
 load_kv_from_py(__file__)
 

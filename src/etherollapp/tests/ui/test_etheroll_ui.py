@@ -11,9 +11,9 @@ from hexbytes import HexBytes
 from kivy.clock import Clock
 from requests.exceptions import ConnectionError
 
-from etheroll.controller import EtherollApp
-from etheroll.ui_utils import Dialog
-from tests.utils import PyEtherollTestUtils
+from etherollapp.etheroll.controller import EtherollApp
+from etherollapp.etheroll.ui_utils import Dialog
+from etherollapp.tests.utils import PyEtherollTestUtils
 
 
 class UITestCase(unittest.TestCase):

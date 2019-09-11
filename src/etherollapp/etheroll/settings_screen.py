@@ -8,7 +8,7 @@ from etherollapp.etheroll.constants import KEYSTORE_DIR_SUFFIX
 from etherollapp.etheroll.settings import Settings
 from etherollapp.etheroll.ui_utils import SubScreen, load_kv_from_py
 from etherollapp.etheroll.utils import (check_request_write_permission,
-                            check_write_permission)
+                                        check_write_permission)
 
 load_kv_from_py(__file__)
 

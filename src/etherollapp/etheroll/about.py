@@ -64,7 +64,7 @@ class AboutDiagnostic(BoxLayout):
         """
         # lazy loading
         import unittest
-        from testsuite import suite
+        from etherollapp.testsuite import suite
         test_suite = suite()
         self.stream_property = ""
         stream = StringIOCBWrite(callback_write=self.callback_write)

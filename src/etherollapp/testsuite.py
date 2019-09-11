@@ -1,6 +1,6 @@
 import unittest
 
-from tests import test_ethereum_utils, test_import
+from etherollapp.tests import test_ethereum_utils, test_import
 
 
 def suite():

@@ -12,7 +12,7 @@ from eth_keys import keys
 from eth_utils import remove_0x_prefix
 from past.utils import old_div
 
-from pyethapp_accounts import Account
+from etherollapp.pyethapp_accounts import Account
 
 
 class TestAccountUtils(unittest.TestCase):

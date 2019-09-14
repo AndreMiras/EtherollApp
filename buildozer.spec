@@ -55,18 +55,19 @@ requirements =
     eth-utils==1.2.1,
     gevent,
     hexbytes==0.1.0,
-    https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.tar.gz,
-    https://github.com/AndreMiras/KivyMD/archive/20181106.tar.gz,
-    https://github.com/AndreMiras/pyetheroll/archive/884805b.tar.gz,
     https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz,
     idna==2.7,
     Kivy==1.11.1,
+    kivy-garden.kivymd==2019.910,
+    kivy-garden.qrcode==2019.914,
+    layoutmargin==20190911,
     lru-dict==1.1.5,
     openssl,
     oscpy==0.3.0,
     parsimonious==0.8.1,
     plyer==1.3.1,
     pycryptodome==3.4.6,
+    pyetheroll==20190321,
     Pygments==2.2.0,
     python3==3.7.1,
     qrcode==6.0,
@@ -85,7 +86,6 @@ requirements =
 
 # (list) Garden requirements
 #garden_requirements =
-garden_requirements = qrcode
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png

@@ -22,7 +22,6 @@ virtualenv:
 	. venv/bin/activate
 	$(PIP) install Cython==0.28.6
 	$(PIP) install --timeout 120 -r requirements.txt
-	$(GARDEN) install qrcode
 
 system_dependencies:
 ifeq ($(OS), Ubuntu)

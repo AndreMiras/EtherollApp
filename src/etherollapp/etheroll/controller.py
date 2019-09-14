@@ -361,7 +361,7 @@ class Controller(FloatLayout):
         Shows address QR Code in a dialog.
         """
         # lazy loading
-        from kivy.garden.qrcode import QRCodeWidget
+        from kivy_garden.qrcode import QRCodeWidget
         from kivy.metrics import dp
         account = self.current_account
         if not account:

@@ -2,6 +2,8 @@
 
 [![Build Status](https://secure.travis-ci.org/AndreMiras/EtherollApp.png?branch=develop)](http://travis-ci.org/AndreMiras/EtherollApp)
 [![PyPI version](https://badge.fury.io/py/EtherollApp.svg)](https://badge.fury.io/py/EtherollApp)
+[![Get it on F-Droid](https://img.shields.io/f-droid/v/com.github.andremiras.etheroll.svg)](https://f-droid.org/en/packages/com.github.andremiras.etheroll)
+[![Releases](https://img.shields.io/github/release/andremiras/EtherollApp.svg?logo=github)](https://github.com/AndreMiras/EtherollApp/releases)
 
 <a href="https://f-droid.org/packages/com.github.andremiras.etheroll">
   <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="75">

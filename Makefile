@@ -1,12 +1,11 @@
-VENV_NAME="venv"
-ACTIVATE_PATH="$(VENV_NAME)/bin/activate"
-PIP=`. $(ACTIVATE_PATH); which pip`
+VIRTUAL_ENV ?= venv
+ACTIVATE_PATH=$(VIRTUAL_ENV)/bin/activate
+PIP=$(VIRTUAL_ENV)/bin/pip
 TOX=`which tox`
-GARDEN=`. $(ACTIVATE_PATH); which garden`
-PYTHON_VERSION="python3.7"
-PYTHON=$(VENV_NAME)/bin/python
-ISORT=$(VENV_NAME)/bin/isort
-FLAKE8=$(VENV_NAME)/bin/flake8
+PYTHON_VERSION=python3.7
+PYTHON=$(VIRTUAL_ENV)/bin/python
+ISORT=$(VIRTUAL_ENV)/bin/isort
+FLAKE8=$(VIRTUAL_ENV)/bin/flake8
 TWINE=`which twine`
 SOURCES=src/ setup.py
 SYSTEM_DEPENDENCIES=python3-dev virtualenv build-essential libssl-dev \
@@ -17,18 +16,19 @@ OS=$(shell lsb_release -si)
 
 all: system_dependencies virtualenv
 
-virtualenv:
-	test -d venv || virtualenv -p $(PYTHON_VERSION) venv
-	. venv/bin/activate
+$(VIRTUAL_ENV):
+	virtualenv --python $(PYTHON_VERSION) $(VIRTUAL_ENV)
 	$(PIP) install Cython==0.28.6
-	$(PIP) install --timeout 120 -r requirements.txt
+	$(PIP) install --timeout 120 --requirement requirements.txt
+
+virtualenv: $(VIRTUAL_ENV)
 
 system_dependencies:
 ifeq ($(OS), Ubuntu)
 	sudo apt install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES)
 endif
 
-run:
+run: virtualenv
 	$(PYTHON) src/main.py
 
 test:
@@ -62,8 +62,7 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -r {} +
 
 clean/venv: clean
-	rm -rf $(VENV_NAME) .tox/
+	rm -rf $(VIRTUAL_ENV) .tox/
 
 uitest: virtualenv
-	. $(ACTIVATE_PATH) && \
-    $(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/
+	$(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/

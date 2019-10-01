@@ -8,10 +8,27 @@ ISORT=$(VIRTUAL_ENV)/bin/isort
 FLAKE8=$(VIRTUAL_ENV)/bin/flake8
 TWINE=`which twine`
 SOURCES=src/ setup.py
-SYSTEM_DEPENDENCIES=python3-dev virtualenv build-essential libssl-dev \
-    libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-	libffi-dev libgmp3-dev xclip xsel
-OS=$(shell lsb_release -si)
+SYSTEM_DEPENDENCIES= \
+	build-essential \
+	git \
+	libffi-dev \
+	libgmp3-dev \
+	libsdl2-dev \
+	libsdl2-image-dev \
+	libsdl2-mixer-dev \
+	libsdl2-ttf-dev \
+	libssl-dev \
+	pkg-config \
+	python3.7 \
+	python3.7-dev \
+	tox \
+	virtualenv \
+	xclip \
+	xsel
+OS=$(shell lsb_release -si 2>/dev/null || uname)
+ifndef CI
+DEVICE=--device=/dev/video0:/dev/video0
+endif
 
 
 all: system_dependencies virtualenv
@@ -66,3 +83,18 @@ clean/venv: clean
 
 uitest: virtualenv
 	$(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/
+
+docker/pull/linux:
+	docker pull andremiras/etherollapp-linux
+
+docker/build/linux:
+	docker build --tag=andremiras/etherollapp-linux --file=dockerfiles/Dockerfile-linux .
+
+docker/run/test:
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) etherollapp-linux 'make test'
+
+docker/run/app:
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) etherollapp-linux 'make run'
+
+docker/run/shell:
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm etherollapp-linux

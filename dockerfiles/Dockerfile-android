@@ -1,12 +1,12 @@
 # Docker image for building Android APKs via buildozer
 # Build with:
-# docker build --tag=etheroll-android --file=dockerfiles/Dockerfile-android .
+# docker build --tag=andremiras/etherollapp-android --file=dockerfiles/Dockerfile-android .
 # Run with:
-# docker run etheroll-android /bin/sh -c 'buildozer android debug'
+# docker run andremiras/etherollapp-android /bin/sh -c 'buildozer android debug'
 # Or using the entry point shortcut:
-# docker run etheroll-android 'buildozer android debug'
+# docker run andremiras/etherollapp-android 'buildozer android debug'
 # Or for interactive shell:
-# docker run -it --rm etheroll-android
+# docker run -it --rm andremiras/etherollapp-android
 FROM ubuntu:18.04
 
 ARG TRAVIS=false

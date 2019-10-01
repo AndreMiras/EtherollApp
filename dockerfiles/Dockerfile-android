@@ -9,7 +9,6 @@
 # docker run -it --rm andremiras/etherollapp-android
 FROM ubuntu:18.04
 
-ARG TRAVIS=false
 ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}" \
@@ -31,25 +30,9 @@ ENV LANG="en_US.UTF-8" \
 
 # install build dependencies (required to successfully build the project)
 RUN apt install -qq --yes --no-install-recommends \
-    autoconf \
-    automake \
-    bsdtar \
-    ca-certificates \
-    curl \
-    libffi-dev \
-    libltdl-dev \
-    libpython3.6-dev \
-    libtool \
+    lsb-release \
     make \
-    openjdk-8-jdk \
-    python2.7 \
-    python3.6 \
-    python3-pip \
-    python3-setuptools \
-    sudo \
-    unzip \
-    xz-utils \
-    zip
+    sudo
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}
@@ -60,13 +43,14 @@ RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 USER ${USER}
 WORKDIR ${WORK_DIR}
 
+COPY Makefile ${WORK_DIR}
+RUN sudo make system_dependencies_android
+
 # install buildozer and dependencies
 RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output buildozer.mk
 RUN make -f buildozer.mk
-# enforces buildozer master (586152c) until next release
-RUN pip3 install --upgrade https://github.com/kivy/buildozer/archive/586152c.zip
+# enforces buildozer master (d483847) until next release
+RUN pip3 install --upgrade https://github.com/kivy/buildozer/archive/d483847.zip
 
 COPY . ${WORK_DIR}
-# limits the amount of logs for Travis
-RUN if [ "${TRAVIS}" = "true" ]; then sed 's/log_level = [0-9]/log_level = 1/' -i buildozer.spec; fi
 ENTRYPOINT ["./dockerfiles/start.sh"]

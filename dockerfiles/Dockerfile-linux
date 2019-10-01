@@ -38,9 +38,9 @@ RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 USER ${USER}
 WORKDIR ${WORK_DIR}
-COPY Makefile ${WORK_DIR}
 
-RUN sudo make system_dependencies
+COPY Makefile ${WORK_DIR}
+RUN sudo make system_dependencies_linux
 COPY . ${WORK_DIR}
 # required by Kivy `App.user_data_dir`
 RUN mkdir ~/.config

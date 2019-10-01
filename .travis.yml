@@ -9,9 +9,8 @@ env:
   global:
     - DISPLAY=:99.0
   matrix:
-    - TAG=andremiras/etherollapp-linux DOCKERFILE=dockerfiles/Dockerfile-linux COMMAND='make test'
-    - TAG=andremiras/etherollapp-linux DOCKERFILE=dockerfiles/Dockerfile-linux COMMAND='make uitest'
-    - TAG=andremiras/etherollapp-android DOCKERFILE=dockerfiles/Dockerfile-android COMMAND='buildozer android debug'
+    - TAG=linux
+    - TAG=android
 
 install:
   - sudo apt update -qq > /dev/null
@@ -19,8 +18,8 @@ install:
 
 before_script:
   - sh -e /etc/init.d/xvfb start
-  - docker pull $TAG
-  - docker build --tag=$TAG --file=$DOCKERFILE --build-arg TRAVIS .
+  - make docker/pull/$TAG
+  - make docker/build/$TAG
 
 script:
-  - travis_wait 30 docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix $TAG $COMMAND
+  - travis_wait 30 make docker/run/test/$TAG

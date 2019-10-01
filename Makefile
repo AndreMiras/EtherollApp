@@ -2,13 +2,17 @@ VIRTUAL_ENV ?= venv
 ACTIVATE_PATH=$(VIRTUAL_ENV)/bin/activate
 PIP=$(VIRTUAL_ENV)/bin/pip
 TOX=`which tox`
-PYTHON_VERSION=python3.7
+PYTHON_MAJOR_VERSION=3
+PYTHON_MINOR_VERSION=7
+PYTHON_VERSION=$(PYTHON_MAJOR_VERSION).$(PYTHON_MINOR_VERSION)
+PYTHON_MAJOR_MINOR=$(PYTHON_MAJOR_VERSION)$(PYTHON_MINOR_VERSION)
+PYTHON_WITH_VERSION=python$(PYTHON_VERSION)
 PYTHON=$(VIRTUAL_ENV)/bin/python
 ISORT=$(VIRTUAL_ENV)/bin/isort
 FLAKE8=$(VIRTUAL_ENV)/bin/flake8
 TWINE=`which twine`
 SOURCES=src/ setup.py
-SYSTEM_DEPENDENCIES= \
+SYSTEM_DEPENDENCIES_LINUX= \
 	build-essential \
 	git \
 	libffi-dev \
@@ -19,19 +23,47 @@ SYSTEM_DEPENDENCIES= \
 	libsdl2-ttf-dev \
 	libssl-dev \
 	pkg-config \
-	python3.7 \
-	python3.7-dev \
+	python$(PYTHON_VERSION) \
+	python$(PYTHON_VERSION)-dev \
 	tox \
 	virtualenv \
 	xclip \
 	xsel
+SYSTEM_DEPENDENCIES_ANDROID= \
+    autoconf \
+    automake \
+    bsdtar \
+    ca-certificates \
+    curl \
+    libffi-dev \
+    libltdl-dev \
+    libpython$(PYTHON_VERSION)-dev \
+    libtool \
+    openjdk-8-jdk \
+    python2.7 \
+    python$(PYTHON_VERSION) \
+    python3-pip \
+    python3-setuptools \
+    sudo \
+    unzip \
+    xz-utils \
+    zip
 OS=$(shell lsb_release -si 2>/dev/null || uname)
 ifndef CI
 DEVICE=--device=/dev/video0:/dev/video0
 endif
 
+system_dependencies_linux:
+ifeq ($(OS), Ubuntu)
+	sudo apt install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_LINUX)
+endif
+system_dependencies_android:
+ifeq ($(OS), Ubuntu)
+	sudo apt install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_ANDROID)
+endif
 
-all: system_dependencies virtualenv
+
+all: virtualenv
 
 $(VIRTUAL_ENV):
 	virtualenv --python $(PYTHON_VERSION) $(VIRTUAL_ENV)
@@ -39,11 +71,6 @@ $(VIRTUAL_ENV):
 	$(PIP) install --timeout 120 --requirement requirements.txt
 
 virtualenv: $(VIRTUAL_ENV)
-
-system_dependencies:
-ifeq ($(OS), Ubuntu)
-	sudo apt install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES)
-endif
 
 run: virtualenv
 	$(PYTHON) src/main.py
@@ -84,17 +111,33 @@ clean/venv: clean
 uitest: virtualenv
 	$(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/
 
+buildozer/android/debug:
+	@if test -n "$$CI"; then sed 's/log_level = [0-9]/log_level = 1/' -i buildozer.spec; fi; \
+	buildozer android debug
+
 docker/pull/linux:
-	docker pull andremiras/etherollapp-linux
+	docker pull andremiras/etherollapp-linux:latest
+
+docker/pull/android:
+	docker pull andremiras/etherollapp-android:latest
 
 docker/build/linux:
-	docker build --tag=andremiras/etherollapp-linux --file=dockerfiles/Dockerfile-linux .
+	docker build --cache-from=andremiras/etherollapp-linux --tag=andremiras/etherollapp-linux --file=dockerfiles/Dockerfile-linux .
 
-docker/run/test:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) etherollapp-linux 'make test'
+docker/build/android:
+	docker build --cache-from=andremiras/etherollapp-linux --tag=andremiras/etherollapp-android --file=dockerfiles/Dockerfile-android .
+
+docker/run/test/linux:
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) andremiras/etherollapp-linux 'make test'
+
+docker/run/test/android:
+	docker run --env-file dockerfiles/env.list andremiras/etherollapp-android 'make buildozer/android/debug'
 
 docker/run/app:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) etherollapp-linux 'make run'
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) andremiras/etherollapp-linux 'make run'
 
-docker/run/shell:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm etherollapp-linux
+docker/run/shell/linux:
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm andremiras/etherollapp-linux
+
+docker/run/shell/android:
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm andremiras/etherollapp-android

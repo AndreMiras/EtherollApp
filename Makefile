@@ -10,6 +10,7 @@ PYTHON_WITH_VERSION=python$(PYTHON_VERSION)
 PYTHON=$(VIRTUAL_ENV)/bin/python
 ISORT=$(VIRTUAL_ENV)/bin/isort
 FLAKE8=$(VIRTUAL_ENV)/bin/flake8
+PYTEST=$(VIRTUAL_ENV)/bin/pytest
 TWINE=`which twine`
 SOURCES=src/ setup.py
 SYSTEM_DEPENDENCIES_LINUX= \
@@ -66,7 +67,7 @@ endif
 all: virtualenv
 
 $(VIRTUAL_ENV):
-	virtualenv --python $(PYTHON_VERSION) $(VIRTUAL_ENV)
+	virtualenv --python $(PYTHON_WITH_VERSION) $(VIRTUAL_ENV)
 	$(PIP) install Cython==0.28.6
 	$(PIP) install --timeout 120 --requirement requirements.txt
 
@@ -75,8 +76,11 @@ virtualenv: $(VIRTUAL_ENV)
 run: virtualenv
 	$(PYTHON) src/main.py
 
-test:
-	$(TOX)
+test: virtualenv
+	PYTHONPATH=src $(PYTEST) --ignore src/etherollapp/tests/ui/ src/etherollapp/tests/
+
+uitest: virtualenv
+	$(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/
 
 lint/isort-check: virtualenv
 	$(ISORT) --check-only --recursive --diff $(SOURCES)
@@ -107,9 +111,6 @@ clean:
 
 clean/venv: clean
 	rm -rf $(VIRTUAL_ENV) .tox/
-
-uitest: virtualenv
-	$(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/
 
 buildozer/android/debug:
 	@if test -n "$$CI"; then sed 's/log_level = [0-9]/log_level = 1/' -i buildozer.spec; fi; \

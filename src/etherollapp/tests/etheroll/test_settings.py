@@ -6,8 +6,8 @@ from unittest import mock
 from kivy.app import App
 from pyetheroll.constants import ChainID
 
-from etheroll.settings import Settings
-from service.main import EtherollApp
+from etherollapp.etheroll.settings import Settings
+from etherollapp.service.main import EtherollApp
 
 
 class TestSettings(unittest.TestCase):

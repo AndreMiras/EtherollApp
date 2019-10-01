@@ -1,15 +1,15 @@
 # Docker image for installing dependencies on Linux and running tests.
 # Build with:
-# docker build --tag=etheroll-linux --file=dockerfiles/Dockerfile-linux .
+# docker build --tag=andremiras/etherollapp-linux --file=dockerfiles/Dockerfile-linux .
 # Run with:
-# docker run etheroll-linux /bin/sh -c 'make test'
+# docker run andremiras/etherollapp-linux /bin/sh -c 'make test'
 # Or using the entry point shortcut:
-# docker run etheroll-linux 'make test'
+# docker run andremiras/etherollapp-linux 'make test'
 # Or for interactive shell:
-# docker run -it --rm etheroll-linux
+# docker run -it --rm andremiras/etherollapp-linux
 # For running UI:
 # xhost +"local:docker@"
-# docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix etheroll-linux 'make uitest'
+# docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix andremiras/etherollapp-linux 'make uitest'
 FROM ubuntu:18.04
 
 ENV USER="user"
@@ -25,22 +25,10 @@ ENV LANG="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8"
 
 # install system dependencies
-RUN apt install -qq --yes --no-install-recommends \
-    build-essential \
-    git \
-    libsdl2-dev \
-    libsdl2-image-dev \
-    libsdl2-mixer-dev \
-    libsdl2-ttf-dev \
-    libssl-dev \
+RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
     lsb-release \
     make \
-    pkg-config \
-	python3.7 \
-    python3.7-dev \
-    sudo \
-    tox \
-    virtualenv
+    sudo
 
 # prepare non root env
 RUN useradd --create-home --shell /bin/bash ${USER}
@@ -50,9 +38,10 @@ RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 USER ${USER}
 WORKDIR ${WORK_DIR}
-COPY . ${WORK_DIR}
 
-RUN sudo make system_dependencies
+COPY Makefile ${WORK_DIR}
+RUN sudo make system_dependencies_linux
+COPY . ${WORK_DIR}
 # required by Kivy `App.user_data_dir`
 RUN mkdir ~/.config
 ENTRYPOINT ["./dockerfiles/start.sh"]

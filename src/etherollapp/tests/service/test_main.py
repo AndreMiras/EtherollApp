@@ -5,15 +5,24 @@ from unittest import mock
 from kivy.app import App
 from pyetheroll.constants import ChainID
 
-from service.main import EtherollApp, MonitorRollsService
+from etherollapp.service.main import EtherollApp, MonitorRollsService
 
 
 def patch_platform():
-    return mock.patch('service.main.platform', 'android')
+    return mock.patch('etherollapp.service.main.platform', 'android')
 
 
 def patch_jnius(m_jnius=mock.MagicMock()):
     return mock.patch.dict('sys.modules', jnius=m_jnius)
+
+
+def patch_get_abi():
+    return_value = (
+        '[{"constant":true,"inputs":[],"name":"minBet","outputs":[{"na'
+        'me":"","type":"uint256"}],"payable":false,"stateMutability":"'
+        'view","type":"function"}]')
+    return mock.patch(
+        'etherscan.contracts.Contract.get_abi', return_value=return_value)
 
 
 class TestEtherollApp(unittest.TestCase):
@@ -56,7 +65,7 @@ class TestMonitorRollsService(unittest.TestCase):
     """
 
     def patch_get_merged_logs(m_get):
-        return mock.patch('service.main.Etheroll.get_merged_logs')
+        return mock.patch('etherollapp.service.main.Etheroll.get_merged_logs')
 
     def test_init(self):
         """
@@ -74,10 +83,11 @@ class TestMonitorRollsService(unittest.TestCase):
         Verifies the `run()` method exits calling `set_auto_restart_service()`.
         """
         service = MonitorRollsService()
-        with mock.patch('service.main.NO_ROLL_ACTIVITY_PERDIOD_SECONDS', 0), \
-                mock.patch.object(
-                    MonitorRollsService,
-                    'set_auto_restart_service') as m_set_auto_restart_service:
+        with mock.patch(
+                'etherollapp.service.main.NO_ROLL_ACTIVITY_PERDIOD_SECONDS',
+                0), mock.patch.object(
+                    MonitorRollsService, 'set_auto_restart_service'
+                ) as m_set_auto_restart_service:
             service.run()
         assert m_set_auto_restart_service.call_args_list == [mock.call(False)]
 
@@ -117,18 +127,21 @@ class TestMonitorRollsService(unittest.TestCase):
         """
         service = MonitorRollsService()
         assert service._pyetheroll is None
-        assert service.pyetheroll is not None
+        with patch_get_abi() as m_get_abi:
+            assert service.pyetheroll is not None
+        assert m_get_abi.mock_calls == [mock.call()]
         assert service._pyetheroll is not None
         pyetheroll = service.pyetheroll
         assert pyetheroll == service.pyetheroll
         assert pyetheroll.chain_id == ChainID.MAINNET
         # the cached pyetheroll object is invalidated if the network changes
         with mock.patch(
-                'service.main.Settings.get_stored_network'
-                ) as m_get_stored_network:
+                'etherollapp.service.main.Settings.get_stored_network'
+                ) as m_get_stored_network, patch_get_abi() as m_get_abi:
             m_get_stored_network.return_value = ChainID.ROPSTEN
             assert service.pyetheroll.chain_id == ChainID.ROPSTEN
             assert service.pyetheroll != pyetheroll
+        assert m_get_abi.mock_calls == [mock.call()]
 
     def test_pull_account_rolls(self):
         """
@@ -143,9 +156,14 @@ class TestMonitorRollsService(unittest.TestCase):
         assert service.merged_logs == {}
         assert service.last_roll_activity is None
         merged_logs = []
-        with self.patch_get_merged_logs() as m_get_merged_logs:
+        with self.patch_get_merged_logs() as m_get_merged_logs, \
+                patch_get_abi() as m_get_abi:
             m_get_merged_logs.return_value = merged_logs
             service.pull_account_rolls(m_account)
+        assert m_get_merged_logs.mock_calls == [
+            mock.call(address=f'0x{address.lower()}')
+        ]
+        assert m_get_abi.mock_calls == [mock.call()]
         # then the `merged_logs` for this address should be cached
         assert service.merged_logs == {f'0x{address.lower()}': merged_logs}
         assert service.last_roll_activity is None
@@ -156,6 +174,9 @@ class TestMonitorRollsService(unittest.TestCase):
                     MonitorRollsService, 'do_notify') as m_do_notify:
             m_get_merged_logs.return_value = merged_logs
             service.pull_account_rolls(m_account)
+        assert m_get_merged_logs.mock_calls == [
+            mock.call(address=f'0x{address.lower()}')
+        ]
         assert m_do_notify.call_args_list == [mock.call(merged_logs)]
 
     def test_pull_accounts_rolls(self):
@@ -168,7 +189,7 @@ class TestMonitorRollsService(unittest.TestCase):
         m_account = mock.MagicMock()
         m_account.address = binascii.unhexlify(address)
         with mock.patch(
-                'service.main.AccountUtils.get_account_list'
+                'etherollapp.service.main.AccountUtils.get_account_list'
                 ) as m_get_account_list, \
                 mock.patch.object(
                     MonitorRollsService, 'pull_account_rolls'

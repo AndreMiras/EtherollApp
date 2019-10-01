@@ -1,5 +1,3 @@
-import os
-
 from pythonforandroid.recipe import CompiledComponentsPythonRecipe
 
 

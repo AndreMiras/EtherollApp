@@ -76,8 +76,10 @@ virtualenv: $(VIRTUAL_ENV)
 run: virtualenv
 	$(PYTHON) src/main.py
 
-test: virtualenv
+pytest: virtualenv
 	PYTHONPATH=src $(PYTEST) --ignore src/etherollapp/tests/ui/ src/etherollapp/tests/
+
+test: pytest lint
 
 uitest: virtualenv
 	$(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/
@@ -104,7 +106,7 @@ release/upload:
 	$(TWINE) upload dist/*
 
 clean:
-	py3clean src/
+	py3clean .
 	rm -rf .pytest_cache/
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	find . -type d -name "*.egg-info" -exec rm -r {} +

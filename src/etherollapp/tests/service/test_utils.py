@@ -1,14 +1,14 @@
 import unittest
 from unittest import mock
 
-from service import utils
+from etherollapp.service import utils
 
 
 class TestUtils(unittest.TestCase):
 
     @staticmethod
     def patch_platform():
-        return mock.patch('service.utils.platform', 'android')
+        return mock.patch('etherollapp.service.utils.platform', 'android')
 
     @staticmethod
     def patch_jnius(m_jnius=mock.MagicMock()):

@@ -13,6 +13,8 @@ FLAKE8=$(VIRTUAL_ENV)/bin/flake8
 PYTEST=$(VIRTUAL_ENV)/bin/pytest
 TWINE=`which twine`
 SOURCES=src/ setup.py
+DOCKER_IMAGE_LINUX=andremiras/etherollapp-linux
+DOCKER_IMAGE_ANDROID=andremiras/etherollapp-android
 SYSTEM_DEPENDENCIES_LINUX= \
 	build-essential \
 	git \
@@ -119,28 +121,28 @@ buildozer/android/debug:
 	buildozer android debug
 
 docker/pull/linux:
-	docker pull andremiras/etherollapp-linux:latest
+	docker pull $(DOCKER_IMAGE_LINUX):latest
 
 docker/pull/android:
-	docker pull andremiras/etherollapp-android:latest
+	docker pull $(DOCKER_IMAGE_ANDROID):latest
 
 docker/build/linux:
-	docker build --cache-from=andremiras/etherollapp-linux --tag=andremiras/etherollapp-linux --file=dockerfiles/Dockerfile-linux .
+	docker build --cache-from=$(DOCKER_IMAGE_LINUX) --tag=$(DOCKER_IMAGE_LINUX) --file=dockerfiles/Dockerfile-linux .
 
 docker/build/android:
-	docker build --cache-from=andremiras/etherollapp-linux --tag=andremiras/etherollapp-android --file=dockerfiles/Dockerfile-android .
+	docker build --cache-from=$(DOCKER_IMAGE_ANDROID) --tag=$(DOCKER_IMAGE_ANDROID) --file=dockerfiles/Dockerfile-android .
 
 docker/run/test/linux:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) andremiras/etherollapp-linux 'make test'
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) $(DOCKER_IMAGE_LINUX) 'make test'
 
 docker/run/test/android:
-	docker run --env-file dockerfiles/env.list andremiras/etherollapp-android 'make buildozer/android/debug'
+	docker run --env-file dockerfiles/env.list $(DOCKER_IMAGE_ANDROID) 'make buildozer/android/debug'
 
 docker/run/app:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) andremiras/etherollapp-linux 'make run'
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) $(DOCKER_IMAGE_LINUX) 'make run'
 
 docker/run/shell/linux:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm andremiras/etherollapp-linux
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm $(DOCKER_IMAGE_LINUX)
 
 docker/run/shell/android:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm andremiras/etherollapp-android
+	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm $(DOCKER_IMAGE_ANDROID)

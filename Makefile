@@ -15,6 +15,7 @@ TWINE=`which twine`
 SOURCES=src/ setup.py
 DOCKER_IMAGE_LINUX=andremiras/etherollapp-linux
 DOCKER_IMAGE_ANDROID=andremiras/etherollapp-android
+DOCKER_VOLUME=/tmp/.X11-unix:/tmp/.X11-unix
 SYSTEM_DEPENDENCIES_LINUX= \
 	build-essential \
 	git \
@@ -53,7 +54,7 @@ SYSTEM_DEPENDENCIES_ANDROID= \
     zip
 OS=$(shell lsb_release -si 2>/dev/null || uname)
 ifndef CI
-DEVICE=--device=/dev/video0:/dev/video0
+DOCKER_DEVICE=--device=/dev/video0:/dev/video0
 endif
 
 system_dependencies_linux:
@@ -133,16 +134,16 @@ docker/build/android:
 	docker build --cache-from=$(DOCKER_IMAGE_ANDROID) --tag=$(DOCKER_IMAGE_ANDROID) --file=dockerfiles/Dockerfile-android .
 
 docker/run/test/linux:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) $(DOCKER_IMAGE_LINUX) 'make test'
+	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) $(DOCKER_IMAGE_LINUX) 'make test'
 
 docker/run/test/android:
 	docker run --env-file dockerfiles/env.list $(DOCKER_IMAGE_ANDROID) 'make buildozer/android/debug'
 
 docker/run/app:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) $(DOCKER_IMAGE_LINUX) 'make run'
+	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) $(DOCKER_IMAGE_LINUX) 'make run'
 
 docker/run/shell/linux:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm $(DOCKER_IMAGE_LINUX)
+	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) -it --rm $(DOCKER_IMAGE_LINUX)
 
 docker/run/shell/android:
-	docker run --env-file dockerfiles/env.list -v /tmp/.X11-unix:/tmp/.X11-unix $(DEVICE) -it --rm $(DOCKER_IMAGE_ANDROID)
+	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) -it --rm $(DOCKER_IMAGE_ANDROID)

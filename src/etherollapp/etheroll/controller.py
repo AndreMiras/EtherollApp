@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from eth_utils import to_checksum_address
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.logger import Logger
@@ -178,6 +179,9 @@ class Controller(FloatLayout):
             if type(screen) is SwitchAccountScreen and \
                     not self.screen_manager.has_screen(screen.name):
                 screen.bind(current_account=self.setter('current_account'))
+                screen.ids.send_id.bind(
+                    current_account=self.setter('current_account'))
+                screen.ids.send_id.bind(on_send=self.on_send)
         self.screen_manager.bind(on_pre_add_widget=on_pre_add_widget)
 
     def register_screens(self):
@@ -234,27 +238,25 @@ class Controller(FloatLayout):
     def about_screen(self):
         return self.screen_manager.get_screen('about_screen')
 
-    def on_unlock_clicked(self, instance, dialog, account, password):
-        """
-        Caches the password and call roll method again.
-        """
-        self._account_passwords[account.address.hex()] = password
-        dialog.dismiss()
-        # calling roll again since the password is now cached
-        self.roll()
-
-    def prompt_password_dialog(self, account):
+    def prompt_password_dialog(self, account, on_password_callback):
         """
         Prompt the password dialog.
         """
         # lazy loading
         from etherollapp.etheroll.passwordform import PasswordForm
         dialog = PasswordForm.dialog(account)
-        dialog.content.bind(on_unlock=self.on_unlock_clicked)
+
+        def on_unlock_clicked(instance, dialog, account, password):
+            """Caches the password and call roll method again."""
+            self._account_passwords[account.address.hex()] = password
+            dialog.dismiss()
+            on_password_callback()
+
+        dialog.content.bind(on_unlock=on_unlock_clicked)
         dialog.open()
         return dialog
 
-    def get_account_password(self, account):
+    def get_account_password(self, account, on_password_callback):
         """
         Retrieve cached account password or prompt dialog.
         """
@@ -262,7 +264,7 @@ class Controller(FloatLayout):
         try:
             return self._account_passwords[address]
         except KeyError:
-            self.prompt_password_dialog(account)
+            self.prompt_password_dialog(account, on_password_callback)
 
     @staticmethod
     def on_account_none():
@@ -278,6 +280,14 @@ class Controller(FloatLayout):
     @mainthread
     def dialog_roll_success(tx_hash):
         title = "Rolled successfully"
+        body = "Transaction hash:\n" + tx_hash.hex()
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
+    @staticmethod
+    @mainthread
+    def dialog_transaction_success(tx_hash):
+        title = "Transaction successful"
         body = "Transaction hash:\n" + tx_hash.hex()
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
@@ -302,7 +312,8 @@ class Controller(FloatLayout):
 
     @run_in_thread
     def player_roll_dice(
-            self, bet_size, chances, wallet_path, password, gas_price):
+            self, bet_size_eth, chances, wallet_path, password,
+            gas_price_gwei):
         """
         Sending the bet to the smart contract requires signing a transaction
         which requires CPU computation to unlock the account, hence this
@@ -312,8 +323,10 @@ class Controller(FloatLayout):
         try:
             Dialog.snackbar_message("Sending bet...")
             roll_screen.toggle_widgets(False)
+            bet_size_wei = int(bet_size_eth * 1e18)
+            gas_price_wei = int(gas_price_gwei * 1e9)
             tx_hash = self.pyetheroll.player_roll_dice(
-                bet_size, chances, wallet_path, password, gas_price)
+                bet_size_wei, chances, wallet_path, password, gas_price_wei)
         except (ValueError, ConnectionError) as exception:
             roll_screen.toggle_widgets(True)
             self.dialog_roll_error(exception)
@@ -345,20 +358,48 @@ class Controller(FloatLayout):
         """
         roll_screen = self.roll_screen
         roll_input = roll_screen.get_roll_input()
-        bet_size = roll_input['bet_size']
+        bet_size_eth = roll_input['bet_size']
         chances = roll_input['chances']
-        gas_price = Settings.get_stored_gas_price()
+        gas_price_gwei = Settings.get_stored_gas_price()
         account = self.current_account
         if account is None:
             self.on_account_none()
             return
         wallet_path = account.path
-        password = self.get_account_password(account)
+        password = self.get_account_password(account, self.roll)
         if password is not None:
             self.player_roll_dice(
-                bet_size, chances, wallet_path, password, gas_price)
+                bet_size_eth, chances, wallet_path, password, gas_price_gwei)
             # restarts roll polling service to reset the roll activity period
             self.start_services()
+
+    def transaction(
+            self, to, amount_eth, wallet_path, password, gas_price_gwei):
+        """Converts input parameters for the underlying library."""
+        value = int(amount_eth * 1e18)
+        gas_price_wei = int(gas_price_gwei * 1e9)
+        to = to_checksum_address(to)
+        Dialog.snackbar_message("Sending transaction...")
+        tx_hash = self.pyetheroll.transaction(
+            to, value, wallet_path, password, gas_price_wei)
+        self.dialog_transaction_success(tx_hash)
+
+    def send(self, address, amount_eth):
+        """Retrieves fields to complete the `transaction()` call."""
+        gas_price_gwei = Settings.get_stored_gas_price()
+        account = self.current_account
+        if account is None:
+            self.on_account_none()
+            return
+        wallet_path = account.path
+        password = self.get_account_password(
+            account, lambda: self.send(address, amount_eth))
+        if password is not None:
+            self.transaction(
+                address, amount_eth, wallet_path, password, gas_price_gwei)
+
+    def on_send(self, instance, address, amount_eth):
+        self.send(address, amount_eth)
 
     def load_switch_account(self):
         """

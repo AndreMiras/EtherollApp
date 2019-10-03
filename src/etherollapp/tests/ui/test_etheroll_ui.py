@@ -5,6 +5,7 @@ import time
 import unittest
 from functools import partial
 from tempfile import mkdtemp
+from unittest import mock
 from unittest.mock import patch
 
 from hexbytes import HexBytes
@@ -25,6 +26,8 @@ class UITestCase(unittest.TestCase):
         """
         self.temp_path = mkdtemp()
         os.environ['KEYSTORE_PATH'] = self.temp_path
+        # see `kivy.App._get_user_data_dir()`
+        os.environ['XDG_CONFIG_HOME'] = self.temp_path
 
     def tearDown(self):
         shutil.rmtree(self.temp_path, ignore_errors=True)
@@ -71,15 +74,15 @@ class UITestCase(unittest.TestCase):
             thread.join()
 
     @staticmethod
-    def wait_mock_called(mock, timeout=1):
+    def wait_mock_called(m, timeout=1):
         """
-        Returns True if `mock` was called before the `timeout` in seconds.
+        Returns True if `m` was called before the `timeout` in seconds.
         """
         step = 0.1
-        while timeout > 0 and not mock.called:
+        while timeout > 0 and not m.called:
             time.sleep(step)
             timeout -= step
-        return mock.called
+        return m.called
 
     def helper_test_empty_account(self, app):
         """
@@ -634,6 +637,66 @@ class UITestCase(unittest.TestCase):
         screen_manager.current = 'roll_screen'
         self.advance_frames_for_screen()
 
+    def helper_test_transaction(self, app):
+        """Trying to send ETH."""
+        controller = app.root
+        switch_account_screen = controller.switch_account_screen
+        send_subscreen = switch_account_screen.ids.send_id
+        send_subscreen.parent.dispatch('on_tab_press')
+        self.advance_frames_for_screen()
+        # makes sure an account is selected
+        controller.current_account = \
+            controller.account_utils.get_account_list()[0]
+        # retrieving the send button, to click it
+        send_to_address = '0x46044beAa1E985C67767E04dE58181de5DAAA00F'
+        send_subscreen.ids.send_to_id.text = send_to_address
+        amount_eth = 1.2
+        send_subscreen.ids.amount_eth_id.text = f'{amount_eth}'
+        send_button = send_subscreen.ids.send_button_id
+        self.assertEqual(send_button.text, 'Send')
+        send_button.dispatch('on_release')
+        # it should open the password dialog
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'Enter your password')
+        password = 'password'
+        dialog.content.password = password
+        unlock_button = dialog._action_buttons[0]
+        with patch('pyetheroll.etheroll.Etheroll.transaction', autospec=True) \
+                as m_transaction:
+            m_transaction.return_value = HexBytes(
+                '0x7be6e37621eb12db7dc535954345f69'
+                'd8cc5644b2de0ec32a344ca33c3054237')
+            unlock_button.dispatch('on_release')
+        pyetheroll = controller.pyetheroll
+        to = send_to_address
+        value = int(amount_eth * 1e18)
+        wallet_path = controller.current_account.path
+        gas_price_wei = mock.ANY
+        self.assertEqual(m_transaction.mock_calls, [
+            mock.call(
+                pyetheroll, to, value, wallet_path, password, gas_price_wei)
+        ])
+        self.advance_frames_for_screen()
+        # thread has ended, main & OSC threads only are running again
+        self.assertEqual(len(threading.enumerate()), 2)
+        main_thread = threading.enumerate()[0]
+        self.assertEqual(type(main_thread), threading._MainThread)
+        # a confirmation dialog with transaction hash should pop
+        dialogs = Dialog.dialogs
+        self.assertEqual(len(dialogs), 1)
+        dialog = dialogs[0]
+        self.assertEqual(dialog.title, 'Transaction successful')
+        dialog.dismiss()
+        self.assertEqual(len(dialogs), 0)
+        # loads back the default screen
+        screen_manager = controller.screen_manager
+        screen_manager.current = 'roll_screen'
+        self.advance_frames_for_screen()
+        # e.g. fetch_update_balance thread
+        self.join_threads()
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -653,6 +716,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_roll_connection_error(app)
         self.helper_test_roll_password(app)
         self.helper_test_settings_screen(app)
+        self.helper_test_transaction(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

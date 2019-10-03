@@ -4,6 +4,7 @@
 ## [Unreleased]
 
   - Bumps Kivy related dependencies
+  - Transfer out feature, refs #80, #105
   - Migrates to NDK 19b, refs #154
 
 

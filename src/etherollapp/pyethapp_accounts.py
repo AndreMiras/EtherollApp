@@ -29,11 +29,10 @@ class Account:
     """
 
     def __init__(self, keystore: dict, password: bytes = None, path=None):
+        self._address = None
         self.keystore = keystore
-        try:
+        if 'address' in self.keystore:
             self._address = decode_hex(self.keystore['address'])
-        except KeyError:
-            self._address = None
         self.locked = True
         if password is not None:
             password = to_string(password)
@@ -56,11 +55,11 @@ class Account:
         """
         if key is None:
             account = eth_account.Account.create()
-            key = account.privateKey
+            key = account.key
 
         password = to_string(password)
 
-        # encrypted = eth_account.Account.encrypt(account.privateKey, password)
+        # encrypted = eth_account.Account.encrypt(account.key, password)
         keystore = create_keyfile_json(key, password, iterations=iterations)
         keystore['id'] = uuid
         return Account(keystore, password, path)

@@ -83,6 +83,7 @@ pytest: virtualenv
 	PYTHONPATH=src $(PYTEST) --ignore src/etherollapp/tests/ui/ src/etherollapp/tests/
 
 test: pytest lint
+	@if test -n "$$CI"; then make uitest; fi; \
 
 uitest: virtualenv
 	$(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/

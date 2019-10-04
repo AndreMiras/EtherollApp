@@ -1,5 +1,6 @@
 import os
 import threading
+from typing import List
 
 from kivy.app import App
 from kivy.clock import mainthread
@@ -26,10 +27,10 @@ def load_kv_from_py(f):
     )
 
 
-class Dialog(object):
+class Dialog:
 
     # keeps track of all dialogs alive
-    dialogs = []
+    dialogs: List[MDDialog] = []
     __lock = threading.Lock()
 
     @staticmethod

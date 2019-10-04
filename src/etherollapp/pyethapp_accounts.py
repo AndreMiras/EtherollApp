@@ -7,13 +7,15 @@ from eth_keys import keys
 from eth_utils import decode_hex, encode_hex, remove_0x_prefix
 
 
-def to_string(value):
+def to_string(value) -> bytes:
     if isinstance(value, bytes):
         return value
-    if isinstance(value, str):
+    elif isinstance(value, str):
         return bytes(value, 'utf-8')
-    if isinstance(value, int):
+    elif isinstance(value, int):
         return bytes(str(value), 'utf-8')
+    else:
+        raise ValueError('Cannot convert to string')
 
 
 class Account:
@@ -56,8 +58,7 @@ class Account:
             account = eth_account.Account.create()
             key = account.privateKey
 
-        # [NOTE]: key and password should be bytes
-        password = str.encode(password)
+        password = to_string(password)
 
         # encrypted = eth_account.Account.encrypt(account.privateKey, password)
         keystore = create_keyfile_json(key, password, iterations=iterations)

@@ -11,6 +11,7 @@ PYTHON=$(VIRTUAL_ENV)/bin/python
 ISORT=$(VIRTUAL_ENV)/bin/isort
 FLAKE8=$(VIRTUAL_ENV)/bin/flake8
 PYTEST=$(VIRTUAL_ENV)/bin/pytest
+MYPY=$(VIRTUAL_ENV)/bin/mypy
 TWINE=`which twine`
 SOURCES=src/ setup.py
 DOCKER_IMAGE_LINUX=andremiras/etherollapp-linux
@@ -97,7 +98,10 @@ lint/isort-fix: virtualenv
 lint/flake8: virtualenv
 	$(FLAKE8) $(SOURCES)
 
-lint: lint/isort-check lint/flake8
+lint/mypy: virtualenv
+	@$(MYPY) --ignore-missing-imports $(shell find src/etherollapp/ -name "*.py")
+
+lint: lint/isort-check lint/flake8 lint/mypy
 
 release/clean:
 	rm -rf dist/ build/

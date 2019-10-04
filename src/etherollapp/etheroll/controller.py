@@ -158,15 +158,14 @@ class Controller(FloatLayout):
         """
         Binds SwitchAccountScreen.current_account -> self.current_account.
         """
-        def on_current_screen(screen_manager, screen):
+        def on_add_widget(screen_manager, screen):
             """
-            Makes sure the binding is made once by unbinding itself.
+            Should only be called twice per screen instance.
             """
-            if type(screen) is SwitchAccountScreen:
+            if type(screen) is SwitchAccountScreen and \
+                    not self.screen_manager.has_screen(screen.name):
                 screen.bind(current_account=self.setter('current_account'))
-                # makes sure the above doesn't get rebinded over and over again
-                self.screen_manager.unbind(current_screen=on_current_screen)
-        self.screen_manager.bind(current_screen=on_current_screen)
+        self.screen_manager.bind(on_add_widget=on_add_widget)
 
     def register_screens(self):
         # lazy loading

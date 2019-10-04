@@ -255,7 +255,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(controller.screen_manager.current, 'roll_screen')
         # the new account should be loaded in the controller
         self.assertEqual(
-            controller.switch_account_screen.current_account,
+            controller.current_account,
             account_utils.get_account_list()[0])
         self.join_threads()
         # check the redirect dialog
@@ -449,9 +449,8 @@ class UITestCase(unittest.TestCase):
         """
         controller = app.root
         # makes sure an account is selected
-        switch_account_screen = controller.switch_account_screen
         # TODO: do it the proper way by clicking the UI
-        controller.current_account = switch_account_screen.current_account = \
+        controller.current_account = \
             controller.account_utils.get_account_list()[0]
         # retrieving the roll button, to click it
         roll_screen = controller.roll_screen

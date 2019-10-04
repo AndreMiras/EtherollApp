@@ -56,8 +56,11 @@ class CreateNewAccount(BoxLayout):
         Switches to the newly created account.
         Clears the form.
         """
+        # TODO:
+        # it would be better design if only the Controller new about the
+        # CreateNewAccount and not the opposite
         controller = App.get_running_app().root
-        controller.switch_account_screen.current_account = account
+        controller.current_account = account
         self.new_password1 = ''
         self.new_password2 = ''
 

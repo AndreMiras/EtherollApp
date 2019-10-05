@@ -131,27 +131,8 @@ class ChanceOfWinning(BoxLayout):
 
 class RollScreen(Screen):
 
-    current_account_string = StringProperty()
+    current_account_string = StringProperty(allownone=True)
     balance_property = NumericProperty()
-
-    def __init__(self, **kwargs):
-        super(RollScreen, self).__init__(**kwargs)
-        Clock.schedule_once(self._after_init)
-
-    def _after_init(self, dt):
-        """
-        Binds `Controller.current_account` -> `RollScreen.current_account`.
-        """
-        controller = App.get_running_app().root
-        controller.bind(current_account=self.on_current_account)
-
-    def on_current_account(self, instance, account):
-        """
-        Sets current_account_string.
-        """
-        if account is None:
-            return
-        self.current_account_string = '0x' + account.address.hex()
 
     def get_roll_input(self):
         """

@@ -2,7 +2,7 @@
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.logger import Logger
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.floatlayout import FloatLayout
 from kivy.utils import platform
 from kivymd.bottomsheet import MDListBottomSheet
@@ -26,6 +26,7 @@ load_kv_from_py(__file__)
 class Controller(FloatLayout):
 
     current_account = ObjectProperty(allownone=True)
+    current_account_string = StringProperty(allownone=True)
 
     def __init__(self, **kwargs):
         super(Controller, self).__init__(**kwargs)
@@ -43,6 +44,7 @@ class Controller(FloatLayout):
         """
         Clock.schedule_once(self.preload_account_utils)
         self.bind_roll_button()
+        self.bind_current_account_string()
         self.bind_chances_roll_under()
         self.bind_wager_property()
         self.bind_profit_property()
@@ -67,6 +69,10 @@ class Controller(FloatLayout):
                 current_screen.on_back()
                 return True
         return False
+
+    def on_current_account(self, instance, current_account):
+        self.current_account_string = (
+            current_account and f'0x{current_account.address.hex()}')
 
     @property
     def pyetheroll(self):
@@ -130,6 +136,13 @@ class Controller(FloatLayout):
         roll_button = self.roll_screen.ids.roll_button_id
         roll_button.bind(on_release=lambda instance: self.roll())
 
+    def bind_current_account_string(self):
+        """Binds Controller.current_account -> RollScreen.current_account"""
+        roll_screen = self.roll_screen
+        self.bind(
+            current_account_string=roll_screen.setter('current_account_string')
+        )
+
     def bind_keyboard(self):
         """
         Binds keyboard keys to actions.
@@ -158,14 +171,14 @@ class Controller(FloatLayout):
         """
         Binds SwitchAccountScreen.current_account -> self.current_account.
         """
-        def on_add_widget(screen_manager, screen):
+        def on_pre_add_widget(screen_manager, screen):
             """
             Should only be called twice per screen instance.
             """
             if type(screen) is SwitchAccountScreen and \
                     not self.screen_manager.has_screen(screen.name):
                 screen.bind(current_account=self.setter('current_account'))
-        self.screen_manager.bind(on_add_widget=on_add_widget)
+        self.screen_manager.bind(on_pre_add_widget=on_pre_add_widget)
 
     def register_screens(self):
         # lazy loading

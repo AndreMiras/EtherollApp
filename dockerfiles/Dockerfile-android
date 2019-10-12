@@ -29,7 +29,7 @@ ENV LANG="en_US.UTF-8" \
 # install system dependencies (required to setup all the tools)
 
 # install build dependencies (required to successfully build the project)
-RUN apt install -qq --yes --no-install-recommends \
+RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
     lsb-release \
     make \
     sudo

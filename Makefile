@@ -60,11 +60,11 @@ endif
 
 system_dependencies_linux:
 ifeq ($(OS), Ubuntu)
-	sudo apt install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_LINUX)
+	sudo apt update -qq > /dev/null && sudo apt install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_LINUX)
 endif
 system_dependencies_android:
 ifeq ($(OS), Ubuntu)
-	sudo apt install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_ANDROID)
+	sudo apt update -qq > /dev/null && sudo apt install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_ANDROID)
 endif
 
 

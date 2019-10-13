@@ -655,9 +655,10 @@ class UITestCase(unittest.TestCase):
                 pyetheroll, to, value, wallet_path, password, gas_price_wei)
         ])
         self.advance_frames_for_screen()
+        threads = threading.enumerate()
         # thread has ended, main & OSC threads only are running again
-        self.assertEqual(len(threading.enumerate()), 2)
-        main_thread = threading.enumerate()[0]
+        self.assertEqual(len(threads), 2, threads[-1]._target)
+        main_thread = threads[0]
         self.assertEqual(type(main_thread), threading._MainThread)
         # a confirmation dialog with transaction hash should pop
         dialogs = Dialog.dialogs

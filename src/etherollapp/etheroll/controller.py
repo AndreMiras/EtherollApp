@@ -376,17 +376,13 @@ class Controller(FloatLayout):
         self.send(address, amount_eth)
 
     def load_switch_account(self):
-        """
-        Loads the switch account screen.
-        """
+        """Loads the switch account screen."""
         screen_manager = self.screen_manager
         screen_manager.transition.direction = 'right'
         screen_manager.current = 'switch_account_screen'
 
     def show_qr_code(self):
-        """
-        Shows address QR Code in a dialog.
-        """
+        """Shows address QR Code in a dialog."""
         # lazy loading
         from kivy_garden.qrcode import QRCodeWidget
         from kivy.metrics import dp
@@ -410,9 +406,7 @@ class Controller(FloatLayout):
         return dialog
 
     def copy_address_clipboard(self):
-        """
-        Copies the current account address to the clipboard.
-        """
+        """Copies the current account address to the clipboard."""
         # lazy loading
         from kivy.core.clipboard import Clipboard
         account = self.current_account

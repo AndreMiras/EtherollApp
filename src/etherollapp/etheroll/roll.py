@@ -25,13 +25,11 @@ class BetSize(BoxLayout):
     min_bet_property = NumericProperty(DEFAULT_MIN_BET)
 
     def __init__(self, **kwargs):
-        super(BetSize, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):
-        """
-        Binds events.
-        """
+        """Binds events."""
         slider = self.ids.bet_size_slider_id
         inpt = self.ids.bet_size_input_id
         cast_to = float
@@ -63,9 +61,7 @@ class BetSize(BoxLayout):
     @staticmethod
     def bind_slider_input(
             slider, inpt, cast_to=float, round_digits=ROUND_DIGITS):
-        """
-        Binds slider <-> input both ways.
-        """
+        """Binds slider <-> input both ways."""
         # slider -> input
         slider.bind(
             value=lambda instance, value:
@@ -85,9 +81,7 @@ class BetSize(BoxLayout):
 
     @property
     def value(self):
-        """
-        Returns normalized bet size value.
-        """
+        """Returns normalized bet size value."""
         try:
             return round(
                 float(self.ids.bet_size_input_id.text), ROUND_DIGITS)
@@ -98,13 +92,11 @@ class BetSize(BoxLayout):
 class ChanceOfWinning(BoxLayout):
 
     def __init__(self, **kwargs):
-        super(ChanceOfWinning, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):
-        """
-        Binds events.
-        """
+        """Binds events."""
         slider = self.ids.chances_slider_id
         inpt = self.ids.chances_input_id
         cast_to = self.cast_to
@@ -117,9 +109,7 @@ class ChanceOfWinning(BoxLayout):
 
     @property
     def value(self):
-        """
-        Returns normalized chances value.
-        """
+        """Returns normalized chances value."""
         try:
             # `input_filter: 'int'` only verifies that we have a number
             # but doesn't convert to int
@@ -135,9 +125,7 @@ class RollScreen(Screen):
     balance_property = NumericProperty()
 
     def get_roll_input(self):
-        """
-        Returns bet size and chance of winning user input values.
-        """
+        """Returns bet size and chance of winning user input values."""
         bet_size = self.ids.bet_size_id
         chance_of_winning = self.ids.chance_of_winning_id
         return {
@@ -147,9 +135,7 @@ class RollScreen(Screen):
 
     @mainthread
     def toggle_widgets(self, enabled):
-        """
-        Enables/disables widgets (useful during roll).
-        """
+        """Enables/disables widgets (useful during roll)."""
         self.disabled = not enabled
 
     @property
@@ -164,9 +150,7 @@ class RollScreen(Screen):
 
     @mainthread
     def update_balance(self, balance):
-        """
-        Updates the property from main thread.
-        """
+        """Updates the property from main thread."""
         self.balance_property = balance
 
     @staticmethod
@@ -179,9 +163,7 @@ class RollScreen(Screen):
 
     @run_in_thread
     def fetch_update_balance(self):
-        """
-        Retrieves the balance and updates the property.
-        """
+        """Retrieves the balance and updates the property."""
         address = self.current_account_string
         if not address:
             return

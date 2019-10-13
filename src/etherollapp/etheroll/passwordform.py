@@ -7,20 +7,15 @@ load_kv_from_py(__file__)
 
 
 class PasswordForm(BoxLayout):
+    __events__ = ('on_unlock',)
     password = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(PasswordForm, self).__init__(**kwargs)
-        self.register_event_type('on_unlock')
 
     def on_unlock(self, instance, account, password):
         pass
 
     @classmethod
     def dialog(cls, account):
-        """
-        Prompt the password dialog.
-        """
+        """Prompt the password dialog."""
         title = "Enter your password"
         password_form = cls()
         password_form.ids.account_id.text = "0x" + account.address.hex()

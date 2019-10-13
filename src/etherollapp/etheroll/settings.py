@@ -13,15 +13,11 @@ PERSIST_KEYSTORE_SETTINGS = 'persist_keystore'
 
 
 class Settings:
-    """
-    Screen for configuring network, gas price...
-    """
+    """Screen for configuring network, gas price..."""
 
     @classmethod
     def get_stored_network(cls):
-        """
-        Retrieves last stored network value, defaults to Mainnet.
-        """
+        """Retrieves last stored network value, defaults to Mainnet."""
         store = Store.get_store()
         try:
             network_dict = store[NETWORK_SETTINGS]
@@ -34,9 +30,7 @@ class Settings:
 
     @classmethod
     def set_stored_network(cls, network: ChainID):
-        """
-        Persists network settings.
-        """
+        """Persists network settings."""
         store = Store.get_store()
         store.put(NETWORK_SETTINGS, value=network.name)
 
@@ -66,9 +60,7 @@ class Settings:
 
     @classmethod
     def set_stored_gas_price(cls, gas_price: int):
-        """
-        Persists gas price settings.
-        """
+        """Persists gas price settings."""
         store = Store.get_store()
         store.put(GAS_PRICE_SETTINGS, value=gas_price)
 
@@ -89,9 +81,7 @@ class Settings:
 
     @classmethod
     def set_is_persistent_keystore(cls, persist_keystore: bool):
-        """
-        Saves keystore persistency settings.
-        """
+        """Saves keystore persistency settings."""
         store = Store.get_store()
         store.put(PERSIST_KEYSTORE_SETTINGS, value=persist_keystore)
 

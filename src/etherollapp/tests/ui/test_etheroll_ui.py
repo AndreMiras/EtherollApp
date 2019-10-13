@@ -52,22 +52,16 @@ class UITestCase(unittest.TestCase):
             EventLoop.idle()
 
     def advance_frames_for_screen(self):
-        """
-        Gives screen switch animation time to render.
-        """
+        """Gives screen switch animation time to render."""
         self.advance_frames(50)
 
     def advance_frames_for_drawer(self):
-        """
-        Gives drawer switch animation time to render.
-        """
+        """Gives drawer switch animation time to render."""
         self.advance_frames_for_screen()
 
     @staticmethod
     def join_threads():
-        """
-        Joins pending threads except for main and OSC threads.
-        """
+        """Joins pending threads except for main and OSC threads."""
         threads = threading.enumerate()
         # lists all threads but the main one
         for thread in threads[2:]:
@@ -75,9 +69,7 @@ class UITestCase(unittest.TestCase):
 
     @staticmethod
     def wait_mock_called(m, timeout=1):
-        """
-        Returns True if `m` was called before the `timeout` in seconds.
-        """
+        """Returns True if `m` was called before the `timeout` in seconds."""
         step = 0.1
         while timeout > 0 and not m.called:
             time.sleep(step)
@@ -85,9 +77,7 @@ class UITestCase(unittest.TestCase):
         return m.called
 
     def helper_test_empty_account(self, app):
-        """
-        Verifies the UI behaves as expected on empty account list.
-        """
+        """Verifies the UI behaves as expected on empty account list."""
         controller = app.root
         accounts = controller.account_utils.get_account_list()
         # loading the app with empty account directory
@@ -106,9 +96,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(len(dialogs), 0)
 
     def helper_test_toolbar(self, app):
-        """
-        Opens the about screen using the toolbar.
-        """
+        """Opens the about screen using the toolbar."""
         controller = app.root
         toolbar = controller.ids.toolbar_id
         left_action_items = toolbar.left_action_items
@@ -151,9 +139,7 @@ class UITestCase(unittest.TestCase):
             controller.screen_manager.current, 'roll_screen')
 
     def helper_test_about_screen(self, app):
-        """
-        Verifies the about screen loads and shows infos.
-        """
+        """Verifies the about screen loads and shows infos."""
         controller = app.root
         screen_manager = controller.screen_manager
         # verify the landing screen is loaded by default
@@ -204,9 +190,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(switch_account_screen.current_account, None)
 
     def helper_test_create_first_account(self, app):
-        """
-        Creates the first account.
-        """
+        """Creates the first account."""
         controller = app.root
         account_utils = controller.account_utils
         screen_manager = controller.screen_manager
@@ -338,9 +322,7 @@ class UITestCase(unittest.TestCase):
                 len(account_utils.get_account_list()))
 
     def helper_test_chances_input_binding(self, app):
-        """
-        Makes sure the chances input works as expected, refs #46.
-        """
+        """Makes sure the chances input works as expected, refs #46."""
         controller = app.root
         # retrieves both widgets from roll screen
         roll_screen = controller.roll_screen
@@ -360,9 +342,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(chances_input.text, '70')
 
     def helper_test_roll_history(self, app):
-        """
-        Roll history screen should display recent rolls, refs #61.
-        """
+        """Roll history screen should display recent rolls, refs #61."""
         bet_results_logs = PyEtherollTestUtils.bet_results_logs
         bet_logs = PyEtherollTestUtils.bet_logs
         merged_logs = [
@@ -447,9 +427,7 @@ class UITestCase(unittest.TestCase):
         self.join_threads()
 
     def helper_test_roll(self, app):
-        """
-        Trying to place a valid roll.
-        """
+        """Trying to place a valid roll."""
         controller = app.root
         # makes sure an account is selected
         # TODO: do it the proper way by clicking the UI
@@ -617,9 +595,7 @@ class UITestCase(unittest.TestCase):
         self.advance_frames_for_screen()
 
     def helper_test_settings_screen(self, app):
-        """
-        Verifies the settings screen loads and shows infos.
-        """
+        """Verifies the settings screen loads and shows infos."""
         controller = app.root
         screen_manager = controller.screen_manager
         # verify the landing screen is loaded by default

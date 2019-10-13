@@ -18,9 +18,7 @@ class PasswordForm(BoxLayout):
 
     @classmethod
     def dialog(cls, account):
-        """
-        Prompt the password dialog.
-        """
+        """Prompt the password dialog."""
         title = "Enter your password"
         password_form = cls()
         password_form.ids.account_id.text = "0x" + account.address.hex()

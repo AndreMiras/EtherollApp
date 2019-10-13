@@ -14,18 +14,14 @@ class AccountUtils:
 
     @classmethod
     def get_or_create(cls, keystore_dir):
-        """
-        Gets or creates the AccountUtils object so it loads lazily.
-        """
+        """Gets or creates the AccountUtils object so it loads lazily."""
         if cls.singleton is None or \
                 cls.singleton.keystore_dir != keystore_dir:
             cls.singleton = cls(keystore_dir=keystore_dir)
         return cls.singleton
 
     def get_account_list(self):
-        """
-        Returns the Account list.
-        """
+        """Returns the Account list."""
         if self._accounts is not None:
             return self._accounts
         keyfiles = []
@@ -42,9 +38,7 @@ class AccountUtils:
         return self._accounts
 
     def new_account(self, password, iterations=None):
-        """
-        Creates an account on the disk and returns it.
-        """
+        """Creates an account on the disk and returns it."""
         account = Account.new(password, uuid=None, iterations=iterations)
         account.path = os.path.join(self.keystore_dir, account.address.hex())
         self.add_account(account)

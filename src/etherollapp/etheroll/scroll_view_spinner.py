@@ -8,9 +8,7 @@ load_kv_from_py(__file__)
 class ScrollViewSpinder(MDSpinner):
 
     def toggle(self, show):
-        """
-        Actually shrinking and hidding it.
-        """
+        """Actually shrinking and hidding it."""
         # by default it's in "shown" mode and doesn't have attributes saved
         if not hasattr(self, 'previous_size_hint'):
             self.previous_size_hint = self.size_hint.copy()

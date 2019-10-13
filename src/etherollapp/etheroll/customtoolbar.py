@@ -8,9 +8,7 @@ load_kv_from_py(__file__)
 
 
 class CustomToolbar(Toolbar):
-    """
-    Toolbar with helper method for loading default/back buttons.
-    """
+    """Toolbar with helper method for loading default/back buttons."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

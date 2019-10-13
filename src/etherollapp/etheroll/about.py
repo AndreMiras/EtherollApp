@@ -52,16 +52,12 @@ class AboutDiagnostic(BoxLayout):
 
     @mainthread
     def callback_write(self, s):
-        """
-        Updates the UI with test progress.
-        """
+        """Updates the UI with test progress."""
         self.stream_property += s
 
     @run_in_thread
     def run_tests(self):
-        """
-        Loads the test suite and hook the callback for reporting progress.
-        """
+        """Loads the test suite and hook the callback for progress report."""
         # lazy loading
         import unittest
         from etherollapp.testsuite import suite

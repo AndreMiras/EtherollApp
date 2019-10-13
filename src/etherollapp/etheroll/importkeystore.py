@@ -16,7 +16,5 @@ class ImportKeystore(BoxLayout):
         Clock.schedule_once(self.load_keystore_path)
 
     def load_keystore_path(self, dt=None):
-        """
-        Updates keystore path displayed in the UI.
-        """
+        """Updates keystore path displayed in the UI."""
         self.keystore_path = Settings.get_keystore_path()

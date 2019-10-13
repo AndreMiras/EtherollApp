@@ -27,9 +27,7 @@ def patch_get_abi():
 
 
 class TestEtherollApp(unittest.TestCase):
-    """
-    Unit tests EtherollApp methods.
-    """
+    """Unit tests EtherollApp methods."""
 
     def test_init(self):
         """
@@ -43,16 +41,12 @@ class TestEtherollApp(unittest.TestCase):
         assert app.name == 'etheroll'
 
     def test_get_user_data_dir(self):
-        """
-        Verifies `_get_user_data_dir()` returns the app directory.
-        """
+        """Verifies `_get_user_data_dir()` returns the app directory."""
         app = EtherollApp()
         assert app._get_user_data_dir().endswith('.config/etheroll')
 
     def test_get_user_data_dir_android(self):
-        """
-        On Android, pyjnius is used to call getAbsolutePath().
-        """
+        """On Android, pyjnius is used to call getAbsolutePath()."""
         app = EtherollApp()
         m_jnius = mock.MagicMock()
         with patch_platform(), patch_jnius(m_jnius):
@@ -61,9 +55,7 @@ class TestEtherollApp(unittest.TestCase):
 
 
 class TestMonitorRollsService(unittest.TestCase):
-    """
-    Unit tests MonitorRollsService methods.
-    """
+    """Unit tests MonitorRollsService methods."""
 
     def patch_get_merged_logs(m_get):
         return mock.patch('etherollapp.service.main.Etheroll.get_merged_logs')
@@ -207,9 +199,7 @@ class TestMonitorRollsService(unittest.TestCase):
 
     @unittest.skip("Not implemented")
     def test_do_notify(self):
-        """
-        Not yet implemented.
-        """
+        """Not yet implemented."""
         raise NotImplementedError
 
 

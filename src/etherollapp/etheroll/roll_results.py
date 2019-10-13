@@ -26,16 +26,12 @@ class RollResultsScreen(SubScreen):
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):
-        """
-        Binds events.
-        """
+        """Binds events."""
         self.update_roll_list()
 
     # TODO: create a dedicated PullRefreshScrollView that handle all this
     def on_scroll_stop(self, scroll_y):
-        """
-        Refreshs roll results on overscroll.
-        """
+        """Refreshs roll results on overscroll."""
         # refresh if we hit the bottom or if we over pull
         # currently hitting the bottom will refresh last transactions only
         # rather than loading more ancient transactions
@@ -59,9 +55,7 @@ class RollResultsScreen(SubScreen):
 
     @mainthread
     def on_roll_logs(self, instance, value):
-        """
-        Updates UI using roll results list.
-        """
+        """Updates UI using roll results list."""
         self.update_roll_list()
 
     @staticmethod
@@ -99,9 +93,7 @@ class RollResultsScreen(SubScreen):
 
     @staticmethod
     def create_item_from_dict(roll_log):
-        """
-        Creates a roll list item from a roll log dictionary.
-        """
+        """Creates a roll list item from a roll log dictionary."""
         # lazy loading
         from pyetheroll.utils import EtherollUtils
         bet_log = roll_log['bet_log']
@@ -147,9 +139,7 @@ class RollResultsScreen(SubScreen):
         return list_item
 
     def update_roll_list(self):
-        """
-        Updates the roll results list widget.
-        """
+        """Updates the roll results list widget."""
         roll_list = self.ids.roll_list_id
         roll_list.clear_widgets()
         roll_logs = reversed(self.roll_logs)

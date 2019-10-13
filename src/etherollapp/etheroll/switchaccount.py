@@ -17,21 +17,15 @@ class SwitchAccount(BoxLayout):
         self.register_event_type('on_account_selected')
 
     def on_release(self, list_item):
-        """
-        Fires on_account_selected() event.
-        """
+        """Fires on_account_selected() event."""
         self.dispatch('on_account_selected', list_item.account)
 
     def on_account_selected(self, *args):
-        """
-        Default handler.
-        """
+        """Default handler."""
         pass
 
     def create_item(self, account):
-        """
-        Creates an account list item from given account.
-        """
+        """Creates an account list item from given account."""
         address = "0x" + account.address.hex()
         list_item = OneLineListItem(text=address)
         # makes sure the address doesn't overlap on small screen
@@ -86,17 +80,13 @@ class SwitchAccountScreen(SubScreen):
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):
-        """
-        Binds SwitchAccount.on_account_selected() event.
-        """
+        """Binds SwitchAccount.on_account_selected() event."""
         switch_account = self.ids.switch_account_id
         switch_account.bind(
             on_account_selected=lambda
             instance, account: self.on_account_selected(account))
 
     def on_account_selected(self, account):
-        """
-        Sets current account and loads previous screen.
-        """
+        """Sets current account and loads previous screen."""
         self.current_account = account
         self.on_back()

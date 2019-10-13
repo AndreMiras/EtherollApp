@@ -2,9 +2,7 @@ import unittest
 
 
 class ModulesImportTestCase(unittest.TestCase):
-    """
-    Simple test cases, verifying core modules were installed properly.
-    """
+    """Simple test cases, verifying core modules were installed properly."""
 
     def test_hashlib_sha3(self):
         import hashlib

@@ -10,25 +10,19 @@ load_kv_from_py(__file__)
 
 
 class CreateNewAccount(BoxLayout):
-    """
-    Makes it possible to create json keyfiles.
-    """
+    """Makes it possible to create json keyfiles."""
 
     new_password1 = StringProperty()
     new_password2 = StringProperty()
 
     def verify_password_field(self):
-        """
-        Makes sure passwords are matching and are not void.
-        """
+        """Makes sure passwords are matching and are not void."""
         passwords_matching = self.new_password1 == self.new_password2
         passwords_not_void = self.new_password1 != ''
         return passwords_matching and passwords_not_void
 
     def verify_fields(self):
-        """
-        Verifies password fields are valid.
-        """
+        """Verifies password fields are valid."""
         return self.verify_password_field()
 
     @staticmethod
@@ -52,10 +46,7 @@ class CreateNewAccount(BoxLayout):
 
     @mainthread
     def on_account_created(self, account):
-        """
-        Switches to the newly created account.
-        Clears the form.
-        """
+        """Switches to the newly created account. Clears the form."""
         # TODO:
         # it would be better design if only the Controller new about the
         # CreateNewAccount and not the opposite
@@ -66,9 +57,7 @@ class CreateNewAccount(BoxLayout):
 
     @mainthread
     def toggle_widgets(self, enabled):
-        """
-        Enables/disables account creation widgets.
-        """
+        """Enables/disables account creation widgets."""
         self.disabled = not enabled
 
     @mainthread
@@ -81,9 +70,7 @@ class CreateNewAccount(BoxLayout):
         dialog.open()
 
     def load_landing_page(self):
-        """
-        Returns to the landing page.
-        """
+        """Returns to the landing page."""
         controller = App.get_running_app().root
         screen_manager = controller.screen_manager
         screen_manager.transition.direction = 'right'

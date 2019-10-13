@@ -40,9 +40,7 @@ class Controller(FloatLayout):
         self._pyetheroll = None
 
     def _after_init(self, dt):
-        """
-        Inits pyethapp and binds events.
-        """
+        """Inits pyethapp and binds events."""
         Clock.schedule_once(self.preload_account_utils)
         self.bind_roll_button()
         self.bind_current_account_string()
@@ -89,26 +87,20 @@ class Controller(FloatLayout):
 
     @property
     def account_utils(self):
-        """
-        Gets or creates the AccountUtils object so it loads lazily.
-        """
+        """Gets or creates the AccountUtils object so it loads lazily."""
         from etherollapp.ethereum_utils import AccountUtils
         keystore_dir = Settings.get_keystore_path()
         return AccountUtils.get_or_create(keystore_dir)
 
     def preload_account_utils(self, dt):
-        """
-        Preloads `AccountUtils`, since it takes few seconds on Android.
-        """
+        """Preloads `AccountUtils`, since it takes few seconds on Android."""
         account_utils = self.account_utils
         self.disabled = False
         # not using that returned value, but it peaces linter
         return account_utils
 
     def bind_wager_property(self):
-        """
-        Binds wager recap label.
-        """
+        """Binds wager recap label."""
         roll_under_recap = self.roll_screen.ids.roll_under_recap_id
         bet_size = self.roll_screen.ids.bet_size_id
         bet_size_input = bet_size.ids.bet_size_input_id
@@ -118,9 +110,7 @@ class Controller(FloatLayout):
         roll_under_recap.wager_property = bet_size_input.text
 
     def bind_chances_roll_under(self):
-        """
-        Binds chances of winning recap label.
-        """
+        """Binds chances of winning recap label."""
         roll_under_recap = self.roll_screen.ids.roll_under_recap_id
         # roll under recap label
         chance_of_winning = self.roll_screen.ids.chance_of_winning_id
@@ -131,9 +121,7 @@ class Controller(FloatLayout):
         roll_under_recap.roll_under_property = chances_input.text
 
     def bind_roll_button(self):
-        """
-        Binds roll screen "Roll" button to controller roll().
-        """
+        """Binds roll screen "Roll" button to controller roll()."""
         roll_button = self.roll_screen.ids.roll_button_id
         roll_button.bind(on_release=lambda instance: self.roll())
 
@@ -145,16 +133,12 @@ class Controller(FloatLayout):
         )
 
     def bind_keyboard(self):
-        """
-        Binds keyboard keys to actions.
-        """
+        """Binds keyboard keys to actions."""
         from kivy.core.window import Window
         Window.bind(on_keyboard=self.on_keyboard)
 
     def bind_profit_property(self):
-        """
-        Binds profit property with bet value and chances changes.
-        """
+        """Binds profit property with bet value and chances changes."""
         # chances -> profit
         chance_of_winning = self.roll_screen.ids.chance_of_winning_id
         chances_input = chance_of_winning.ids.chances_input_id
@@ -169,13 +153,9 @@ class Controller(FloatLayout):
         self.update_profit_property()
 
     def bind_screen_manager_on_current_screen(self):
-        """
-        Binds SwitchAccountScreen.current_account -> self.current_account.
-        """
+        """SwitchAccountScreen.current_account -> self.current_account."""
         def on_pre_add_widget(screen_manager, screen):
-            """
-            Should only be called twice per screen instance.
-            """
+            """Should only be called twice per screen instance."""
             if type(screen) is SwitchAccountScreen and \
                     not self.screen_manager.has_screen(screen.name):
                 screen.bind(current_account=self.setter('current_account'))
@@ -239,9 +219,7 @@ class Controller(FloatLayout):
         return self.screen_manager.get_screen('about_screen')
 
     def prompt_password_dialog(self, account, on_password_callback):
-        """
-        Prompt the password dialog.
-        """
+        """Prompt the password dialog."""
         # lazy loading
         from etherollapp.etheroll.passwordform import PasswordForm
         dialog = PasswordForm.dialog(account)
@@ -257,9 +235,7 @@ class Controller(FloatLayout):
         return dialog
 
     def get_account_password(self, account, on_password_callback):
-        """
-        Retrieve cached account password or prompt dialog.
-        """
+        """Retrieve cached account password or prompt dialog."""
         address = account.address.hex()
         try:
             return self._account_passwords[address]
@@ -268,9 +244,7 @@ class Controller(FloatLayout):
 
     @staticmethod
     def on_account_none():
-        """
-        Error dialog on no account selected.
-        """
+        """Error dialog on no account selected."""
         title = "No account selected"
         body = "Please select an account before rolling"
         dialog = Dialog.create_dialog(title, body)

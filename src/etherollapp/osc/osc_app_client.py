@@ -9,9 +9,7 @@ from oscpy.client import OSCClient
 
 
 class OscAppClient:
-    """
-    OSC client that talks to the OscAppServer to update the app process.
-    """
+    """OSC client that talks to the OscAppServer to update the app process."""
 
     def __init__(self, address, port):
         self.address = address
@@ -27,9 +25,7 @@ class OscAppClient:
 
 
 def main():
-    """
-    Test main that sends a ping message to the specified server.
-    """
+    """Test main that sends a ping message to the specified server."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--host",  default='localhost')
     parser.add_argument("--port", type=int, default=8000)

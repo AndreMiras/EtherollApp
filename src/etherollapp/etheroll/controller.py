@@ -30,7 +30,7 @@ class Controller(FloatLayout):
     current_account_string = StringProperty(allownone=True)
 
     def __init__(self, **kwargs):
-        super(Controller, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # disables the roll screen until `preload_account_utils` is done
         # disabling doesn't seem to work within the scheduled method
         # self.roll_screen.toggle_widgets(False)

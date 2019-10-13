@@ -6,7 +6,7 @@ class LazyScreenManager(ScreenManager):
     __events__ = ('on_pre_add_widget', 'on_add_widget')
 
     def __init__(self, **kwargs):
-        super(LazyScreenManager, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self._screen_types = {}
 
     def on_add_widget(self, screen):
@@ -23,7 +23,7 @@ class LazyScreenManager(ScreenManager):
         if not self.has_screen(value):
             screen = self._screen_types[value](name=value)
             self.add_widget(screen)
-        super(LazyScreenManager, self).on_current(instance, value)
+        super().on_current(instance, value)
 
     def add_widget(self, screen):
         """

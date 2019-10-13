@@ -11,7 +11,7 @@ class AddressButton(MDFlatButton):
     """
 
     def __init__(self, **kwargs):
-        super(AddressButton, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(lambda dt: self.setup())
 
     def setup(self):

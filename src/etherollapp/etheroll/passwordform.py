@@ -10,7 +10,7 @@ class PasswordForm(BoxLayout):
     password = StringProperty()
 
     def __init__(self, **kwargs):
-        super(PasswordForm, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.register_event_type('on_unlock')
 
     def on_unlock(self, instance, account, password):

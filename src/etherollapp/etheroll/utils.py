@@ -63,13 +63,13 @@ class StringIOCBWrite(StringIO):
         for write operations.
         """
         self.callback_write = callback_write
-        super(StringIOCBWrite, self).__init__(initial_value, newline)
+        super().__init__(initial_value, newline)
 
     def write(self, s):
         """
         Calls the StringIO.write() method then the callback_write with
         given string parameter.
         """
-        super(StringIOCBWrite, self).write(s)
+        super().write(s)
         if self.callback_write is not None:
             self.callback_write(s)

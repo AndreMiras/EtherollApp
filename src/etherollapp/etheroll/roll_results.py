@@ -20,7 +20,7 @@ class RollResultsScreen(SubScreen):
     roll_logs = ListProperty()
 
     def __init__(self, **kwargs):
-        super(RollResultsScreen, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # TODO: make it a property that starts/stops spinner on set
         self._fetching_results = False
         Clock.schedule_once(self._after_init)

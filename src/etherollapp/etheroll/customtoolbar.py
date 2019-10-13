@@ -13,7 +13,7 @@ class CustomToolbar(Toolbar):
     """
 
     def __init__(self, **kwargs):
-        super(CustomToolbar, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(self.load_default_buttons)
 
     def load_default_buttons(self, dt=None):

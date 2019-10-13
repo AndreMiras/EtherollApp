@@ -17,7 +17,7 @@ class AboutOverview(BoxLayout):
     about_text_property = StringProperty()
 
     def __init__(self, **kwargs):
-        super(AboutOverview, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(lambda dt: self.load_about())
 
     def load_about(self):
@@ -33,7 +33,7 @@ class AboutChangelog(BoxLayout):
     changelog_text_property = StringProperty()
 
     def __init__(self, **kwargs):
-        super(AboutChangelog, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(lambda dt: self.load_changelog())
 
     @staticmethod

@@ -13,7 +13,7 @@ load_kv_from_py(__file__)
 class SwitchAccount(BoxLayout):
 
     def __init__(self, **kwargs):
-        super(SwitchAccount, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.register_event_type('on_account_selected')
 
     def on_release(self, list_item):
@@ -82,7 +82,7 @@ class SwitchAccountScreen(SubScreen):
     current_account = ObjectProperty(allownone=True)
 
     def __init__(self, **kwargs):
-        super(SwitchAccountScreen, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):

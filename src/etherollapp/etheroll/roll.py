@@ -25,7 +25,7 @@ class BetSize(BoxLayout):
     min_bet_property = NumericProperty(DEFAULT_MIN_BET)
 
     def __init__(self, **kwargs):
-        super(BetSize, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):
@@ -98,7 +98,7 @@ class BetSize(BoxLayout):
 class ChanceOfWinning(BoxLayout):
 
     def __init__(self, **kwargs):
-        super(ChanceOfWinning, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(self._after_init)
 
     def _after_init(self, dt):

@@ -11,10 +11,7 @@ load_kv_from_py(__file__)
 
 
 class SwitchAccount(BoxLayout):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.register_event_type('on_account_selected')
+    __events__ = ('on_account_selected',)
 
     def on_release(self, list_item):
         """Fires on_account_selected() event."""

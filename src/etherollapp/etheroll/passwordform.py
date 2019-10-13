@@ -7,11 +7,8 @@ load_kv_from_py(__file__)
 
 
 class PasswordForm(BoxLayout):
+    __events__ = ('on_unlock',)
     password = StringProperty()
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.register_event_type('on_unlock')
 
     def on_unlock(self, instance, account, password):
         pass

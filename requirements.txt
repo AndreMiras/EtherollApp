@@ -7,13 +7,16 @@ isort
 Kivy==1.11.1
 kivy-garden.kivymd==2019.910
 kivy-garden.qrcode==2019.914
+kivy-garden.zbarcam==2019.1020
 kivyunittest==0.1.8
 layoutmargin==20190911
 mypy==0.730
 oscpy==0.3.0
+Pillow==5.2.0
 plyer==1.3.1
 pyetheroll==20191018
 pytest
+pyzbar==0.1.8
 qrcode==6.0
 raven==6.10.0
 requests-cache

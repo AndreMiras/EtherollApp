@@ -10,11 +10,29 @@ from unittest.mock import patch
 
 from hexbytes import HexBytes
 from kivy.clock import Clock
+from kivy.core.image import Image
 from requests.exceptions import ConnectionError
 
+from etherollapp.etheroll.constants import BASE_DIR
 from etherollapp.etheroll.controller import EtherollApp
 from etherollapp.etheroll.ui_utils import Dialog
 from etherollapp.tests.utils import PyEtherollTestUtils
+
+
+def get_camera_class():
+    """
+    Continuous integration providers don't have a camera available.
+    """
+    if os.environ.get('CI', False):
+        Camera = None
+    else:
+        from kivy.core.camera import Camera
+    return Camera
+
+
+def patch_core_camera():
+    Camera = get_camera_class()
+    return mock.patch('kivy.uix.camera.CoreCamera', wraps=Camera)
 
 
 class UITestCase(unittest.TestCase):
@@ -674,6 +692,27 @@ class UITestCase(unittest.TestCase):
         # e.g. fetch_update_balance thread
         self.join_threads()
 
+    def helper_test_flashqrcode(self, app):
+        """Verifies the flash QRCode screen loads and can flash codes."""
+        controller = app.root
+        with patch_core_camera():
+            controller.load_flash_qr_code()
+        self.advance_frames_for_screen()
+        screen_manager = controller.screen_manager
+        self.assertEqual(screen_manager.current, 'flashqrcode')
+        flashqrcode_screen = screen_manager.get_screen('flashqrcode')
+        zbarcam = flashqrcode_screen.ids.zbarcam_id
+        fixture_path = os.path.join(BASE_DIR, 'tests', 'address_qrcode.png')
+        texture = Image(fixture_path).texture
+        camera = mock.Mock(texture=texture)
+        zbarcam._on_texture(camera)
+        switch_account_screen = controller.switch_account_screen
+        send_screen = switch_account_screen.ids.send_id
+        self.assertEqual(
+            send_screen.ids.send_to_id.text,
+            '0x46044beaa1e985c67767e04de58181de5daaa00f')
+        self.advance_frames_for_screen()
+
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
@@ -694,6 +733,7 @@ class UITestCase(unittest.TestCase):
         self.helper_test_roll_password(app)
         self.helper_test_settings_screen(app)
         self.helper_test_transaction(app)
+        self.helper_test_flashqrcode(app)
         # Comment out if you are editing the test, it'll leave the
         # Window opened.
         app.stop()

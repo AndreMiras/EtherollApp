@@ -39,16 +39,17 @@ RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends 
 # prepare non root env, with sudo access and no password
 RUN useradd --create-home --home-dir ${HOME_DIR} --shell /bin/bash ${USER} && \
     usermod -append --groups sudo ${USER} && \
-    echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-USER ${USER}
+    echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    mkdir ${WORK_DIR} && \
+    chown --recursive ${USER}:${USER} ${WORK_DIR}
 
 # install system dependencies
 COPY Makefile /tmp/Makefile
-RUN sudo make --file /tmp/Makefile system_dependencies_android && \
-    sudo rm /tmp/Makefile && \
-    sudo rm -rf /var/lib/apt/lists/* && \
-    mkdir ${WORK_DIR}
+RUN make --file /tmp/Makefile system_dependencies_android && \
+    rm /tmp/Makefile && \
+    rm -rf /var/lib/apt/lists/*
+
+USER ${USER}
 
 # install buildozer & dependencies and enforces buildozer master (d483847) until next release
 RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output /tmp/buildozer.mk && \

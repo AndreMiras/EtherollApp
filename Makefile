@@ -143,6 +143,14 @@ docker/build/linux:
 docker/build/android:
 	docker build --cache-from=$(DOCKER_IMAGE_ANDROID) --tag=$(DOCKER_IMAGE_ANDROID) --file=dockerfiles/Dockerfile-android .
 
+docker/push/linux:
+	docker push $(DOCKER_IMAGE_LINUX)
+
+docker/push/android:
+	docker push $(DOCKER_IMAGE_ANDROID)
+
+docker/push: docker/push/linux docker/push/android
+
 docker/run/test/linux:
 	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) $(DOCKER_IMAGE_LINUX) 'make test'
 

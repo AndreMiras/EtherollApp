@@ -5,7 +5,8 @@
 
   - Bumps Kivy related dependencies
   - Transfer out feature, refs #80, #105
-  - Migrates to NDK 19b, refs #154
+  - Migrate to NDK 19b, refs #154
+  - Leverage docker image caching refs, #160
 
 
 ## [v2019.0911]

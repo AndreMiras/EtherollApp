@@ -12,6 +12,7 @@ from raven import Client
 from requests.exceptions import ConnectionError
 
 from etherollapp.etheroll.constants import API_KEY_PATH
+from etherollapp.etheroll.flashqrcode import FlashQrCodeScreen
 from etherollapp.etheroll.settings import Settings
 from etherollapp.etheroll.settings_screen import SettingsScreen
 from etherollapp.etheroll.switchaccount import SwitchAccountScreen
@@ -169,11 +170,11 @@ class Controller(FloatLayout):
         from etherollapp.etheroll.about import AboutScreen
         from etherollapp.etheroll.roll_results import RollResultsScreen
         screen_dicts = {
-            # "roll_screen": RollScreen,
-            "roll_results_screen": RollResultsScreen,
-            "switch_account_screen": SwitchAccountScreen,
-            "settings_screen": SettingsScreen,
             "about_screen": AboutScreen,
+            'flashqrcode': FlashQrCodeScreen,
+            "roll_results_screen": RollResultsScreen,
+            "settings_screen": SettingsScreen,
+            "switch_account_screen": SwitchAccountScreen,
         }
         for screen_name, screen_type in screen_dicts.items():
             self.screen_manager.register_screen(screen_type, screen_name)
@@ -380,6 +381,14 @@ class Controller(FloatLayout):
         screen_manager = self.screen_manager
         screen_manager.transition.direction = 'right'
         screen_manager.current = 'switch_account_screen'
+
+    def load_flash_qr_code(self):
+        """Loads the flash QR Code screen."""
+        # loads ZBarCam only when needed
+        from kivy_garden.zbarcam import ZBarCam  # noqa
+        # loads the flash QR Code screen
+        self.screen_manager.transition.direction = 'right'
+        self.screen_manager.current = 'flashqrcode'
 
     def show_qr_code(self):
         """Shows address QR Code in a dialog."""

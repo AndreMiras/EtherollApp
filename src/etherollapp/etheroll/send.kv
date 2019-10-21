@@ -17,7 +17,7 @@
         # TODO: on_text verify the address is valid
     MDRaisedButton:
         text: "Flash QR Code"
-        # on_release: app.controller.load_flash_qr_code()
+        on_release: app.root.load_flash_qr_code()
     MDFloatInput:
         id: amount_eth_id
         hint_text: "Amount ETH (e.g. 1.10)"

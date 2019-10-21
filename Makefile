@@ -33,18 +33,23 @@ SYSTEM_DEPENDENCIES_LINUX= \
 	tox \
 	virtualenv \
 	xclip \
-	xsel
+	xsel \
+	libzbar-dev
 SYSTEM_DEPENDENCIES_ANDROID= \
     autoconf \
+    autogen \
     automake \
     bsdtar \
     ca-certificates \
+    cmake \
     curl \
+    gettext \
     libffi-dev \
     libltdl-dev \
     libpython$(PYTHON_VERSION)-dev \
     libtool \
     openjdk-8-jdk \
+    pkg-config \
     python2.7 \
     python$(PYTHON_VERSION) \
     python3-pip \

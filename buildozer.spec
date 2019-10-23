@@ -45,7 +45,7 @@ requirements =
     cffi,
     chardet==3.0.4,
     cytoolz==0.9.0,
-    eth-abi==1.2.2,
+    eth-abi==2.0.0,
     eth-account==0.4.0,
     eth-hash==0.2.0,
     eth-keyfile==0.5.1,
@@ -134,7 +134,7 @@ fullscreen = 0
 #android.presplash_color = #FFFFFF
 
 # (list) Permissions
-android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE
+android.permissions = CAMERA,INTERNET,WRITE_EXTERNAL_STORAGE
 
 # (int) Target Android API, should be as high as possible.
 android.api = 27

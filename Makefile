@@ -17,19 +17,20 @@ SOURCES=src/ setup.py
 DOCKER_IMAGE_LINUX=andremiras/etherollapp-linux
 DOCKER_IMAGE_ANDROID=andremiras/etherollapp-android
 DOCKER_VOLUME=/tmp/.X11-unix:/tmp/.X11-unix
-SYSTEM_DEPENDENCIES_LINUX= \
-	build-essential \
+SYSTEM_DEPENDENCIES_BASE= \
 	git \
 	libffi-dev \
+    libpython$(PYTHON_VERSION)-dev \
+	pkg-config \
+	python$(PYTHON_VERSION)
+SYSTEM_DEPENDENCIES_LINUX= \
+	build-essential \
 	libgmp3-dev \
 	libsdl2-dev \
 	libsdl2-image-dev \
 	libsdl2-mixer-dev \
 	libsdl2-ttf-dev \
 	libssl-dev \
-	pkg-config \
-	python$(PYTHON_VERSION) \
-	python$(PYTHON_VERSION)-dev \
 	tox \
 	virtualenv \
 	xclip \
@@ -44,36 +45,30 @@ SYSTEM_DEPENDENCIES_ANDROID= \
     cmake \
     curl \
     gettext \
-    libffi-dev \
     libltdl-dev \
-    libpython$(PYTHON_VERSION)-dev \
     libtool \
     openjdk-8-jdk \
-    pkg-config \
     python2.7 \
-    python$(PYTHON_VERSION) \
     python3-pip \
     python3-setuptools \
-    sudo \
     unzip \
     xz-utils \
-    zip
-OS=$(shell lsb_release -si 2>/dev/null || uname)
+    zip \
+	zlib1g-dev
 ifndef CI
 DOCKER_DEVICE=--device=/dev/video0:/dev/video0
 endif
 
-system_dependencies_linux:
-ifeq ($(OS), Ubuntu)
-	sudo apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_LINUX)
-endif
-system_dependencies_android:
-ifeq ($(OS), Ubuntu)
-	sudo apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_ANDROID)
-endif
-
-
 all: virtualenv
+
+system_dependencies:
+	sudo apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_BASE)
+
+system_dependencies/linux: system_dependencies
+	sudo apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_LINUX)
+
+system_dependencies/android: system_dependencies
+	sudo apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_ANDROID)
 
 $(VIRTUAL_ENV):
 	virtualenv --python $(PYTHON_WITH_VERSION) $(VIRTUAL_ENV)

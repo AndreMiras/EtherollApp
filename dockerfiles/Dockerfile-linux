@@ -41,7 +41,7 @@ USER ${USER}
 
 # install system dependencies
 COPY Makefile /tmp/Makefile
-RUN sudo make --file /tmp/Makefile system_dependencies_linux && \
+RUN sudo make --file /tmp/Makefile system_dependencies/linux && \
     sudo rm /tmp/Makefile && \
     sudo rm -rf /var/lib/apt/lists/* && \
     mkdir ${WORK_DIR}

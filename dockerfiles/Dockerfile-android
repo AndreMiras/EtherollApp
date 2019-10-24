@@ -13,9 +13,6 @@ ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
 ENV WORK_DIR="${HOME_DIR}/app" \
     PATH="${HOME_DIR}/.local/bin:${PATH}"
-ENV DOCKERFILES_VERSION="develop" \
-    DOCKERFILES_URL="https://raw.githubusercontent.com/AndreMiras/dockerfiles"
-ENV MAKEFILES_URL="${DOCKERFILES_URL}/${DOCKERFILES_VERSION}/buildozer_android"
 
 
 # configure locale
@@ -26,8 +23,6 @@ RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends 
 ENV LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8"
-
-# install system dependencies (required to setup all the tools)
 
 # install build dependencies (required to successfully build the project)
 RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
@@ -45,16 +40,16 @@ USER ${USER}
 
 # install system dependencies
 COPY Makefile /tmp/Makefile
-RUN sudo make --file /tmp/Makefile system_dependencies_android && \
+RUN sudo make --file /tmp/Makefile system_dependencies/android && \
     sudo rm /tmp/Makefile && \
     sudo rm -rf /var/lib/apt/lists/* && \
     mkdir ${WORK_DIR}
 
 # install buildozer & dependencies and enforces buildozer master (d483847) until next release
-RUN curl --location --progress-bar ${MAKEFILES_URL}/buildozer.mk --output /tmp/buildozer.mk && \
-    make --file /tmp/buildozer.mk && \
-    rm /tmp/buildozer.mk && \
-    pip3 install --no-cache-dir --upgrade https://github.com/kivy/buildozer/archive/d483847.zip
+RUN pip3 install --no-cache-dir --upgrade \
+	Cython==0.28.6 \
+	https://github.com/kivy/buildozer/archive/d483847.zip && \
+    rm -rf ~/.cache/
 
 WORKDIR ${WORK_DIR}
 COPY . ${WORK_DIR}

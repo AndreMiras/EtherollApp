@@ -2,9 +2,7 @@
 # Build with:
 # docker build --tag=andremiras/etherollapp-android --file=dockerfiles/Dockerfile-android .
 # Run with:
-# docker run andremiras/etherollapp-android /bin/sh -c 'buildozer android debug'
-# Or using the entry point shortcut:
-# docker run andremiras/etherollapp-android 'buildozer android debug'
+# docker run -it --rm andremiras/etherollapp-android buildozer android debug
 # Or for interactive shell:
 # docker run -it --rm andremiras/etherollapp-android
 FROM ubuntu:18.04
@@ -24,9 +22,8 @@ ENV LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8"
 
-# install build dependencies (required to successfully build the project)
+# install minimal system dependencies
 RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
-    lsb-release \
     make \
     sudo && \
     rm -rf /var/lib/apt/lists/*
@@ -34,23 +31,22 @@ RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends 
 # prepare non root env, with sudo access and no password
 RUN useradd --create-home --home-dir ${HOME_DIR} --shell /bin/bash ${USER} && \
     usermod -append --groups sudo ${USER} && \
-    echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    mkdir ${WORK_DIR} && \
+    chown ${USER}:${USER} -R ${WORK_DIR}
 
 USER ${USER}
+WORKDIR ${WORK_DIR}
 
 # install system dependencies
+# install buildozer & dependencies and enforces buildozer master (d483847) until next release
 COPY Makefile /tmp/Makefile
 RUN sudo make --file /tmp/Makefile system_dependencies/android && \
     sudo rm /tmp/Makefile && \
     sudo rm -rf /var/lib/apt/lists/* && \
-    mkdir ${WORK_DIR}
-
-# install buildozer & dependencies and enforces buildozer master (d483847) until next release
-RUN pip3 install --no-cache-dir --upgrade \
+    pip3 install --no-cache-dir --upgrade \
 	Cython==0.28.6 \
 	https://github.com/kivy/buildozer/archive/d483847.zip && \
     rm -rf ~/.cache/
 
-WORKDIR ${WORK_DIR}
 COPY . ${WORK_DIR}
-ENTRYPOINT ["./dockerfiles/start.sh"]

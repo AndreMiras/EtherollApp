@@ -18,45 +18,34 @@ DOCKER_IMAGE_LINUX=andremiras/etherollapp-linux
 DOCKER_IMAGE_ANDROID=andremiras/etherollapp-android
 DOCKER_VOLUME=/tmp/.X11-unix:/tmp/.X11-unix
 SYSTEM_DEPENDENCIES_BASE= \
-	git \
-	libffi-dev \
     libpython$(PYTHON_VERSION)-dev \
-	pkg-config \
-	python$(PYTHON_VERSION)
+    python$(PYTHON_VERSION)
 SYSTEM_DEPENDENCIES_LINUX= \
-	build-essential \
-	libgmp3-dev \
-	libsdl2-dev \
-	libsdl2-image-dev \
-	libsdl2-mixer-dev \
-	libsdl2-ttf-dev \
-	libssl-dev \
-	tox \
-	virtualenv \
-	xclip \
-	xsel \
-	libzbar-dev
+    build-essential \
+    libgl1 \
+    libzbar0 \
+    python$(PYTHON_MAJOR_VERSION)-virtualenv \
+    tox
 SYSTEM_DEPENDENCIES_ANDROID= \
     autoconf \
-    autogen \
     automake \
-    bsdtar \
-    ca-certificates \
     cmake \
-    curl \
     gettext \
+    libffi-dev \
     libltdl-dev \
+    git \
     libtool \
-    openjdk-8-jdk \
-    python2.7 \
-    python3-pip \
-    python3-setuptools \
+    openjdk-8-jdk-headless \
+    patch \
+    pkg-config \
+    python$(PYTHON_MAJOR_VERSION)-pip \
+    python$(PYTHON_MAJOR_VERSION)-setuptools \
     unzip \
-    xz-utils \
-    zip \
-	zlib1g-dev
+    zlib1g-dev \
+    zip
 ifndef CI
 DOCKER_DEVICE=--device=/dev/video0:/dev/video0
+DOCKER_IT=-it
 endif
 
 all: virtualenv
@@ -114,7 +103,6 @@ release/upload:
 	$(TWINE) upload dist/*
 
 clean:
-	py3clean .
 	rm -rf .pytest_cache/
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	find . -type d -name "*.egg-info" -exec rm -r {} +
@@ -147,13 +135,13 @@ docker/push/android:
 docker/push: docker/push/linux docker/push/android
 
 docker/run/test/linux:
-	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) $(DOCKER_IMAGE_LINUX) 'make test'
+	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) $(DOCKER_IT) --rm $(DOCKER_IMAGE_LINUX) make test
 
 docker/run/test/android:
-	docker run --env-file dockerfiles/env.list $(DOCKER_IMAGE_ANDROID) 'make buildozer/android/debug'
+	docker run --env-file dockerfiles/env.list $(DOCKER_IMAGE_ANDROID) make buildozer/android/debug
 
 docker/run/app:
-	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) $(DOCKER_IMAGE_LINUX) 'make run'
+	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) -it --rm $(DOCKER_IMAGE_LINUX) make run
 
 docker/run/shell/linux:
 	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) -it --rm $(DOCKER_IMAGE_LINUX)

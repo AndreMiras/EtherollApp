@@ -7,6 +7,7 @@
   - Transfer out feature, refs #80, #105
   - Migrate to NDK 19b, refs #154
   - Leverage docker image caching refs, #160
+  - Docker images size optimizations, refs #161
 
 
 ## [v2019.0911]

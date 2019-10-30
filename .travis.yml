@@ -7,8 +7,6 @@ services:
   - xvfb
 
 env:
-  global:
-    - secure: Lg6sE2VfTO4SeBi0eI17alK0/Bd+2YNpXL41szC1qztuj3r0HBOHuU27bBTGiUQ2fCMI9hTPdFNliKJaFbn4SNckCVIGyslkPu+gB6qMUzkiY1Mzhxos1q3FMxESsFeM1wYArvIyrsxhtFlAHk8xeHb7h/jbkFoY4gi3ubXdKVolbGFzeQDv7D18MTJ1/e4LaHG9h7nLrs41D8I8CMECD+pE4y2kMbKUqbIHVXF3IggQHoq15bAppHUjM+ofI7jxpXf+qwlnIQYDnRgKisuCb7hI9EmJ1gMKX4DKo/r1KHsHBaQoS9//SlYZ8+usleCYw/y/40w7ZobeILxUKyEpcxyDeYFGAeP7iFln5KVpqpirpdpraG0F9e2mktRNWKqiZcNWuFftYayHYx12ON7u9cu5gLVG6m7Wfwk6b6+fRQM3OECx0+w4d+6ANPLEeFgGf4+OwB5m8AIwJMLXvNrh/BweLD91lFfB95r3ByW30aHajD6YsomL68vm36imXunk0bxvwfzK09Lux3xgSpMlj+KTRkfkPD+08ufMZoiGL8nXB6pqRdhL1SZiZdo09psAJCCAWyneaMNZUVN/hp6fdCmVi4e0J+TZpRJSGP8X0MFY4crtNrcfgDxeXuTAbDh1ln+/Tn02BDU7/1dbO+vTmD3wRss7CruZ9N3KnpnGYLU=
   matrix:
     - TAG=linux
     - TAG=android

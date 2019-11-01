@@ -76,7 +76,7 @@ test: pytest lint
 	@if test -n "$$CI"; then make uitest; fi; \
 
 uitest: virtualenv
-	$(PYTHON) -m unittest discover --top-level-directory=src/ --start-directory=src/etherollapp/tests/ui/
+	PYTHONPATH=src $(PYTEST) src/etherollapp/tests/ui/
 
 lint/isort-check: virtualenv
 	$(ISORT) --check-only --recursive --diff $(SOURCES)

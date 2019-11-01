@@ -32,7 +32,41 @@ def get_camera_class():
 
 def patch_core_camera():
     Camera = get_camera_class()
-    return mock.patch('kivy.uix.camera.CoreCamera', wraps=Camera)
+    return patch('kivy.uix.camera.CoreCamera', wraps=Camera)
+
+
+def patch_fetch_update_balance():
+    return patch('etherollapp.etheroll.roll.RollScreen.fetch_update_balance')
+
+
+def advance_frames(count):
+    """
+    Borrowed from Kivy 1.10.0+ /kivy/tests/common.py
+    GraphicUnitTest.advance_frames()
+    Makes it possible to to wait for UI to process, refs #110.
+    """
+    from kivy.base import EventLoop
+    for i in range(count):
+        EventLoop.idle()
+
+
+def advance_frames_for_screen():
+    """Gives screen switch animation time to render."""
+    advance_frames(50)
+
+
+def advance_frames_for_drawer():
+    """Gives drawer switch animation time to render."""
+    advance_frames_for_screen()
+
+
+def load_roll_screen(screen_manager):
+    """Loads back the default screen."""
+    with patch_fetch_update_balance() as m_fetch_update_balance:
+        # loads back the default screen
+        screen_manager.current = 'roll_screen'
+    assert m_fetch_update_balance.call_args_list == [mock.call()]
+    advance_frames_for_screen()
 
 
 class UITestCase(unittest.TestCase):
@@ -57,25 +91,6 @@ class UITestCase(unittest.TestCase):
     # sleep function that catches `dt` from Clock
     def pause(*args):
         time.sleep(0.000001)
-
-    @staticmethod
-    def advance_frames(count):
-        """
-        Borrowed from Kivy 1.10.0+ /kivy/tests/common.py
-        GraphicUnitTest.advance_frames()
-        Makes it possible to to wait for UI to process, refs #110.
-        """
-        from kivy.base import EventLoop
-        for i in range(count):
-            EventLoop.idle()
-
-    def advance_frames_for_screen(self):
-        """Gives screen switch animation time to render."""
-        self.advance_frames(50)
-
-    def advance_frames_for_drawer(self):
-        """Gives drawer switch animation time to render."""
-        self.advance_frames_for_screen()
 
     @staticmethod
     def join_threads():
@@ -130,7 +145,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(len(left_actions.children), 1)
         # clicking the menu action item should load the navigation drawer
         left_actions.children[0].dispatch('on_release')
-        self.advance_frames_for_drawer()
+        advance_frames_for_drawer()
         # checking the drawer items
         navigation = controller.ids.navigation_id
         navigation_drawer = navigation.ids.navigation_drawer_id
@@ -141,7 +156,7 @@ class UITestCase(unittest.TestCase):
         # clicking the about one
         about_item = navigation_drawer_items[0]
         about_item.dispatch('on_release')
-        self.advance_frames_for_drawer()
+        advance_frames_for_drawer()
         self.assertEqual(
             controller.screen_manager.current, 'about_screen')
         # toolbar should now be loaded with the back button
@@ -151,8 +166,10 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(menu_action_item[0], 'arrow-left')
         # going back to main screen
         left_actions = toolbar.ids.left_actions
-        left_actions.children[0].dispatch('on_release')
-        self.advance_frames_for_screen()
+        with patch_fetch_update_balance() as m_fetch_update_balance:
+            left_actions.children[0].dispatch('on_release')
+        assert m_fetch_update_balance.call_args_list == [mock.call()]
+        advance_frames_for_screen()
         self.assertEqual(
             controller.screen_manager.current, 'roll_screen')
 
@@ -165,7 +182,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(screen.name, 'roll_screen')
         # loads the about and verify
         screen_manager.current = 'about_screen'
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         screen = screen_manager.children[0]
         self.assertEqual(screen.name, 'about_screen')
         # checks about screen content
@@ -175,9 +192,7 @@ class UITestCase(unittest.TestCase):
         self.assertTrue('EtherollApp version: ' in about_content)
         self.assertTrue(
             'https://github.com/AndreMiras/EtherollApp' in about_content)
-        # loads back the default screen
-        screen_manager.current = 'roll_screen'
-        self.advance_frames_for_screen()
+        load_roll_screen(screen_manager)
 
     def helper_no_account_checks(self, app):
         """
@@ -190,9 +205,9 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(len(account_utils.get_account_list()), 0)
         # loads the switch account screen
         screen_manager.current = 'switch_account_screen'
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         switch_account_screen = controller.switch_account_screen
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         # it should open the warning dialog
         dialogs = Dialog.dialogs
         self.assertEqual(len(dialogs), 1)
@@ -213,7 +228,7 @@ class UITestCase(unittest.TestCase):
         account_utils = controller.account_utils
         screen_manager = controller.screen_manager
         screen_manager.current = 'switch_account_screen'
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         # makes sure it still complains for no account
         dialogs = Dialog.dialogs
         self.assertEqual(len(dialogs), 1)
@@ -232,23 +247,28 @@ class UITestCase(unittest.TestCase):
         new_password1_id.text = new_password2_id.text = "password"
         # before clicking the create account button,
         # only the main and OSC threads are running
-        self.assertEqual(len(threading.enumerate()), 2)
-        main_thread = threading.enumerate()[0]
+        threads = threading.enumerate()
+        self.assertEqual(len(threads), 2, threads[-1]._target)
+        main_thread = threads[0]
         self.assertEqual(type(main_thread), threading._MainThread)
-        # click the create account button
-        create_account_button_id.dispatch('on_release')
-        # after submitting the account creation thread should also run
-        self.assertEqual(len(threading.enumerate()), 3)
-        self.assertEqual(type(main_thread), threading._MainThread)
-        create_account_thread = threading.enumerate()[2]
-        self.assertTrue(
-            'function CreateNewAccount.create_account'
-            in str(create_account_thread._target))
-        # waits for the end of the thread
-        create_account_thread.join()
+        with patch_fetch_update_balance() as m_fetch_update_balance:
+            # click the create account button
+            create_account_button_id.dispatch('on_release')
+            # after submitting the account creation thread should also run
+            threads = threading.enumerate()
+            self.assertEqual(len(threads), 3)
+            self.assertEqual(type(main_thread), threading._MainThread)
+            create_account_thread = threads[2]
+            self.assertTrue(
+                'function CreateNewAccount.create_account'
+                in str(create_account_thread._target))
+            # waits for the end of the thread
+            create_account_thread.join()
+        assert m_fetch_update_balance.call_args_list == [mock.call()]
         # thread has ended, main & OSC threads only are running again
-        self.assertEqual(len(threading.enumerate()), 2)
-        main_thread = threading.enumerate()[0]
+        threads = threading.enumerate()
+        self.assertEqual(len(threads), 2)
+        main_thread = threads[0]
         self.assertEqual(type(main_thread), threading._MainThread)
         # verifies the account was created
         self.assertEqual(len(account_utils.get_account_list()), 1)
@@ -256,7 +276,7 @@ class UITestCase(unittest.TestCase):
         # self.assertEqual(new_password1_id.text, '')
         # self.assertEqual(new_password2_id.text, '')
         # we should get redirected to the overview page
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         self.assertEqual(controller.screen_manager.current, 'roll_screen')
         # the new account should be loaded in the controller
         self.assertEqual(
@@ -279,7 +299,7 @@ class UITestCase(unittest.TestCase):
         controller = app.root
         screen_manager = controller.screen_manager
         screen_manager.current = 'switch_account_screen'
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         switch_account_screen = controller.switch_account_screen
         account_utils = controller.account_utils
         # number of existing accounts before the test
@@ -385,7 +405,7 @@ class UITestCase(unittest.TestCase):
             thread_info = [(t, t._target) for t in threading.enumerate()]
             self.assertEqual(
                 len(threading.enumerate()), 2, thread_info)
-            self.advance_frames_for_screen()
+            advance_frames_for_screen()
             # thread has ended, main & OSC threads only are running again
             self.assertEqual(len(threading.enumerate()), 2)
             main_thread = threading.enumerate()[0]
@@ -396,9 +416,7 @@ class UITestCase(unittest.TestCase):
         # roll results items should be displayed
         items = roll_list.children
         self.assertEqual(len(items), len(merged_logs))
-        # loads back the default screen
-        screen_manager.current = 'roll_screen'
-        self.advance_frames_for_screen()
+        load_roll_screen(screen_manager)
 
     def helper_test_roll_history_no_tx(self, app):
         """
@@ -418,9 +436,7 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(len(dialogs), 1)
         dialog = dialogs[0]
         self.assertEqual(dialog.title, 'No transaction found')
-        # loads back the default screen
-        screen_manager.current = 'roll_screen'
-        self.advance_frames_for_screen()
+        load_roll_screen(screen_manager)
 
     def helper_test_roll_history_no_account(self, app):
         """
@@ -431,15 +447,17 @@ class UITestCase(unittest.TestCase):
         screen_manager = controller.screen_manager
         controller.current_account = None
         screen_manager = controller.screen_manager
-        screen_manager.current = 'roll_results_screen'
-        self.advance_frames_for_screen()
+        with patch_fetch_update_balance() as m_fetch_update_balance:
+            screen_manager.current = 'roll_results_screen'
+            advance_frames_for_screen()
+        assert m_fetch_update_balance.call_args_list == [mock.call()]
         dialogs = Dialog.dialogs
         self.assertEqual(len(dialogs), 1)
         dialog = dialogs[0]
         self.assertEqual(dialog.title, 'No account selected')
         dialog.dismiss()
         # we should get redirected to the overview page
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         self.assertEqual(controller.screen_manager.current, 'roll_screen')
         # e.g. fetch_update_balance thread
         self.join_threads()
@@ -483,7 +501,7 @@ class UITestCase(unittest.TestCase):
                     in str(player_roll_dice_thread._target))
                 # waits for the end of the thread
                 player_roll_dice_thread.join()
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         # thread has ended, main & OSC threads only are running again
         self.assertEqual(len(threading.enumerate()), 2)
         main_thread = threading.enumerate()[0]
@@ -495,12 +513,6 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(dialog.title, 'Rolled successfully')
         dialog.dismiss()
         self.assertEqual(len(dialogs), 0)
-        # loads back the default screen
-        screen_manager = controller.screen_manager
-        screen_manager.current = 'roll_screen'
-        self.advance_frames_for_screen()
-        # e.g. fetch_update_balance thread
-        self.join_threads()
 
     def helper_test_roll_connection_error(self, app):
         """
@@ -530,7 +542,7 @@ class UITestCase(unittest.TestCase):
                     in str(player_roll_dice_thread._target))
                 # waits for the end of the thread
                 player_roll_dice_thread.join()
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         # thread has ended, main & OSC threads only are running again
         self.assertEqual(len(threading.enumerate()), 2)
         main_thread = threading.enumerate()[0]
@@ -543,10 +555,6 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(dialog.content.text, 'Whatever ConnectionError')
         dialog.dismiss()
         self.assertEqual(len(dialogs), 0)
-        # loads back the default screen
-        screen_manager = controller.screen_manager
-        screen_manager.current = 'roll_screen'
-        self.advance_frames_for_screen()
 
     def helper_test_roll_password(self, app):
         """
@@ -587,7 +595,7 @@ class UITestCase(unittest.TestCase):
                 in str(player_roll_dice_thread._target))
             # waits for the end of the thread
             player_roll_dice_thread.join()
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         # thread has ended, main & OSC threads only are running again
         self.assertEqual(len(threading.enumerate()), 2)
         main_thread = threading.enumerate()[0]
@@ -607,10 +615,6 @@ class UITestCase(unittest.TestCase):
         dialog = dialogs[0]
         self.assertEqual(dialog.title, 'Enter your password')
         dialog.dismiss()
-        # loads back the default screen
-        screen_manager = controller.screen_manager
-        screen_manager.current = 'roll_screen'
-        self.advance_frames_for_screen()
 
     def helper_test_settings_screen(self, app):
         """Verifies the settings screen loads and shows infos."""
@@ -621,15 +625,13 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(screen.name, 'roll_screen')
         # loads the about and verify
         screen_manager.current = 'settings_screen'
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         screen = screen_manager.children[0]
         self.assertEqual(screen.name, 'settings_screen')
         # checks settings screen attributes
         self.assertEqual(screen.is_ui_mainnet(), True)
         self.assertEqual(screen.is_ui_testnet(), False)
-        # loads back the default screen
-        screen_manager.current = 'roll_screen'
-        self.advance_frames_for_screen()
+        load_roll_screen(screen_manager)
 
     def helper_test_transaction(self, app):
         """Trying to send ETH."""
@@ -637,7 +639,7 @@ class UITestCase(unittest.TestCase):
         switch_account_screen = controller.switch_account_screen
         send_subscreen = switch_account_screen.ids.send_id
         send_subscreen.parent.dispatch('on_tab_press')
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         # makes sure an account is selected
         controller.current_account = \
             controller.account_utils.get_account_list()[0]
@@ -672,7 +674,7 @@ class UITestCase(unittest.TestCase):
             mock.call(
                 pyetheroll, to, value, wallet_path, password, gas_price_wei)
         ])
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         threads = threading.enumerate()
         # thread has ended, main & OSC threads only are running again
         self.assertEqual(len(threads), 2, threads[-1]._target)
@@ -685,19 +687,15 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(dialog.title, 'Transaction successful')
         dialog.dismiss()
         self.assertEqual(len(dialogs), 0)
-        # loads back the default screen
-        screen_manager = controller.screen_manager
-        screen_manager.current = 'roll_screen'
-        self.advance_frames_for_screen()
-        # e.g. fetch_update_balance thread
-        self.join_threads()
+        # screen_manager = controller.screen_manager
+        # load_roll_screen(screen_manager)
 
     def helper_test_flashqrcode(self, app):
         """Verifies the flash QRCode screen loads and can flash codes."""
         controller = app.root
         with patch_core_camera():
             controller.load_flash_qr_code()
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
         screen_manager = controller.screen_manager
         self.assertEqual(screen_manager.current, 'flashqrcode')
         flashqrcode_screen = screen_manager.get_screen('flashqrcode')
@@ -711,14 +709,14 @@ class UITestCase(unittest.TestCase):
         self.assertEqual(
             send_screen.ids.send_to_id.text,
             '0x46044beaa1e985c67767e04de58181de5daaa00f')
-        self.advance_frames_for_screen()
+        advance_frames_for_screen()
 
     # main test function
     def run_test(self, app, *args):
         Clock.schedule_interval(self.pause, 0.000001)
         self.helper_setup(app)
         # lets it finish to init
-        self.advance_frames(1)
+        advance_frames(1)
         self.helper_test_empty_account(app)
         self.helper_test_toolbar(app)
         self.helper_test_about_screen(app)

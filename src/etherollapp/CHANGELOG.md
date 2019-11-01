@@ -1,9 +1,10 @@
 # Change Log
 
 
-## [Unreleased]
+## [v2019.1101]
 
   - Bumps Kivy related dependencies
+  - Build and CI improvements
   - Transfer out feature, refs #80, #105
   - Migrate to NDK 19b, refs #154
   - Leverage docker image caching refs, #160

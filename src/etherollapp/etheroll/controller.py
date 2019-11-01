@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+from eth_utils import to_checksum_address
 from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.logger import Logger
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, StringProperty
 from kivy.uix.floatlayout import FloatLayout
 from kivy.utils import platform
 from kivymd.bottomsheet import MDListBottomSheet
@@ -11,6 +12,7 @@ from raven import Client
 from requests.exceptions import ConnectionError
 
 from etherollapp.etheroll.constants import API_KEY_PATH
+from etherollapp.etheroll.flashqrcode import FlashQrCodeScreen
 from etherollapp.etheroll.settings import Settings
 from etherollapp.etheroll.settings_screen import SettingsScreen
 from etherollapp.etheroll.switchaccount import SwitchAccountScreen
@@ -26,9 +28,10 @@ load_kv_from_py(__file__)
 class Controller(FloatLayout):
 
     current_account = ObjectProperty(allownone=True)
+    current_account_string = StringProperty(allownone=True)
 
     def __init__(self, **kwargs):
-        super(Controller, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # disables the roll screen until `preload_account_utils` is done
         # disabling doesn't seem to work within the scheduled method
         # self.roll_screen.toggle_widgets(False)
@@ -38,11 +41,10 @@ class Controller(FloatLayout):
         self._pyetheroll = None
 
     def _after_init(self, dt):
-        """
-        Inits pyethapp and binds events.
-        """
+        """Inits pyethapp and binds events."""
         Clock.schedule_once(self.preload_account_utils)
         self.bind_roll_button()
+        self.bind_current_account_string()
         self.bind_chances_roll_under()
         self.bind_wager_property()
         self.bind_profit_property()
@@ -68,6 +70,10 @@ class Controller(FloatLayout):
                 return True
         return False
 
+    def on_current_account(self, instance, current_account):
+        self.current_account_string = (
+            current_account and f'0x{current_account.address.hex()}')
+
     @property
     def pyetheroll(self):
         """
@@ -82,26 +88,20 @@ class Controller(FloatLayout):
 
     @property
     def account_utils(self):
-        """
-        Gets or creates the AccountUtils object so it loads lazily.
-        """
+        """Gets or creates the AccountUtils object so it loads lazily."""
         from etherollapp.ethereum_utils import AccountUtils
         keystore_dir = Settings.get_keystore_path()
         return AccountUtils.get_or_create(keystore_dir)
 
     def preload_account_utils(self, dt):
-        """
-        Preloads `AccountUtils`, since it takes few seconds on Android.
-        """
+        """Preloads `AccountUtils`, since it takes few seconds on Android."""
         account_utils = self.account_utils
         self.disabled = False
         # not using that returned value, but it peaces linter
         return account_utils
 
     def bind_wager_property(self):
-        """
-        Binds wager recap label.
-        """
+        """Binds wager recap label."""
         roll_under_recap = self.roll_screen.ids.roll_under_recap_id
         bet_size = self.roll_screen.ids.bet_size_id
         bet_size_input = bet_size.ids.bet_size_input_id
@@ -111,9 +111,7 @@ class Controller(FloatLayout):
         roll_under_recap.wager_property = bet_size_input.text
 
     def bind_chances_roll_under(self):
-        """
-        Binds chances of winning recap label.
-        """
+        """Binds chances of winning recap label."""
         roll_under_recap = self.roll_screen.ids.roll_under_recap_id
         # roll under recap label
         chance_of_winning = self.roll_screen.ids.chance_of_winning_id
@@ -124,23 +122,24 @@ class Controller(FloatLayout):
         roll_under_recap.roll_under_property = chances_input.text
 
     def bind_roll_button(self):
-        """
-        Binds roll screen "Roll" button to controller roll().
-        """
+        """Binds roll screen "Roll" button to controller roll()."""
         roll_button = self.roll_screen.ids.roll_button_id
         roll_button.bind(on_release=lambda instance: self.roll())
 
+    def bind_current_account_string(self):
+        """Binds Controller.current_account -> RollScreen.current_account"""
+        roll_screen = self.roll_screen
+        self.bind(
+            current_account_string=roll_screen.setter('current_account_string')
+        )
+
     def bind_keyboard(self):
-        """
-        Binds keyboard keys to actions.
-        """
+        """Binds keyboard keys to actions."""
         from kivy.core.window import Window
         Window.bind(on_keyboard=self.on_keyboard)
 
     def bind_profit_property(self):
-        """
-        Binds profit property with bet value and chances changes.
-        """
+        """Binds profit property with bet value and chances changes."""
         # chances -> profit
         chance_of_winning = self.roll_screen.ids.chance_of_winning_id
         chances_input = chance_of_winning.ids.chances_input_id
@@ -155,29 +154,27 @@ class Controller(FloatLayout):
         self.update_profit_property()
 
     def bind_screen_manager_on_current_screen(self):
-        """
-        Binds SwitchAccountScreen.current_account -> self.current_account.
-        """
-        def on_current_screen(screen_manager, screen):
-            """
-            Makes sure the binding is made once by unbinding itself.
-            """
-            if type(screen) is SwitchAccountScreen:
+        """SwitchAccountScreen.current_account -> self.current_account."""
+        def on_pre_add_widget(screen_manager, screen):
+            """Should only be called twice per screen instance."""
+            if type(screen) is SwitchAccountScreen and \
+                    not self.screen_manager.has_screen(screen.name):
                 screen.bind(current_account=self.setter('current_account'))
-                # makes sure the above doesn't get rebinded over and over again
-                self.screen_manager.unbind(current_screen=on_current_screen)
-        self.screen_manager.bind(current_screen=on_current_screen)
+                screen.ids.send_id.bind(
+                    current_account=self.setter('current_account'))
+                screen.ids.send_id.bind(on_send=self.on_send)
+        self.screen_manager.bind(on_pre_add_widget=on_pre_add_widget)
 
     def register_screens(self):
         # lazy loading
         from etherollapp.etheroll.about import AboutScreen
         from etherollapp.etheroll.roll_results import RollResultsScreen
         screen_dicts = {
-            # "roll_screen": RollScreen,
-            "roll_results_screen": RollResultsScreen,
-            "switch_account_screen": SwitchAccountScreen,
-            "settings_screen": SettingsScreen,
             "about_screen": AboutScreen,
+            'flashqrcode': FlashQrCodeScreen,
+            "roll_results_screen": RollResultsScreen,
+            "settings_screen": SettingsScreen,
+            "switch_account_screen": SwitchAccountScreen,
         }
         for screen_name, screen_type in screen_dicts.items():
             self.screen_manager.register_screen(screen_type, screen_name)
@@ -222,41 +219,33 @@ class Controller(FloatLayout):
     def about_screen(self):
         return self.screen_manager.get_screen('about_screen')
 
-    def on_unlock_clicked(self, instance, dialog, account, password):
-        """
-        Caches the password and call roll method again.
-        """
-        self._account_passwords[account.address.hex()] = password
-        dialog.dismiss()
-        # calling roll again since the password is now cached
-        self.roll()
-
-    def prompt_password_dialog(self, account):
-        """
-        Prompt the password dialog.
-        """
+    def prompt_password_dialog(self, account, on_password_callback):
+        """Prompt the password dialog."""
         # lazy loading
         from etherollapp.etheroll.passwordform import PasswordForm
         dialog = PasswordForm.dialog(account)
-        dialog.content.bind(on_unlock=self.on_unlock_clicked)
+
+        def on_unlock_clicked(instance, dialog, account, password):
+            """Caches the password and call roll method again."""
+            self._account_passwords[account.address.hex()] = password
+            dialog.dismiss()
+            on_password_callback()
+
+        dialog.content.bind(on_unlock=on_unlock_clicked)
         dialog.open()
         return dialog
 
-    def get_account_password(self, account):
-        """
-        Retrieve cached account password or prompt dialog.
-        """
+    def get_account_password(self, account, on_password_callback):
+        """Retrieve cached account password or prompt dialog."""
         address = account.address.hex()
         try:
             return self._account_passwords[address]
         except KeyError:
-            self.prompt_password_dialog(account)
+            self.prompt_password_dialog(account, on_password_callback)
 
     @staticmethod
     def on_account_none():
-        """
-        Error dialog on no account selected.
-        """
+        """Error dialog on no account selected."""
         title = "No account selected"
         body = "Please select an account before rolling"
         dialog = Dialog.create_dialog(title, body)
@@ -266,6 +255,14 @@ class Controller(FloatLayout):
     @mainthread
     def dialog_roll_success(tx_hash):
         title = "Rolled successfully"
+        body = "Transaction hash:\n" + tx_hash.hex()
+        dialog = Dialog.create_dialog(title, body)
+        dialog.open()
+
+    @staticmethod
+    @mainthread
+    def dialog_transaction_success(tx_hash):
+        title = "Transaction successful"
         body = "Transaction hash:\n" + tx_hash.hex()
         dialog = Dialog.create_dialog(title, body)
         dialog.open()
@@ -290,7 +287,8 @@ class Controller(FloatLayout):
 
     @run_in_thread
     def player_roll_dice(
-            self, bet_size, chances, wallet_path, password, gas_price):
+            self, bet_size_eth, chances, wallet_path, password,
+            gas_price_gwei):
         """
         Sending the bet to the smart contract requires signing a transaction
         which requires CPU computation to unlock the account, hence this
@@ -300,8 +298,10 @@ class Controller(FloatLayout):
         try:
             Dialog.snackbar_message("Sending bet...")
             roll_screen.toggle_widgets(False)
+            bet_size_wei = int(bet_size_eth * 1e18)
+            gas_price_wei = int(gas_price_gwei * 1e9)
             tx_hash = self.pyetheroll.player_roll_dice(
-                bet_size, chances, wallet_path, password, gas_price)
+                bet_size_wei, chances, wallet_path, password, gas_price_wei)
         except (ValueError, ConnectionError) as exception:
             roll_screen.toggle_widgets(True)
             self.dialog_roll_error(exception)
@@ -333,35 +333,67 @@ class Controller(FloatLayout):
         """
         roll_screen = self.roll_screen
         roll_input = roll_screen.get_roll_input()
-        bet_size = roll_input['bet_size']
+        bet_size_eth = roll_input['bet_size']
         chances = roll_input['chances']
-        gas_price = Settings.get_stored_gas_price()
+        gas_price_gwei = Settings.get_stored_gas_price()
         account = self.current_account
         if account is None:
             self.on_account_none()
             return
         wallet_path = account.path
-        password = self.get_account_password(account)
+        password = self.get_account_password(account, self.roll)
         if password is not None:
             self.player_roll_dice(
-                bet_size, chances, wallet_path, password, gas_price)
+                bet_size_eth, chances, wallet_path, password, gas_price_gwei)
             # restarts roll polling service to reset the roll activity period
             self.start_services()
 
+    def transaction(
+            self, to, amount_eth, wallet_path, password, gas_price_gwei):
+        """Converts input parameters for the underlying library."""
+        value = int(amount_eth * 1e18)
+        gas_price_wei = int(gas_price_gwei * 1e9)
+        to = to_checksum_address(to)
+        Dialog.snackbar_message("Sending transaction...")
+        tx_hash = self.pyetheroll.transaction(
+            to, value, wallet_path, password, gas_price_wei)
+        self.dialog_transaction_success(tx_hash)
+
+    def send(self, address, amount_eth):
+        """Retrieves fields to complete the `transaction()` call."""
+        gas_price_gwei = Settings.get_stored_gas_price()
+        account = self.current_account
+        if account is None:
+            self.on_account_none()
+            return
+        wallet_path = account.path
+        password = self.get_account_password(
+            account, lambda: self.send(address, amount_eth))
+        if password is not None:
+            self.transaction(
+                address, amount_eth, wallet_path, password, gas_price_gwei)
+
+    def on_send(self, instance, address, amount_eth):
+        self.send(address, amount_eth)
+
     def load_switch_account(self):
-        """
-        Loads the switch account screen.
-        """
+        """Loads the switch account screen."""
         screen_manager = self.screen_manager
         screen_manager.transition.direction = 'right'
         screen_manager.current = 'switch_account_screen'
 
+    def load_flash_qr_code(self):
+        """Loads the flash QR Code screen."""
+        # loads ZBarCam only when needed
+        from kivy_garden.zbarcam import ZBarCam  # noqa
+        # loads the flash QR Code screen
+        self.screen_manager.transition.direction = 'right'
+        self.screen_manager.current = 'flashqrcode'
+
     def show_qr_code(self):
-        """
-        Shows address QR Code in a dialog.
-        """
+        """Shows address QR Code in a dialog."""
         # lazy loading
-        from kivy.garden.qrcode import QRCodeWidget
+        from kivy_garden.qrcode import QRCodeWidget
         from kivy.metrics import dp
         account = self.current_account
         if not account:
@@ -383,9 +415,7 @@ class Controller(FloatLayout):
         return dialog
 
     def copy_address_clipboard(self):
-        """
-        Copies the current account address to the clipboard.
-        """
+        """Copies the current account address to the clipboard."""
         # lazy loading
         from kivy.core.clipboard import Clipboard
         account = self.current_account

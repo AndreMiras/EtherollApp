@@ -1,0 +1,32 @@
+#:import AddressButton etherollapp.etheroll.addressbutton.AddressButton
+#:import send etherollapp.etheroll.send
+
+
+<Send>:
+    orientation: 'vertical'
+    AddressButton:
+        text: app.root.current_account_string or NO_ACCOUNT_SELECTED_STRING
+        on_release: app.root.open_address_options()
+    MDTextField:
+        id: send_to_id
+        hint_text: "To"
+        helper_text: "Receiver Ethereum address"
+        helper_text_mode: "persistent"
+        required: True
+        write_tab: False
+        # TODO: on_text verify the address is valid
+    MDRaisedButton:
+        text: "Flash QR Code"
+        on_release: app.root.load_flash_qr_code()
+    MDFloatInput:
+        id: amount_eth_id
+        hint_text: "Amount ETH (e.g. 1.10)"
+        required: True
+        write_tab: False
+        on_text: send_button_id.disabled = not send.is_number(self.text)
+    AnchorLayout:
+        MDRaisedButton:
+            id: send_button_id
+            text: "Send"
+            on_release: root.on_send_release()
+    PushUp:

@@ -30,9 +30,7 @@ def run_in_thread(fn):
 
 
 def check_write_permission():
-    """
-    Android runtime storage permission check.
-    """
+    """Android runtime storage permission check."""
     if platform != "android":
         return True
     from android.permissions import Permission, check_permission
@@ -41,9 +39,7 @@ def check_write_permission():
 
 
 def check_request_write_permission():
-    """
-    Android runtime storage permission check & request.
-    """
+    """Android runtime storage permission check & request."""
     had_permission = check_write_permission()
     if not had_permission:
         from android.permissions import Permission, request_permission
@@ -53,9 +49,7 @@ def check_request_write_permission():
 
 
 class StringIOCBWrite(StringIO):
-    """
-    Inherits StringIO, provides callback on write.
-    """
+    """Inherits StringIO, provides callback on write."""
 
     def __init__(self, initial_value='', newline='\n', callback_write=None):
         """
@@ -63,13 +57,13 @@ class StringIOCBWrite(StringIO):
         for write operations.
         """
         self.callback_write = callback_write
-        super(StringIOCBWrite, self).__init__(initial_value, newline)
+        super().__init__(initial_value, newline)
 
     def write(self, s):
         """
         Calls the StringIO.write() method then the callback_write with
         given string parameter.
         """
-        super(StringIOCBWrite, self).write(s)
+        super().write(s)
         if self.callback_write is not None:
             self.callback_write(s)

@@ -4,6 +4,7 @@
 #:import MDBottomNavigationItem kivymd.tabs.MDBottomNavigationItem
 #:import CreateNewAccount etherollapp.etheroll.createnewaccount.CreateNewAccount
 #:import ImportKeystore etherollapp.etheroll.importkeystore.ImportKeystore
+#:import Send etherollapp.etheroll.send.Send
 
 
 <SwitchAccount>:
@@ -43,3 +44,9 @@
             icon: "download"
             ImportKeystore:
                 id: import_keystore_id
+        MDBottomNavigationItem:
+            name: "send"
+            text: "Send"
+            icon: "send"
+            Send:
+                id: send_id

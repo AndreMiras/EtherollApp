@@ -7,7 +7,5 @@ load_kv_from_py(__file__)
 
 
 class ScrollableLabel(ScrollView):
-    """
-    https://github.com/kivy/kivy/wiki/Scrollable-Label
-    """
+    """https://github.com/kivy/kivy/wiki/Scrollable-Label"""
     text = StringProperty('')

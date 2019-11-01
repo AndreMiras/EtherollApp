@@ -19,9 +19,7 @@ class Store:
 
     @classmethod
     def get_store(cls):
-        """
-        Returns user Store object.
-        """
+        """Returns user Store object."""
         store_path = cls.get_store_path()
         store = JsonStore(store_path)
         return store

@@ -6,36 +6,28 @@ from unittest import mock
 from kivy.app import App
 from pyetheroll.constants import ChainID
 
-from etheroll.settings import Settings
-from service.main import EtherollApp
+from etherollapp.etheroll.settings import Settings
+from etherollapp.service.main import EtherollApp
 
 
 class TestSettings(unittest.TestCase):
-    """
-    Unit tests Settings methods.
-    """
+    """Unit tests Settings methods."""
     @classmethod
     def setUpClass(cls):
         EtherollApp()
 
     def setUp(self):
-        """
-        Creates a temporary user data dir for storing the user config.
-        """
+        """Creates a temporary user data dir for storing the user config."""
         self.temp_path = mkdtemp(prefix='etheroll')
         self.app = App.get_running_app()
         self.app._user_data_dir = self.temp_path
 
     def tearDown(self):
-        """
-        Deletes temporary user data dir.
-        """
+        """Deletes temporary user data dir."""
         shutil.rmtree(self.temp_path, ignore_errors=True)
 
     def test_get_set_stored_network(self):
-        """
-        Checks default stored network and set method.
-        """
+        """Checks default stored network and set method."""
         # checks default
         assert Settings.get_stored_network() == ChainID.MAINNET
         # checks set
@@ -55,9 +47,7 @@ class TestSettings(unittest.TestCase):
         assert Settings.is_stored_testnet() is True
 
     def test_get_set_stored_gas_price(self):
-        """
-        Checks default stored gas price and set method.
-        """
+        """Checks default stored gas price and set method."""
         # checks default
         assert Settings.get_stored_gas_price() == 4
         # checks set
@@ -65,9 +55,7 @@ class TestSettings(unittest.TestCase):
         assert Settings.get_stored_gas_price() == 42
 
     def test_get_set_is_persistent_keystore(self):
-        """
-        Checks default persist value and set method.
-        """
+        """Checks default persist value and set method."""
         # checks default
         assert Settings.is_persistent_keystore() is False
         # checks set

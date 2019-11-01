@@ -41,7 +41,6 @@ setup_params = {
         'eth-utils',
         'kivy-garden.kivymd',
         'layoutmargin',
-        'opencv-python>=4',
         'oscpy',
         'pyetheroll',
         'raven',

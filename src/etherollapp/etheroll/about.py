@@ -17,7 +17,7 @@ class AboutOverview(BoxLayout):
     about_text_property = StringProperty()
 
     def __init__(self, **kwargs):
-        super(AboutOverview, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(lambda dt: self.load_about())
 
     def load_about(self):
@@ -33,7 +33,7 @@ class AboutChangelog(BoxLayout):
     changelog_text_property = StringProperty()
 
     def __init__(self, **kwargs):
-        super(AboutChangelog, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         Clock.schedule_once(lambda dt: self.load_changelog())
 
     @staticmethod
@@ -52,16 +52,12 @@ class AboutDiagnostic(BoxLayout):
 
     @mainthread
     def callback_write(self, s):
-        """
-        Updates the UI with test progress.
-        """
+        """Updates the UI with test progress."""
         self.stream_property += s
 
     @run_in_thread
     def run_tests(self):
-        """
-        Loads the test suite and hook the callback for reporting progress.
-        """
+        """Loads the test suite and hook the callback for progress report."""
         # lazy loading
         import unittest
         from etherollapp.testsuite import suite

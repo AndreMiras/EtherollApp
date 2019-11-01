@@ -1,58 +1,50 @@
 # Docker image for installing dependencies on Linux and running tests.
 # Build with:
-# docker build --tag=etheroll-linux --file=dockerfiles/Dockerfile-linux .
+# docker build --tag=andremiras/etherollapp-linux --file=dockerfiles/Dockerfile-linux .
 # Run with:
-# docker run etheroll-linux /bin/sh -c 'make test'
-# Or using the entry point shortcut:
-# docker run etheroll-linux 'make test'
+# docker run -it --rm andremiras/etherollapp-linux make test
 # Or for interactive shell:
-# docker run -it --rm etheroll-linux
+# docker run -it --rm andremiras/etherollapp-linux
 # For running UI:
 # xhost +"local:docker@"
-# docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix etheroll-linux 'make uitest'
+# docker run -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --it -rm andremiras/etherollapp-linux make uitest
 FROM ubuntu:18.04
 
 ENV USER="user"
 ENV HOME_DIR="/home/${USER}"
-ENV WORK_DIR="${HOME_DIR}"
+ENV WORK_DIR="${HOME_DIR}/app"
 
 # configure locale
-RUN apt update -qq > /dev/null && apt install --yes --no-install-recommends \
+RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
     locales && \
-    locale-gen en_US.UTF-8
+    locale-gen en_US.UTF-8 && \
+    rm -rf /var/lib/apt/lists/*
 ENV LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8"
 
-# install system dependencies
-RUN apt install -qq --yes --no-install-recommends \
-    build-essential \
-    git \
-    libsdl2-dev \
-    libsdl2-image-dev \
-    libsdl2-mixer-dev \
-    libsdl2-ttf-dev \
-    libssl-dev \
-    lsb-release \
+# install minimal system dependencies
+RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
     make \
-    pkg-config \
-	python3.7 \
-    python3.7-dev \
-    sudo \
-    tox \
-    virtualenv
+    sudo && \
+    rm -rf /var/lib/apt/lists/*
 
-# prepare non root env
-RUN useradd --create-home --shell /bin/bash ${USER}
-# with sudo access and no password
-RUN usermod -append --groups sudo ${USER}
-RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+# prepare non root env, with sudo access and no password
+RUN useradd --create-home --home-dir ${HOME_DIR} --shell /bin/bash ${USER} && \
+    usermod -append --groups sudo ${USER} && \
+    echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    mkdir ${WORK_DIR} && \
+    chown ${USER}:${USER} -R ${WORK_DIR}
 
 USER ${USER}
 WORKDIR ${WORK_DIR}
-COPY . ${WORK_DIR}
 
-RUN sudo make system_dependencies
-# required by Kivy `App.user_data_dir`
-RUN mkdir ~/.config
-ENTRYPOINT ["./dockerfiles/start.sh"]
+# install system dependencies
+COPY Makefile requirements.txt ${WORK_DIR}/
+RUN sudo make system_dependencies/linux && \
+    make virtualenv && \
+    sudo rm ${WORK_DIR}/requirements.txt ${WORK_DIR}/Makefile && \
+    sudo rm -rf /var/lib/apt/lists/* && \
+    mkdir ~/.config
+
+COPY . ${WORK_DIR}

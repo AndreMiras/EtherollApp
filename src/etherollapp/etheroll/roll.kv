@@ -2,6 +2,7 @@
 #:import MDTextField kivymd.textfields.MDTextField
 #:import MDSlider kivymd.slider.MDSlider
 #:import AddressButton etherollapp.etheroll.addressbutton.AddressButton
+#:import NO_ACCOUNT_SELECTED_STRING etherollapp.etheroll.constants.NO_ACCOUNT_SELECTED_STRING
 #:import ROUND_DIGITS pyetheroll.constants.ROUND_DIGITS
 
 
@@ -90,7 +91,7 @@
     BoxLayoutMarginLayout:
         orientation: "vertical"
         AddressButton:
-            text: root.current_account_string or 'No account selected'
+            text: root.current_account_string or NO_ACCOUNT_SELECTED_STRING
             on_release: app.root.open_address_options()
         BoxLayoutAddMargin:
             orientation: "vertical"

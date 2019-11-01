@@ -7,13 +7,15 @@ from eth_keys import keys
 from eth_utils import decode_hex, encode_hex, remove_0x_prefix
 
 
-def to_string(value):
+def to_string(value) -> bytes:
     if isinstance(value, bytes):
         return value
-    if isinstance(value, str):
+    elif isinstance(value, str):
         return bytes(value, 'utf-8')
-    if isinstance(value, int):
+    elif isinstance(value, int):
         return bytes(str(value), 'utf-8')
+    else:
+        raise ValueError('Cannot convert to string')
 
 
 class Account:
@@ -27,11 +29,10 @@ class Account:
     """
 
     def __init__(self, keystore: dict, password: bytes = None, path=None):
+        self._address = None
         self.keystore = keystore
-        try:
+        if 'address' in self.keystore:
             self._address = decode_hex(self.keystore['address'])
-        except KeyError:
-            self._address = None
         self.locked = True
         if password is not None:
             password = to_string(password)
@@ -54,12 +55,11 @@ class Account:
         """
         if key is None:
             account = eth_account.Account.create()
-            key = account.privateKey
+            key = account.key
 
-        # [NOTE]: key and password should be bytes
-        password = str.encode(password)
+        password = to_string(password)
 
-        # encrypted = eth_account.Account.encrypt(account.privateKey, password)
+        # encrypted = eth_account.Account.encrypt(account.key, password)
         keystore = create_keyfile_json(key, password, iterations=iterations)
         keystore['id'] = uuid
         return Account(keystore, password, path)
@@ -128,9 +128,7 @@ class Account:
 
     @property
     def privkey(self):
-        """
-        The account's private key or `None` if the account is locked
-        """
+        """The account's private key or `None` if the account is locked."""
         if not self.locked:
             return self._privkey
         else:
@@ -138,9 +136,7 @@ class Account:
 
     @property
     def pubkey(self):
-        """
-        The account's public key or `None` if the account is locked
-        """
+        """The account's public key or `None` if the account is locked."""
         if not self.locked:
             pk = keys.PrivateKey(self.privkey)
             return remove_0x_prefix(pk.public_key.to_address())
@@ -151,7 +147,7 @@ class Account:
     def address(self):
         """
         The account's address or `None` if the address is not stored in the key
-        file and cannot be reconstructed (because the account is locked)
+        file and cannot be reconstructed (because the account is locked).
         """
         if self._address:
             pass
@@ -168,7 +164,7 @@ class Account:
     def uuid(self):
         """
         An optional unique identifier, formatted according to UUID version 4,
-        or `None` if the account does not have an id
+        or `None` if the account does not have an id.
         """
         try:
             return self.keystore['id']
@@ -177,9 +173,7 @@ class Account:
 
     @uuid.setter
     def uuid(self, value):
-        """
-        Set the UUID. Set it to `None` in order to remove it.
-        """
+        """Set the UUID. Set it to `None` in order to remove it."""
         if value is not None:
             self.keystore['id'] = value
         elif 'id' in self.keystore:

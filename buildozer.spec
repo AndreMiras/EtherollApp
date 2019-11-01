@@ -45,30 +45,35 @@ requirements =
     cffi,
     chardet==3.0.4,
     cytoolz==0.9.0,
-    eth-abi==1.2.2,
-    eth-account==0.3.0,
+    eth-abi==2.0.0,
+    eth-account==0.4.0,
     eth-hash==0.2.0,
     eth-keyfile==0.5.1,
     eth-keys==0.2.0b3,
     eth-rlp==0.1.2,
     eth-typing==2.0.0,
-    eth-utils==1.2.1,
+    eth-utils==1.7.0,
     gevent,
     hexbytes==0.1.0,
-    https://github.com/AndreMiras/garden.layoutmargin/archive/20180517.tar.gz,
-    https://github.com/AndreMiras/KivyMD/archive/20181106.tar.gz,
-    https://github.com/AndreMiras/pyetheroll/archive/884805b.tar.gz,
     https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz,
     idna==2.7,
     Kivy==1.11.1,
+    kivy-garden.kivymd==2019.910,
+    kivy-garden.qrcode==2019.914,
+    kivy-garden.xcamera==2019.928,
+    kivy-garden.zbarcam==2019.1020,
+    layoutmargin==20190911,
     lru-dict==1.1.5,
     openssl,
     oscpy==0.3.0,
     parsimonious==0.8.1,
+    Pillow==5.2.0,
     plyer==1.3.1,
     pycryptodome==3.4.6,
+    pyetheroll==20191018,
     Pygments==2.2.0,
     python3==3.7.1,
+    pyzbar==0.1.8,
     qrcode==6.0,
     raven==6.10.0,
     requests==2.20.0,
@@ -77,7 +82,7 @@ requirements =
     setuptools==40.9.0,
     toolz==0.9.0,
     urllib3==1.24.1,
-    web3==4.8.1
+    web3==5.2.0
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -85,7 +90,6 @@ requirements =
 
 # (list) Garden requirements
 #garden_requirements =
-garden_requirements = qrcode
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
@@ -130,7 +134,7 @@ fullscreen = 0
 #android.presplash_color = #FFFFFF
 
 # (list) Permissions
-android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE
+android.permissions = CAMERA,INTERNET,WRITE_EXTERNAL_STORAGE
 
 # (int) Target Android API, should be as high as possible.
 android.api = 27
@@ -142,7 +146,7 @@ android.minapi = 21
 android.sdk = 20
 
 # (str) Android NDK version to use
-android.ndk = 17c
+android.ndk = 19b
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 android.ndk_api = 21
@@ -246,7 +250,7 @@ android.arch = armeabi-v7a
 p4a.fork = kivy
 
 # (str) python-for-android branch to use, defaults to master
-p4a.branch = v2019.08.09
+p4a.branch = develop
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
 #p4a.source_dir =

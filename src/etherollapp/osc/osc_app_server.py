@@ -12,16 +12,12 @@ osc = OSCThreadServer()
 
 @ServerClass
 class OscAppServer:
-    """
-    OSC server used to update the app process.
-    """
+    """OSC server used to update the app process."""
 
     _osc_server = None
 
     def __init__(self, app=None):
-        """
-        app: instance of the application to talk to
-        """
+        """app: instance of the application to talk to"""
         self.app = app
 
     @classmethod
@@ -43,24 +39,18 @@ class OscAppServer:
 
     @osc.address_method(b'/ping')
     def _callback_ping(self, *args):
-        """
-        Test method that will reply with a pong to the sender.
-        """
+        """Test method that will reply with a pong to the sender."""
         print(f'OscAppServer.ping(): {args}')
         osc.answer(b'/pong')
 
     @osc.address_method(b'/pong')
     def _callback_pong(self, *args):
-        """
-        Test pong method.
-        """
+        """Test pong method."""
         print(f'OscAppServer.pong(): {args}')
 
     @osc.address_method(b'/refresh_balance')
     def _callback_refresh_balance(self, *args):
-        """
-        Refreshes roll screen balance.
-        """
+        """Refreshes roll screen balance."""
         print(f'OscAppServer.refresh_balance(): {args}')
         controller = self.app.root
         roll_screen = controller.roll_screen
@@ -68,9 +58,7 @@ class OscAppServer:
 
 
 def main():
-    """
-    Test main for running the OSC app server.
-    """
+    """Test main for running the OSC app server."""
     osc_app_server, sockname = OscAppServer.get_or_create()
     print(sockname)
     sleep(100)

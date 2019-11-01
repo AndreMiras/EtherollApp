@@ -1,5 +1,6 @@
 import os
 import threading
+from typing import List
 
 from kivy.app import App
 from kivy.clock import mainthread
@@ -14,9 +15,7 @@ from layoutmargin import AddMargin, MarginLayout
 
 
 def load_kv_from_py(f):
-    """
-    Loads file.kv for given file.py.
-    """
+    """Loads file.kv for given file.py."""
     filename = os.path.basename(os.path.splitext(f)[0])
     Builder.load_file(
         os.path.join(
@@ -26,10 +25,10 @@ def load_kv_from_py(f):
     )
 
 
-class Dialog(object):
+class Dialog:
 
     # keeps track of all dialogs alive
-    dialogs = []
+    dialogs: List[MDDialog] = []
     __lock = threading.Lock()
 
     @staticmethod
@@ -46,9 +45,7 @@ class Dialog(object):
 
     @classmethod
     def on_dialog_dismiss(cls, dialog):
-        """
-        Removes it from the dialogs track list.
-        """
+        """Removes it from the dialogs track list."""
         with cls.__lock:
             try:
                 cls.dialogs.remove(dialog)
@@ -59,9 +56,7 @@ class Dialog(object):
 
     @classmethod
     def dismiss_all_dialogs(cls):
-        """
-        Dispatches dismiss event for all dialogs.
-        """
+        """Dispatches dismiss event for all dialogs."""
         # keeps a local copy since we're altering them as we iterate
         dialogs = cls.dialogs[:]
         for dialog in dialogs:
@@ -116,25 +111,19 @@ class Dialog(object):
 
 
 class SubScreen(Screen):
-    """
-    Helper parent class for updating toolbar on enter/leave.
-    """
+    """Helper parent class for updating toolbar on enter/leave."""
 
     def on_back(self):
         self.manager.transition.direction = 'right'
         self.manager.current = 'roll_screen'
 
     def on_enter(self):
-        """
-        Loads the toolbar back button.
-        """
+        """Loads the toolbar back button."""
         app = App.get_running_app()
         app.root.ids.toolbar_id.load_back_button(self.on_back)
 
     def on_leave(self):
-        """
-        Loads the toolbar default button.
-        """
+        """Loads the toolbar default button."""
         app = App.get_running_app()
         app.root.ids.toolbar_id.load_default_buttons()
 

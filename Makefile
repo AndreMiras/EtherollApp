@@ -1,7 +1,6 @@
 VIRTUAL_ENV ?= venv
 ACTIVATE_PATH=$(VIRTUAL_ENV)/bin/activate
 PIP=$(VIRTUAL_ENV)/bin/pip
-TOX=`which tox`
 PYTHON_MAJOR_VERSION=3
 PYTHON_MINOR_VERSION=7
 PYTHON_VERSION=$(PYTHON_MAJOR_VERSION).$(PYTHON_MINOR_VERSION)
@@ -34,6 +33,7 @@ SYSTEM_DEPENDENCIES_ANDROID= \
     libffi-dev \
     libltdl-dev \
     git \
+    libssl-dev \
     libtool \
     openjdk-8-jdk-headless \
     patch \

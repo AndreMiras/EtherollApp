@@ -5,6 +5,7 @@ from unittest import mock
 
 from kivy.app import App
 from pyetheroll.constants import ChainID
+from pyetheroll.etheroll import Etheroll
 
 from etherollapp.service.main import EtherollApp, MonitorRollsService
 
@@ -119,19 +120,19 @@ class TestMonitorRollsService(unittest.TestCase):
         The cached value should be updated on (testnet/mainnet) network change.
         """
         service = MonitorRollsService()
-        assert service._pyetheroll is None
+        # deletes the cached property eventually initialized by other tests
+        Etheroll._etheroll = None
         with tempfile.TemporaryDirectory() as temp_path, \
                 patch_get_abi() as m_get_abi, \
                 mock.patch.dict('os.environ', {'XDG_CONFIG_HOME': temp_path}):
             assert service.pyetheroll is not None
             assert m_get_abi.mock_calls == [mock.call()]
-            assert service._pyetheroll is not None
             pyetheroll = service.pyetheroll
             # it's obviously pointing to the same object for now,
             # but shouldn't not be later after we update some settings
             assert pyetheroll == service.pyetheroll
             assert pyetheroll.chain_id == ChainID.MAINNET
-        # the cached pyetheroll object is invalidated if the network changes
+        # the cached object is invalidated if the network changes
         with mock.patch(
                 'etherollapp.service.main.Settings.get_stored_network'
                 ) as m_get_stored_network, patch_get_abi() as m_get_abi:

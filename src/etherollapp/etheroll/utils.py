@@ -1,7 +1,12 @@
+import json
+import logging
+import os
 import threading
 from io import StringIO
 
 from kivy.utils import platform
+
+logger = logging.getLogger(__name__)
 
 
 def run_in_thread(fn):
@@ -46,6 +51,37 @@ def check_request_write_permission():
         permission = Permission.WRITE_EXTERNAL_STORAGE
         request_permission(permission)
     return had_permission
+
+
+def get_etherscan_api_key(api_key_path: str = None) -> str:
+    """
+    Tries to retrieve etherscan API key from path or from environment.
+    The files content should be in the form:
+    ```json
+    { "key" : "YourApiKeyToken" }
+    ```
+    """
+    DEFAULT_API_KEY_TOKEN = "YourApiKeyToken"
+    etherscan_api_key = os.environ.get("ETHERSCAN_API_KEY")
+    if etherscan_api_key is not None:
+        return etherscan_api_key
+    elif api_key_path is None:
+        logger.warning(
+            "Cannot get Etherscan API key. "
+            f"No path provided, defaulting to {DEFAULT_API_KEY_TOKEN}."
+        )
+        return DEFAULT_API_KEY_TOKEN
+    else:
+        try:
+            with open(api_key_path, mode="r") as key_file:
+                etherscan_api_key = json.loads(key_file.read())["key"]
+        except FileNotFoundError:
+            logger.warning(
+                f"Cannot get Etherscan API key. File {api_key_path} not found,"
+                f" defaulting to {DEFAULT_API_KEY_TOKEN}."
+            )
+            return DEFAULT_API_KEY_TOKEN
+    return etherscan_api_key
 
 
 class StringIOCBWrite(StringIO):

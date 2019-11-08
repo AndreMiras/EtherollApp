@@ -1,7 +1,7 @@
 # Change Log
 
 
-## [Unreleased]
+## [v2019.1108]
 
   - Fix Kivy low FPS performances issue
   - Fix 403 errors on Ropsten, refs #156, #157

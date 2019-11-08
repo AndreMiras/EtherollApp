@@ -70,7 +70,7 @@ requirements =
     Pillow==5.2.0,
     plyer==1.3.1,
     pycryptodome==3.4.6,
-    pyetheroll==20191018,
+    pyetheroll==20191108,
     Pygments==2.2.0,
     python3==3.7.1,
     pyzbar==0.1.8,

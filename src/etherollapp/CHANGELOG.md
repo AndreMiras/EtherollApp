@@ -1,9 +1,16 @@
 # Change Log
 
 
+## [v2019.1108]
+
+  - Fix Kivy low FPS performances issue
+  - Fix 403 errors on Ropsten, refs #156, #157
+  - Fix broken F-Droid build, refs #167
+
+
 ## [v2019.1101]
 
-  - Bumps Kivy related dependencies
+  - Bump Kivy related dependencies
   - Build and CI improvements
   - Transfer out feature, refs #80, #105
   - Migrate to NDK 19b, refs #154

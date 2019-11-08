@@ -27,6 +27,7 @@ from raven import Client
 from etherollapp.ethereum_utils import AccountUtils
 from etherollapp.etheroll.constants import API_KEY_PATH
 from etherollapp.etheroll.settings import Settings
+from etherollapp.etheroll.utils import get_etherscan_api_key
 from etherollapp.osc.osc_app_client import OscAppClient
 from etherollapp.sentry_utils import configure_sentry
 
@@ -71,7 +72,6 @@ class MonitorRollsService():
         """
         Set `osc_server_port` to enable UI synchronization with service.
         """
-        self._pyetheroll = None
         self._account_utils = None
         # per address cached merged logs, used to compare with next pulls
         self.merged_logs = {}
@@ -122,10 +122,8 @@ class MonitorRollsService():
         Also recreates the object if the chain_id changed.
         """
         chain_id = Settings.get_stored_network()
-        print(f'chain_id: {chain_id}')
-        if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
-            self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
-        return self._pyetheroll
+        api_key = get_etherscan_api_key(API_KEY_PATH)
+        return Etheroll.get_or_create(api_key, chain_id)
 
     def pull_account_rolls(self, account):
         """

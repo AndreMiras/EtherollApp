@@ -17,7 +17,7 @@ from etherollapp.etheroll.settings import Settings
 from etherollapp.etheroll.settings_screen import SettingsScreen
 from etherollapp.etheroll.switchaccount import SwitchAccountScreen
 from etherollapp.etheroll.ui_utils import Dialog, load_kv_from_py
-from etherollapp.etheroll.utils import run_in_thread
+from etherollapp.etheroll.utils import get_etherscan_api_key, run_in_thread
 from etherollapp.osc.osc_app_server import OscAppServer
 from etherollapp.sentry_utils import configure_sentry
 from etherollapp.service.utils import start_roll_polling_service
@@ -38,7 +38,6 @@ class Controller(FloatLayout):
         self.disabled = True
         Clock.schedule_once(self._after_init)
         self._account_passwords = {}
-        self._pyetheroll = None
 
     def _after_init(self, dt):
         """Inits pyethapp and binds events."""
@@ -82,9 +81,8 @@ class Controller(FloatLayout):
         """
         from pyetheroll.etheroll import Etheroll
         chain_id = Settings.get_stored_network()
-        if self._pyetheroll is None or self._pyetheroll.chain_id != chain_id:
-            self._pyetheroll = Etheroll(API_KEY_PATH, chain_id)
-        return self._pyetheroll
+        api_key = get_etherscan_api_key(API_KEY_PATH)
+        return Etheroll.get_or_create(api_key, chain_id)
 
     @property
     def account_utils(self):

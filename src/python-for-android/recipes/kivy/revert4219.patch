@@ -1,0 +1,37 @@
+diff --git a/kivy/core/window/_window_sdl2.pyx b/kivy/core/window/_window_sdl2.pyx
+index 69e82ed47..c6b056140 100644
+--- a/kivy/core/window/_window_sdl2.pyx
++++ b/kivy/core/window/_window_sdl2.pyx
+@@ -6,7 +6,6 @@ from os import environ
+ from kivy.config import Config
+ from kivy.logger import Logger
+ from kivy import platform
+-from kivy.graphics.cgl cimport *
+ 
+ from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+ 
+@@ -652,10 +651,7 @@ cdef class _WindowSDL2Storage:
+             pass
+ 
+     def flip(self):
+-        win = self.win
+-        with nogil:
+-            SDL_GL_SwapWindow(win)
+-            cgl.glFinish()
++        SDL_GL_SwapWindow(self.win)
+ 
+     def save_bytes_in_png(self, filename, data, int width, int height):
+         cdef SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
+diff --git a/kivy/lib/sdl2.pxi b/kivy/lib/sdl2.pxi
+index f750e5d3e..e6f2b5c68 100644
+--- a/kivy/lib/sdl2.pxi
++++ b/kivy/lib/sdl2.pxi
+@@ -604,7 +604,7 @@ cdef extern from "SDL.h":
+     cdef SDL_GLContext SDL_GL_GetCurrentContext()
+     cdef int SDL_GL_SetSwapInterval(int interval)
+     cdef int SDL_GL_GetSwapInterval()
+-    cdef void SDL_GL_SwapWindow(SDL_Window * window) nogil
++    cdef void SDL_GL_SwapWindow(SDL_Window * window)
+     cdef void SDL_GL_DeleteContext(SDL_GLContext context)
+ 
+     cdef int SDL_NumJoysticks()

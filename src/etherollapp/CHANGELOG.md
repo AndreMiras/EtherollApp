@@ -3,6 +3,7 @@
 
 ## [Unreleased]
 
+  - Fix Kivy low FPS performances issue
   - Fix 403 errors on Ropsten, refs #156, #157
   - Fix broken F-Droid build, refs #167
 

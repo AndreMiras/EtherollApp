@@ -51,3 +51,7 @@ And debug with `logcat`.
 ```sh
 buildozer android adb -- logcat
 ```
+
+## Documentation
+Find out more browsing the documentation directory:
+https://github.com/AndreMiras/EtherollApp/tree/develop/docs/

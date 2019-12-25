@@ -26,8 +26,8 @@ ENV LANG="en_US.UTF-8" \
 # install minimal system dependencies
 RUN apt update -qq > /dev/null && apt install -qq --yes --no-install-recommends \
     make \
-    sudo && \
-    rm -rf /var/lib/apt/lists/*
+    sudo \
+    && rm -rf /var/lib/apt/lists/*
 
 # prepare non root env, with sudo access and no password
 RUN useradd --create-home --home-dir ${HOME_DIR} --shell /bin/bash ${USER} && \

@@ -51,18 +51,18 @@ endif
 all: virtualenv
 
 system_dependencies:
-	sudo apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_BASE)
+	apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_BASE)
 
 system_dependencies/linux: system_dependencies
-	sudo apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_LINUX)
+	apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_LINUX)
 
 system_dependencies/android: system_dependencies
-	sudo apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_ANDROID)
+	apt update -qq > /dev/null && sudo apt -qq install --yes --no-install-recommends $(SYSTEM_DEPENDENCIES_ANDROID)
 
 $(VIRTUAL_ENV):
 	virtualenv --python $(PYTHON_WITH_VERSION) $(VIRTUAL_ENV)
 	$(PIP) install Cython==0.28.6
-	$(PIP) install --timeout 120 --requirement requirements.txt
+	$(PIP) install --requirement requirements.txt
 
 virtualenv: $(VIRTUAL_ENV)
 
@@ -88,7 +88,7 @@ lint/flake8: virtualenv
 	$(FLAKE8) $(SOURCES)
 
 lint/mypy: virtualenv
-	@$(MYPY) --ignore-missing-imports $(shell find src/etherollapp/ -name "*.py")
+	$(MYPY) --ignore-missing-imports $(shell find src/etherollapp/ -name "*.py")
 
 lint: lint/isort-check lint/flake8 lint/mypy
 
@@ -108,7 +108,7 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -r {} +
 
 clean/venv: clean
-	rm -rf $(VIRTUAL_ENV) .tox/
+	rm -rf $(VIRTUAL_ENV)
 
 buildozer/android/debug:
 	@if test -n "$$CI"; then sed 's/log_level = [0-9]/log_level = 1/' -i buildozer.spec; fi; \

@@ -47,6 +47,7 @@ requirements =
     cytoolz==0.9.0,
     eth-abi==2.0.0,
     eth-account==0.4.0,
+    eth-accounts==20191226,
     eth-hash==0.2.0,
     eth-keyfile==0.5.1,
     eth-keys==0.2.0b3,

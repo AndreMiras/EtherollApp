@@ -37,7 +37,7 @@ setup_params = {
     },
     'python_requires': '>=3',
     'install_requires': (
-        'eth-account<0.4.0',
+        'eth-account<=0.4.0',
         'eth-utils',
         'kivy-garden.kivymd',
         'layoutmargin',

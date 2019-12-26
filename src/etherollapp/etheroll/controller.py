@@ -87,7 +87,7 @@ class Controller(FloatLayout):
     @property
     def account_utils(self):
         """Gets or creates the AccountUtils object so it loads lazily."""
-        from etherollapp.ethereum_utils import AccountUtils
+        from eth_accounts.account_utils import AccountUtils
         keystore_dir = Settings.get_keystore_path()
         return AccountUtils.get_or_create(keystore_dir)
 

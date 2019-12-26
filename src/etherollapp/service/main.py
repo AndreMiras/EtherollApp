@@ -16,6 +16,7 @@ import json
 import os
 from time import sleep, time
 
+from eth_accounts.account_utils import AccountUtils
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.utils import platform
@@ -24,7 +25,6 @@ from pyetheroll.constants import ROUND_DIGITS
 from pyetheroll.etheroll import Etheroll
 from raven import Client
 
-from etherollapp.ethereum_utils import AccountUtils
 from etherollapp.etheroll.constants import API_KEY_PATH
 from etherollapp.etheroll.settings import Settings
 from etherollapp.etheroll.utils import get_etherscan_api_key

@@ -446,16 +446,6 @@ class Controller(FloatLayout):
         dialog.open()
 
 
-class DebugRavenClient(object):
-    """
-    The DebugRavenClient should be used in debug mode, it just raises
-    the exception rather than capturing it.
-    """
-
-    def captureException(self):
-        raise
-
-
 class EtherollApp(App):
 
     theme_cls = ThemeManager()

@@ -44,7 +44,7 @@ def configure_sentry(in_debug=False):
     return client
 
 
-class DebugRavenClient(object):
+class DebugRavenClient:
     """
     The DebugRavenClient should be used in debug mode, it just raises
     the exception rather than capturing it.

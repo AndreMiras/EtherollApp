@@ -13,7 +13,7 @@ package.domain = com.github.andremiras
 source.dir = src
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,md,json
+source.include_exts = py,png,jpg,kv,atlas,md,json,env
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -42,7 +42,7 @@ requirements =
     android,
     attrdict==2.0.0,
     certifi==2018.10.15,
-    cffi,
+    cffi==1.13.2,
     chardet==3.0.4,
     cytoolz==0.9.0,
     eth-abi==2.0.0,
@@ -56,6 +56,7 @@ requirements =
     eth-utils==1.7.0,
     gevent,
     hexbytes==0.1.0,
+    hostpython3==3.7.1,
     https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz,
     idna==2.7,
     Kivy==1.11.1,
@@ -68,11 +69,12 @@ requirements =
     openssl,
     oscpy==0.3.0,
     parsimonious==0.8.1,
-    Pillow==5.2.0,
+    Pillow==7.0.0,
     plyer==1.3.1,
     pycryptodome==3.4.6,
-    pyetheroll==20191108,
+    pyetheroll==20200320,
     Pygments==2.2.0,
+    python-dotenv==0.12.0,
     python3==3.7.1,
     pyzbar==0.1.8,
     qrcode==6.0,
@@ -80,7 +82,7 @@ requirements =
     requests==2.20.0,
     requests-cache==0.4.13,
     rlp==1.0.3,
-    setuptools==40.9.0,
+    setuptools==42.0.2,
     toolz==0.9.0,
     urllib3==1.24.1,
     web3==5.2.0

@@ -1,6 +1,11 @@
 # Change Log
 
 
+## [Unreleased]
+
+  - Support Infura API key, refs #170
+
+
 ## [v2019.1108]
 
   - Fix Kivy low FPS performances issue

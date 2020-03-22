@@ -1,6 +1,11 @@
 # Change Log
 
 
+## [Unreleased]
+
+  - Fix broken arm64-v8a build
+
+
 ## [v2020.0322]
 
   - Support Infura API key, refs #170

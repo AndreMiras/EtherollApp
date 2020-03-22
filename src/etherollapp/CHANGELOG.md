@@ -1,7 +1,7 @@
 # Change Log
 
 
-## [Unreleased]
+## [v2020.0322]
 
   - Support Infura API key, refs #170
 

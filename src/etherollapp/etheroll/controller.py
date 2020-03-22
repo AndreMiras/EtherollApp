@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from dotenv import load_dotenv
 from eth_utils import to_checksum_address
 from kivy.app import App
 from kivy.clock import Clock, mainthread
@@ -11,13 +12,13 @@ from kivymd.theming import ThemeManager
 from raven import Client
 from requests.exceptions import ConnectionError
 
-from etherollapp.etheroll.constants import API_KEY_PATH
+from etherollapp.etheroll.constants import ENV_PATH
 from etherollapp.etheroll.flashqrcode import FlashQrCodeScreen
 from etherollapp.etheroll.settings import Settings
 from etherollapp.etheroll.settings_screen import SettingsScreen
 from etherollapp.etheroll.switchaccount import SwitchAccountScreen
 from etherollapp.etheroll.ui_utils import Dialog, load_kv_from_py
-from etherollapp.etheroll.utils import get_etherscan_api_key, run_in_thread
+from etherollapp.etheroll.utils import run_in_thread
 from etherollapp.osc.osc_app_server import OscAppServer
 from etherollapp.sentry_utils import configure_sentry
 from etherollapp.service.utils import start_roll_polling_service
@@ -81,13 +82,12 @@ class Controller(FloatLayout):
         """
         from pyetheroll.etheroll import Etheroll
         chain_id = Settings.get_stored_network()
-        api_key = get_etherscan_api_key(API_KEY_PATH)
-        return Etheroll.get_or_create(api_key, chain_id)
+        return Etheroll.get_or_create(chain_id)
 
     @property
     def account_utils(self):
         """Gets or creates the AccountUtils object so it loads lazily."""
-        from etherollapp.ethereum_utils import AccountUtils
+        from eth_accounts.account_utils import AccountUtils
         keystore_dir = Settings.get_keystore_path()
         return AccountUtils.get_or_create(keystore_dir)
 
@@ -446,16 +446,6 @@ class Controller(FloatLayout):
         dialog.open()
 
 
-class DebugRavenClient(object):
-    """
-    The DebugRavenClient should be used in debug mode, it just raises
-    the exception rather than capturing it.
-    """
-
-    def captureException(self):
-        raise
-
-
 class EtherollApp(App):
 
     theme_cls = ThemeManager()
@@ -469,6 +459,7 @@ class EtherollApp(App):
 
 
 def main():
+    load_dotenv(dotenv_path=ENV_PATH)
     # only send Android errors to Sentry
     in_debug = platform != "android"
     client = configure_sentry(in_debug)

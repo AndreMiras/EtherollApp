@@ -16,6 +16,8 @@ import json
 import os
 from time import sleep, time
 
+from dotenv import load_dotenv
+from eth_accounts.account_utils import AccountUtils
 from kivy.app import App
 from kivy.logger import Logger
 from kivy.utils import platform
@@ -24,10 +26,8 @@ from pyetheroll.constants import ROUND_DIGITS
 from pyetheroll.etheroll import Etheroll
 from raven import Client
 
-from etherollapp.ethereum_utils import AccountUtils
-from etherollapp.etheroll.constants import API_KEY_PATH
+from etherollapp.etheroll.constants import ENV_PATH
 from etherollapp.etheroll.settings import Settings
-from etherollapp.etheroll.utils import get_etherscan_api_key
 from etherollapp.osc.osc_app_client import OscAppClient
 from etherollapp.sentry_utils import configure_sentry
 
@@ -122,8 +122,7 @@ class MonitorRollsService():
         Also recreates the object if the chain_id changed.
         """
         chain_id = Settings.get_stored_network()
-        api_key = get_etherscan_api_key(API_KEY_PATH)
-        return Etheroll.get_or_create(api_key, chain_id)
+        return Etheroll.get_or_create(chain_id)
 
     def pull_account_rolls(self, account):
         """
@@ -189,6 +188,7 @@ class MonitorRollsService():
 
 
 def main():
+    load_dotenv(dotenv_path=ENV_PATH)
     # only send Android errors to Sentry
     in_debug = platform != "android"
     client = configure_sentry(in_debug)

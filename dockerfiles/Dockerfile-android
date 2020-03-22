@@ -40,13 +40,15 @@ WORKDIR ${WORK_DIR}
 
 # install system dependencies
 # install buildozer & dependencies and enforces buildozer master (d483847) until next release
+# TODO: d483847 -> a294071
 COPY Makefile /tmp/Makefile
 RUN sudo make --file /tmp/Makefile system_dependencies/android && \
     sudo rm /tmp/Makefile && \
     sudo rm -rf /var/lib/apt/lists/* && \
     pip3 install --no-cache-dir --upgrade \
-	Cython==0.28.6 \
-	https://github.com/kivy/buildozer/archive/d483847.zip && \
+    Cython==0.28.6 \
+    'virtualenv<20' \
+    https://github.com/kivy/buildozer/archive/a294071.zip && \
     rm -rf ~/.cache/
 
 COPY . ${WORK_DIR}

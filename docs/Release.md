@@ -25,6 +25,13 @@ git push origin master:master
 git push --tags
 ```
 
+## PyPI
+We also publish the desktop app to PyPI on https://pypi.org/project/EtherollApp/ via:
+```sh
+make release/build
+make release/upload
+```
+
 ## GitHub
 
 Got to GitHub [Release/Tags](https://github.com/AndreMiras/EtherollApp/tags), click "Add release notes" for the tag just created.

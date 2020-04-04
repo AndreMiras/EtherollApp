@@ -4,6 +4,7 @@
 ## [Unreleased]
 
   - Fix broken arm64-v8a build
+  - Migrate to Python 3.8
 
 
 ## [v2020.0322]

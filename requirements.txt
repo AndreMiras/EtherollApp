@@ -5,7 +5,7 @@ flake8
 future
 https://github.com/corpetty/py-etherscan-api/archive/cb91fb3.tar.gz#egg=py-etherscan-api
 isort
-Kivy==1.11.1
+Kivy==2.0.0rc1
 kivy-garden.kivymd==2019.910
 kivy-garden.qrcode==2019.914
 kivy-garden.zbarcam==2019.1020

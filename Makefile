@@ -1,7 +1,7 @@
 VIRTUAL_ENV ?= venv
 PIP=$(VIRTUAL_ENV)/bin/pip
 PYTHON_MAJOR_VERSION=3
-PYTHON_MINOR_VERSION=7
+PYTHON_MINOR_VERSION=8
 PYTHON_VERSION=$(PYTHON_MAJOR_VERSION).$(PYTHON_MINOR_VERSION)
 PYTHON_WITH_VERSION=python$(PYTHON_VERSION)
 PYTHON=$(VIRTUAL_ENV)/bin/python
@@ -16,10 +16,12 @@ DOCKER_IMAGE_ANDROID=andremiras/etherollapp-android
 DOCKER_VOLUME=/tmp/.X11-unix:/tmp/.X11-unix
 SYSTEM_DEPENDENCIES_BASE= \
     libpython$(PYTHON_VERSION)-dev \
+    pkg-config \
     python$(PYTHON_VERSION)
 SYSTEM_DEPENDENCIES_LINUX= \
     build-essential \
     libgl1 \
+    mesa-common-dev \
     libzbar0 \
     python$(PYTHON_MAJOR_VERSION)-virtualenv \
     tox
@@ -35,7 +37,6 @@ SYSTEM_DEPENDENCIES_ANDROID= \
     libtool \
     openjdk-8-jdk-headless \
     patch \
-    pkg-config \
     python$(PYTHON_MAJOR_VERSION)-pip \
     python$(PYTHON_MAJOR_VERSION)-setuptools \
     unzip \

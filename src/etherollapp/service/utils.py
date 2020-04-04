@@ -13,9 +13,8 @@ def start_roll_polling_service(arguments=None):
     from jnius import autoclass
     package_name = 'etheroll'
     package_domain = 'com.github.andremiras'
-    service_name = 'service'
-    service_class = '{}.{}.Service{}'.format(
-        package_domain, package_name, service_name.title())
+    service_name = 'service'.title()
+    service_class = f'{package_domain}.{package_name}.Service{service_name}'
     service = autoclass(service_class)
     mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
     argument = json.dumps(arguments)

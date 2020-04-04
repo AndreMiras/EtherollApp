@@ -117,11 +117,7 @@ class SettingsScreen(SubScreen):
 
     def get_ui_network(self):
         """Retrieves network values from UI."""
-        if self.is_ui_mainnet():
-            network = ChainID.MAINNET
-        else:
-            network = ChainID.ROPSTEN
-        return network
+        return ChainID.MAINNET if self.is_ui_mainnet() else ChainID.ROPSTEN
 
     def is_ui_mainnet(self):
         return self.ids.mainnet_checkbox_id.active

@@ -23,8 +23,7 @@ class Settings:
             network_dict = store[NETWORK_SETTINGS]
         except KeyError:
             network_dict = {}
-        network_name = network_dict.get(
-            'value', ChainID.MAINNET.name)
+        network_name = network_dict.get('value', ChainID.MAINNET.name)
         network = ChainID[network_name]
         return network
 

@@ -66,7 +66,7 @@ class EtherollApp(App):
         return super()._get_user_data_dir()
 
 
-class MonitorRollsService():
+class MonitorRollsService:
 
     def __init__(self, osc_server_port=None):
         """
@@ -134,7 +134,7 @@ class MonitorRollsService():
         try:
             merged_logs_cached = self.merged_logs[address]
         except KeyError:
-            # not yet cahed, let's cache it for the first time
+            # not yet cached, let's cache it for the first time
             self.merged_logs[address] = merged_logs
             return
         if merged_logs_cached != merged_logs:
@@ -179,8 +179,7 @@ class MonitorRollsService():
             sign = '<' if player_won else '>'
             title = 'You '
             title += 'won' if player_won else 'lost'
-            message = '{0} {1} {2}'.format(
-                dice_result, sign, roll_under)
+            message = f'{dice_result} {sign} {roll_under}'
         kwargs = {'title': title, 'message': message, 'ticker': ticker}
         if self.osc_app_client is not None:
             self.osc_app_client.send_refresh_balance()
@@ -194,7 +193,7 @@ def main():
     client = configure_sentry(in_debug)
     argument = os.environ.get('PYTHON_SERVICE_ARGUMENT', 'null')
     argument = json.loads(argument)
-    argument = {} if argument is None else argument
+    argument = argument or {}
     osc_server_port = argument.get('osc_server_port')
     service = MonitorRollsService(osc_server_port)
     try:

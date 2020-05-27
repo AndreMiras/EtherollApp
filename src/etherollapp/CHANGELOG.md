@@ -6,6 +6,7 @@
   - Fix broken arm64-v8a build
   - Migrate to Python 3.8
   - Bumps pyetheroll dependency (new contract)
+  - Clean up local recipes
 
 
 ## [v2020.0322]

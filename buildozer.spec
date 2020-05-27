@@ -72,7 +72,7 @@ requirements =
     Pillow==7.0.0,
     plyer==1.3.1,
     pycryptodome==3.4.6,
-    pyetheroll==20200320,
+    pyetheroll==20200527,
     Pygments==2.2.0,
     python-dotenv==0.12.0,
     python3==3.8.1,

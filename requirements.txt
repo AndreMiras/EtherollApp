@@ -15,7 +15,7 @@ mypy==0.730
 oscpy==0.3.0
 Pillow==7.0.0
 plyer==1.3.1
-pyetheroll>=20200320
+pyetheroll==20200527
 pytest
 python-dotenv==0.12.0
 pyzbar==0.1.8

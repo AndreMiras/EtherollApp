@@ -120,10 +120,10 @@ docker/pull/android:
 	docker pull $(DOCKER_IMAGE_ANDROID):latest
 
 docker/build/linux:
-	docker build --cache-from=$(DOCKER_IMAGE_LINUX) --tag=$(DOCKER_IMAGE_LINUX) --file=dockerfiles/Dockerfile-linux .
+	docker build --tag=$(DOCKER_IMAGE_LINUX) --file=dockerfiles/Dockerfile-linux .
 
 docker/build/android:
-	docker build --cache-from=$(DOCKER_IMAGE_ANDROID) --tag=$(DOCKER_IMAGE_ANDROID) --file=dockerfiles/Dockerfile-android .
+	docker build --tag=$(DOCKER_IMAGE_ANDROID) --file=dockerfiles/Dockerfile-android .
 
 docker/push/linux:
 	docker push $(DOCKER_IMAGE_LINUX)

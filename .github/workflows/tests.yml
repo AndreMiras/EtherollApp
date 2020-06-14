@@ -1,0 +1,16 @@
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-20.04
+    env:
+      DISPLAY: ':99.0'
+    steps:
+    - uses: actions/checkout@v2
+    - run: make docker/build/linux
+    - run: |
+        sudo apt install xvfb libxkbcommon-x11-0
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+    - run: make docker/run/test/linux
+

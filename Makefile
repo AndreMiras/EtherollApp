@@ -139,6 +139,11 @@ docker/run/test/linux:
 docker/run/test/android:
 	docker run --env-file dockerfiles/env.list $(DOCKER_IMAGE_ANDROID) make buildozer/android/debug
 
+docker/run/buildozer:
+	mkdir -p ~/.buildozer .buildozer bin
+	@if test -n "$$CI"; then sudo chown -R 1000:1000 ~/.buildozer .buildozer bin; fi; \
+	docker run --volume "$(CURDIR)":/home/user/hostcwd kivy/buildozer android debug
+
 docker/run/app:
 	docker run --env-file dockerfiles/env.list -v $(DOCKER_VOLUME) $(DOCKER_DEVICE) -it --rm $(DOCKER_IMAGE_LINUX) make run
 

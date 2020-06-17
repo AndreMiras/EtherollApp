@@ -1,0 +1,13 @@
+name: Android
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: docker pull kivy/buildozer
+    - run: make docker/run/buildozer
+    - uses: actions/upload-artifact@v2
+      with:
+        path: bin/etheroll-*-armeabi-v7a-debug.apk

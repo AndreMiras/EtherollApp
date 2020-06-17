@@ -2,6 +2,7 @@
 
 [![Build Status](https://secure.travis-ci.org/AndreMiras/EtherollApp.png?branch=develop)](http://travis-ci.org/AndreMiras/EtherollApp)
 [![Github Actions Tests](https://github.com/AndreMiras/EtherollApp/workflows/Tests/badge.svg)](https://github.com/AndreMiras/EtherollApp/actions?query=workflow%3ATests)
+[![Github Actions Android](https://github.com/AndreMiras/EtherollApp/workflows/Android/badge.svg)](https://github.com/AndreMiras/EtherollApp/actions?query=workflow%3AAndroid)
 [![PyPI version](https://badge.fury.io/py/EtherollApp.svg)](https://badge.fury.io/py/EtherollApp)
 [![Get it on F-Droid](https://img.shields.io/f-droid/v/com.github.andremiras.etheroll.svg)](https://f-droid.org/en/packages/com.github.andremiras.etheroll)
 [![Releases](https://img.shields.io/github/release/andremiras/EtherollApp.svg?logo=github)](https://github.com/AndreMiras/EtherollApp/releases)

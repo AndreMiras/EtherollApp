@@ -19,6 +19,10 @@ Built with Python, [Kivy](https://github.com/kivy/kivy) and love.
 
 <img src="https://i.imgur.com/ORa0iTG.png" alt="Screenshot mainscreen" width="300"> <img src="https://i.imgur.com/Imwuifi.png" alt="Screenshot roll history" width="300">
 
+## Closed down
+The upstream project/smart-contract closed down.
+<https://www.reddit.com/r/etheroll/comments/peeekh/etheroll_is_closing_down/>
+
 
 ## Install & Usage
 [EtherollApp is available on PyPI](https://pypi.org/project/EtherollApp/).
